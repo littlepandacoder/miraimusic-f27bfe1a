@@ -1,8 +1,6 @@
 import { Mail, Phone, MapPin, Instagram, Facebook, Youtube } from "lucide-react";
-
 const Footer = () => {
-  return (
-    <footer id="contact" className="py-16 bg-navy-dark border-t border-border/30">
+  return <footer id="contact" className="py-16 bg-navy-dark border-t border-border/30">
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-4 gap-8 mb-12">
           {/* Brand */}
@@ -33,8 +31,7 @@ const Footer = () => {
                 <Mail className="w-4 h-4 text-primary" />
                 info@miraimusic.com
               </li>
-              <li className="flex items-center gap-3 text-muted-foreground text-sm">
-                <Phone className="w-4 h-4 text-primary" />
+              <li className="flex items-center gap-3 text-muted-foreground text-sm">+971562102658<Phone className="w-4 h-4 text-primary" />
                 +1 (555) 123-4567
               </li>
               <li className="flex items-start gap-3 text-muted-foreground text-sm">
@@ -67,8 +64,6 @@ const Footer = () => {
           </p>
         </div>
       </div>
-    </footer>
-  );
+    </footer>;
 };
-
 export default Footer;
