@@ -1,6 +1,8 @@
 const PianoKeyboard = () => {
   const whiteKeys = Array(14).fill(null);
-  const blackKeyPattern = [1, 1, 0, 1, 1, 1, 0]; // Pattern: 1 = black key, 0 = gap
+  // Black key pattern per octave: C-D has black, D-E has black, E-F no black, F-G has black, G-A has black, A-B has black, B-C no black
+  // This creates the 2-3 grouping pattern
+  const blackKeyPattern = [1, 1, 0, 1, 1, 1, 0]; // 2 blacks, gap, 3 blacks, gap
   
   // Colors for the falling notes
   const noteColors = [
@@ -84,20 +86,21 @@ const PianoKeyboard = () => {
         ))}
         
         {/* Black keys */}
-        <div className="absolute top-0 left-0 right-0 flex pointer-events-none">
+        <div className="absolute top-0 left-0 right-0 pointer-events-none">
           {whiteKeys.slice(0, -1).map((_, index) => {
             const patternIndex = index % 7;
             if (blackKeyPattern[patternIndex] === 0) return null;
             
+            // Position black key at the right edge of each white key
+            const keyWidth = 100 / 14; // percentage width of each white key
+            const leftPosition = (index + 1) * keyWidth - 2; // position at boundary minus offset
+            
             return (
               <div
                 key={index}
-                className="flex-1 flex justify-end"
-              >
-                <div
-                  className="w-6 h-20 bg-navy-dark rounded-b-md -mr-3 pointer-events-auto hover:bg-navy transition-colors cursor-pointer z-10"
-                />
-              </div>
+                className="absolute w-5 h-20 bg-navy-dark rounded-b-md pointer-events-auto hover:bg-navy transition-colors cursor-pointer z-10"
+                style={{ left: `calc(${leftPosition}% - 10px)` }}
+              />
             );
           })}
         </div>
