@@ -32,7 +32,7 @@ const Footer = () => {
                 info@miraimusic.com
               </li>
               <li className="flex items-center gap-3 text-muted-foreground text-sm">+971562102658<Phone className="w-4 h-4 text-primary" />
-                +1 (555) 123-4567
+                ​
               </li>
               <li className="flex items-start gap-3 text-muted-foreground text-sm">
                 <MapPin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
