@@ -31,8 +31,8 @@ const Footer = () => {
                 <Mail className="w-4 h-4 text-primary" />
                 info@miraimusic.com
               </li>
-              <li className="flex items-center gap-3 text-muted-foreground text-sm">+971562102658<Phone className="w-4 h-4 text-primary" />
-                ​
+              <li className="flex items-center gap-3 text-muted-foreground text-sm">​<Phone className="w-4 h-4 text-primary" />
+                +971562102658​
               </li>
               <li className="flex items-start gap-3 text-muted-foreground text-sm">
                 <MapPin className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
