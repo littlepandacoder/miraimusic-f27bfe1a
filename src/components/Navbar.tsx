@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
 
   const navLinks = [
     { href: "#home", label: "Home" },
@@ -14,18 +17,21 @@ const Navbar = () => {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border/30">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <a href="#home" className="text-2xl font-black text-foreground">
+          <Link to="/" className="text-2xl font-black text-foreground">
             Miraimusic
-          </a>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-10">
-            {navLinks.map((link) => (
+            {isHomePage && navLinks.map((link) => (
               <a key={link.href} href={link.href} className="nav-link">
                 {link.label}
               </a>
             ))}
-            <a href="#assessment" className="btn-primary text-sm px-6 py-3">
+            <Link to="/skool-community" className="nav-link text-pink font-semibold">
+              Skool Community
+            </Link>
+            <a href={isHomePage ? "#assessment" : "/#assessment"} className="btn-primary text-sm px-6 py-3">
               Get Started
             </a>
           </div>
@@ -42,7 +48,7 @@ const Navbar = () => {
         {/* Mobile Navigation */}
         {isOpen && (
           <div className="md:hidden mt-4 pb-4 flex flex-col gap-4">
-            {navLinks.map((link) => (
+            {isHomePage && navLinks.map((link) => (
               <a
                 key={link.href}
                 href={link.href}
@@ -52,8 +58,15 @@ const Navbar = () => {
                 {link.label}
               </a>
             ))}
+            <Link
+              to="/skool-community"
+              className="nav-link py-2 text-pink font-semibold"
+              onClick={() => setIsOpen(false)}
+            >
+              Skool Community
+            </Link>
             <a
-              href="#assessment"
+              href={isHomePage ? "#assessment" : "/#assessment"}
               className="btn-primary text-sm text-center"
               onClick={() => setIsOpen(false)}
             >
