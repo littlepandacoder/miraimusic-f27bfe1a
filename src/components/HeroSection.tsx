@@ -12,13 +12,24 @@ const HeroSection = () => {
             <span className="text-pink">100% GUARANTEED</span>{" "}
             <span className="text-foreground">PASS YOUR TRINITY PIANO EXAM</span>
           </p>
-          <a 
-            href="#assessment" 
-            className="btn-primary inline-block animate-slide-up animate-pulse-glow"
-            style={{ animationDelay: "0.2s" }}
-          >
-            DON'T THINK JUST CLICK
-          </a>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <a 
+              href="#assessment" 
+              className="btn-primary inline-block animate-slide-up animate-pulse-glow"
+              style={{ animationDelay: "0.2s" }}
+            >
+              DON'T THINK JUST CLICK
+            </a>
+            <a 
+              href="https://www.skool.com/pianomastery90days/about?ref=76fa2e8809594da080da4f38ee98471a"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block px-8 py-4 bg-transparent border-2 border-pink text-pink font-bold text-lg rounded-full hover:bg-pink hover:text-background transition-all duration-300 animate-slide-up"
+              style={{ animationDelay: "0.25s" }}
+            >
+              JOIN SKOOL COMMUNITY
+            </a>
+          </div>
         </div>
 
         <div className="animate-slide-up" style={{ animationDelay: "0.3s" }}>
