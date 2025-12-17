@@ -31,9 +31,9 @@ const Navbar = () => {
             <Link to="/skool-community" className="nav-link text-pink font-semibold">
               Skool Community
             </Link>
-            <a href={isHomePage ? "#assessment" : "/#assessment"} className="btn-primary text-sm px-6 py-3">
-              Get Started
-            </a>
+            <Link to="/book-class" className="btn-primary text-sm px-6 py-3">
+              Book a Class
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -65,13 +65,13 @@ const Navbar = () => {
             >
               Skool Community
             </Link>
-            <a
-              href={isHomePage ? "#assessment" : "/#assessment"}
+            <Link
+              to="/book-class"
               className="btn-primary text-sm text-center"
               onClick={() => setIsOpen(false)}
             >
-              Get Started
-            </a>
+              Book a Class
+            </Link>
           </div>
         )}
       </div>
