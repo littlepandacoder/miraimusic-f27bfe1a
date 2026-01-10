@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Edit, Video, FileText, Upload } from "lucide-react";
+import { Plus, Trash2, Edit, Video, FileText, Upload, Sparkles, BookOpen } from "lucide-react";
+import AILessonGenerator from "./AILessonGenerator";
 
 interface LessonPlan {
   id: string;
@@ -176,6 +178,23 @@ const LessonPlans = () => {
 
   return (
     <div className="space-y-6">
+      <Tabs defaultValue="plans" className="w-full">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsTrigger value="plans" className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            My Lesson Plans
+          </TabsTrigger>
+          <TabsTrigger value="generator" className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4" />
+            AI Generator
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="generator">
+          <AILessonGenerator />
+        </TabsContent>
+
+        <TabsContent value="plans">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Lesson Plans</h2>
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
@@ -310,6 +329,8 @@ const LessonPlans = () => {
           ))}
         </div>
       )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
