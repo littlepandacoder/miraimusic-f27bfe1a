@@ -17,6 +17,34 @@
     <meta name="twitter:site" content="@Miraimusic" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
 
+    <!-- Inline unload blocker: runs early to prevent Permissions Policy spam -->
+    <script>
+      (function(){
+        try {
+          var origAdd = EventTarget.prototype.addEventListener;
+          var diagnostics = false;
+          try { diagnostics = localStorage.getItem('unload-blocker:diagnostics') === '1'; } catch(e) {}
+
+          EventTarget.prototype.addEventListener = function(type, listener, options){
+            if (type === 'unload') {
+              var stack = (new Error()).stack || '';
+              if (diagnostics) {
+                var extMatch = stack.match(/(chrome-extension|moz-extension|safari-extension):\/\/[^\s)]+/i);
+                var origin = extMatch ? extMatch[0] : 'unknown';
+                console.warn('[miraimusic] blocked registration of "unload" event listener. origin=' + origin, stack);
+              } else {
+                console.warn('[miraimusic] blocked registration of "unload" event listener.');
+              }
+              return;
+            }
+            return origAdd.call(this, type, listener, options);
+          };
+        } catch (err) {
+          /* ignore */
+        }
+      })();
+    </script>
+
     <!-- Meta Pixel Code -->
     <script>
       !function(f,b,e,v,n,t,s)
