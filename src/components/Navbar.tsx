@@ -1,33 +1,30 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
-
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
   const isHomePage = location.pathname === "/";
-
-  const navLinks = [
-    { href: "#home", label: "Home" },
-    { href: "#about", label: "About Us" },
-    { href: "#contact", label: "Contact Us" },
-  ];
-
-  return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border/30">
+  const navLinks = [{
+    href: "#home",
+    label: "Home"
+  }, {
+    href: "#about",
+    label: "About Us"
+  }, {
+    href: "#contact",
+    label: "Contact Us"
+  }];
+  return <nav className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border-border/30">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="text-2xl font-black text-foreground">
-            Miraimusic
-          </Link>
+          <Link to="/" className="text-2xl font-black text-foreground">musicable</Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-10">
-            {isHomePage && navLinks.map((link) => (
-              <a key={link.href} href={link.href} className="nav-link">
+            {isHomePage && navLinks.map(link => <a key={link.href} href={link.href} className="nav-link">
                 {link.label}
-              </a>
-            ))}
+              </a>)}
             <Link to="/skool-community" className="nav-link text-pink font-semibold">
               Skool Community
             </Link>
@@ -37,46 +34,24 @@ const Navbar = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            className="md:hidden text-foreground"
-            onClick={() => setIsOpen(!isOpen)}
-          >
+          <button className="md:hidden text-foreground" onClick={() => setIsOpen(!isOpen)}>
             {isOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
 
         {/* Mobile Navigation */}
-        {isOpen && (
-          <div className="md:hidden mt-4 pb-4 flex flex-col gap-4">
-            {isHomePage && navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                className="nav-link py-2"
-                onClick={() => setIsOpen(false)}
-              >
+        {isOpen && <div className="md:hidden mt-4 pb-4 flex flex-col gap-4">
+            {isHomePage && navLinks.map(link => <a key={link.href} href={link.href} className="nav-link py-2" onClick={() => setIsOpen(false)}>
                 {link.label}
-              </a>
-            ))}
-            <Link
-              to="/skool-community"
-              className="nav-link py-2 text-pink font-semibold"
-              onClick={() => setIsOpen(false)}
-            >
+              </a>)}
+            <Link to="/skool-community" className="nav-link py-2 text-pink font-semibold" onClick={() => setIsOpen(false)}>
               Skool Community
             </Link>
-            <Link
-              to="/book-class"
-              className="btn-primary text-sm text-center"
-              onClick={() => setIsOpen(false)}
-            >
+            <Link to="/book-class" className="btn-primary text-sm text-center" onClick={() => setIsOpen(false)}>
               Book a Class
             </Link>
-          </div>
-        )}
+          </div>}
       </div>
-    </nav>
-  );
+    </nav>;
 };
-
 export default Navbar;
