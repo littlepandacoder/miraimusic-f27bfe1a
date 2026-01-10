@@ -25,14 +25,58 @@
           var diagnostics = false;
           try { diagnostics = localStorage.getItem('unload-blocker:diagnostics') === '1'; } catch(e) {}
 
+          // Create a small diagnostics banner element (hidden by default)
+          var bannerId = 'unload-blocker-banner';
+          function ensureBanner() {
+            if (document.getElementById(bannerId)) return document.getElementById(bannerId);
+            try {
+              var el = document.createElement('div');
+              el.id = bannerId;
+              el.style.position = 'fixed';
+              el.style.right = '12px';
+              el.style.bottom = '12px';
+              el.style.zIndex = '99999';
+              el.style.background = 'rgba(255,69,58,0.95)';
+              el.style.color = 'white';
+              el.style.padding = '8px 12px';
+              el.style.borderRadius = '6px';
+              el.style.fontSize = '12px';
+              el.style.fontFamily = 'sans-serif';
+              el.style.boxShadow = '0 4px 14px rgba(0,0,0,0.2)';
+              el.style.display = 'none';
+              el.style.maxWidth = '320px';
+              el.style.wordBreak = 'break-word';
+              el.innerHTML = '<strong>Diagnostics:</strong> <span id="unload-blocker-origin">(none)</span> <button id="unload-blocker-close" style="margin-left:8px;background:transparent;border:0;color:rgba(255,255,255,0.9);cursor:pointer;font-weight:600">✕</button>';
+              document.documentElement.appendChild(el);
+              var btn = document.getElementById('unload-blocker-close');
+              btn && btn.addEventListener('click', function(){ try{ el.style.display='none'; }catch(e){} });
+              return el;
+            } catch (e) {
+              return null;
+            }
+          }
+
+          function showOrigin(origin, stack) {
+            try {
+              var el = ensureBanner();
+              if (!el) return;
+              var span = document.getElementById('unload-blocker-origin');
+              if (span) span.textContent = origin + ' (see console for stack)';
+              el.style.display = 'block';
+              // Also log stack to console to keep details available
+              console.warn('[miraimusic] blocked registration of "unload" event listener. origin=' + origin, stack);
+            } catch(e){ /* ignore */ }
+          }
+
           EventTarget.prototype.addEventListener = function(type, listener, options){
             if (type === 'unload') {
               var stack = (new Error()).stack || '';
               if (diagnostics) {
                 var extMatch = stack.match(/(chrome-extension|moz-extension|safari-extension):\/\/[^\s)]+/i);
                 var origin = extMatch ? extMatch[0] : 'unknown';
-                console.warn('[miraimusic] blocked registration of "unload" event listener. origin=' + origin, stack);
+                showOrigin(origin, stack);
               } else {
+                // Keep a minimal console warning when diagnostics are off
                 console.warn('[miraimusic] blocked registration of "unload" event listener.');
               }
               return;
