@@ -6,17 +6,38 @@
 (() => {
   const origAdd = EventTarget.prototype.addEventListener;
 
+  const diagnosticsEnabled = () => {
+    try {
+      return localStorage.getItem("unload-blocker:diagnostics") === "1";
+    } catch (e) {
+      return false;
+    }
+  };
+
   EventTarget.prototype.addEventListener = function (
     type: string,
     listener: EventListenerOrEventListenerObject | null,
     options?: boolean | AddEventListenerOptions
   ) {
     if (type === "unload") {
-      // Silently ignore registrations for 'unload' and warn for visibility.
-      // This prevents Permission Policy console violations while keeping
-      // the rest of the page behavior intact.
-      // eslint-disable-next-line no-console
-      console.warn("[miraimusic] blocked registration of 'unload' event listener.");
+      // Capture a stack trace to identify the origin of the registration
+      // (useful to find which extension or script is trying to add unload).
+      const stack = new Error().stack || "";
+
+      if (diagnosticsEnabled()) {
+        // Try to parse common extension URL patterns from the stack (Chrome/Firefox/Safari)
+        const extMatch = stack.match(/(chrome-extension|moz-extension|safari-extension):\/\/[^\s)]+/i);
+        const origin = extMatch ? extMatch[0] : "unknown";
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[miraimusic] blocked registration of 'unload' event listener. origin=${origin}`,
+          stack
+        );
+      } else {
+        // eslint-disable-next-line no-console
+        console.warn("[miraimusic] blocked registration of 'unload' event listener.");
+      }
+
       return;
     }
 
