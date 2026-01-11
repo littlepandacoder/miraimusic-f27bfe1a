@@ -1,0 +1,60 @@
+name: Supabase migrations & function deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install supabase CLI
+        run: npm i -g supabase
+
+      - name: Authenticate supabase CLI
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          echo "Using SUPABASE_ACCESS_TOKEN" 
+          supabase status --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+
+      - name: Push DB migrations (fix profiles/bookings policies)
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase db push --project-ref ${{ secrets.SUPABASE_PROJECT_REF }} --file supabase/migrations/20260111_fix_profiles_bookings_policies.sql
+          supabase db push --project-ref ${{ secrets.SUPABASE_PROJECT_REF }} --file supabase/migrations/20260111_add_schools_and_assignments.sql
+          supabase db push --project-ref ${{ secrets.SUPABASE_PROJECT_REF }} --file supabase/migrations/20260111_ensure_teacher_students.sql
+
+      - name: Ensure service role key exists as project secret
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          if [ -n "${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" ]; then
+            echo "Setting SUPABASE_SERVICE_ROLE_KEY as project secret"
+            supabase secrets set SUPABASE_SERVICE_ROLE_KEY="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" --project-ref ${{ secrets.SUPABASE_PROJECT_REF }} || true
+          else
+            echo "No SUPABASE_SERVICE_ROLE_KEY provided; skipping"
+          fi
+
+      - name: Deploy create-user function
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          supabase functions deploy create-user --project-ref ${{ secrets.SUPABASE_PROJECT_REF }} --no-verify-jwt
+
+      - name: Verify migration and function
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+        run: |
+          echo "Listing recent migrations"
+          supabase db list --project-ref ${{ secrets.SUPABASE_PROJECT_REF }} || true
+          echo "Listing deployed functions"
+          supabase functions list --project-ref ${{ secrets.SUPABASE_PROJECT_REF }} || true
