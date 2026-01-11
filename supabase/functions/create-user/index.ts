@@ -26,10 +26,10 @@ serve(async (req) => {
 
     // Verify token and ensure the caller has admin role
     const { data: userResult, error: userError } = await supabaseAdmin.auth.getUser(accessToken);
-    if (userError || !userResult?.data?.user) {
+    if (userError || !userResult?.user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
     }
-    const callerId = userResult.data.user.id;
+    const callerId = userResult.user.id;
 
     const { data: roleRow, error: roleError } = await supabaseAdmin
       .from("user_roles")
