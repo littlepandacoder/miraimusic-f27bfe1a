@@ -7,6 +7,7 @@ import { Users, Calendar, BookOpen, UserPlus } from "lucide-react";
 import ManageUsers from "./admin/ManageUsers";
 import ManageLessons from "./admin/ManageLessons";
 import ManageSlots from "./admin/ManageSlots";
+import ManageDistricts from "./admin/ManageDistricts";
 
 const AdminHome = () => {
   const [stats, setStats] = useState({
@@ -106,6 +107,13 @@ const AdminHome = () => {
               <p className="text-sm text-muted-foreground">Set available times</p>
             </div>
           </a>
+          <a href="/dashboard/districts" className="feature-card flex items-center gap-4 p-4">
+            <Users className="w-8 h-8 text-primary" />
+            <div>
+              <p className="font-semibold">Manage School Districts</p>
+              <p className="text-sm text-muted-foreground">Create districts, classes, and assignments</p>
+            </div>
+          </a>
         </CardContent>
       </Card>
     </div>
@@ -120,6 +128,7 @@ const AdminDashboard = () => {
         <Route path="/users" element={<ManageUsers />} />
         <Route path="/lessons" element={<ManageLessons />} />
         <Route path="/slots" element={<ManageSlots />} />
+        <Route path="/districts" element={<ManageDistricts />} />
       </Routes>
     </DashboardLayout>
   );

@@ -38,8 +38,7 @@ const DashboardLayout = ({ children, title, role }: DashboardLayoutProps) => {
         ...baseItems,
         { href: "/dashboard/users", icon: Users, label: "Manage Users" },
         { href: "/dashboard/lessons", icon: Calendar, label: "All Lessons" },
-        { href: "/dashboard/slots", icon: ClipboardList, label: "Time Slots" },
-      ];
+        { href: "/dashboard/slots", icon: ClipboardList, label: "Time Slots" },        { href: "/dashboard/districts", icon: Settings, label: "Districts" },      ];
     }
 
     if (role === "teacher") {
@@ -64,8 +63,8 @@ const DashboardLayout = ({ children, title, role }: DashboardLayoutProps) => {
 
   return (
     <div className="min-h-screen bg-background flex">
-      {/* Sidebar */}
-      <aside className="w-64 bg-card border-r border-border flex flex-col">
+      {/* Sidebar (hidden on small screens) */}
+      <aside className="hidden md:flex w-64 bg-card border-r border-border flex flex-col">
         <div className="p-6 border-b border-border">
           <Link to="/" className="flex items-center gap-2">
             <Music className="w-8 h-8 text-primary" />
@@ -114,10 +113,23 @@ const DashboardLayout = ({ children, title, role }: DashboardLayoutProps) => {
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto">
-        <header className="bg-card border-b border-border px-8 py-6">
-          <h1 className="text-2xl font-bold">{title}</h1>
+        <header className="bg-card border-b border-border px-4 py-4 md:px-8 md:py-6">
+          <div className="flex items-center justify-between">
+            <h1 className="text-lg md:text-2xl font-bold">{title}</h1>
+            <div className="flex items-center gap-2 md:hidden">
+              {/* Mobile nav: horizontal compact links */}
+              <nav className="flex gap-2 overflow-x-auto">
+                {navItems.map((item) => (
+                  <Link key={item.href} to={item.href} className="px-3 py-2 rounded-md text-sm bg-secondary text-muted-foreground">
+                    <item.icon className="inline w-4 h-4 mr-2" />
+                    <span className="align-middle">{item.label}</span>
+                  </Link>
+                ))}
+              </nav>
+            </div>
+          </div>
         </header>
-        <div className="p-8">
+        <div className="p-4 md:p-8">
           {children}
         </div>
       </main>
