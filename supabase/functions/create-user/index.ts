@@ -12,6 +12,13 @@ serve(async (req) => {
   }
 
   try {
+    // Require a shared secret to prevent unauthenticated creation of users
+    const createSecret = Deno.env.get("CREATE_USER_SECRET");
+    const provided = req.headers.get("x-create-user-secret");
+    if (!createSecret || provided !== createSecret) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+    }
+
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!

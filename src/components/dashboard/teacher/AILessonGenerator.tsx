@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { Sparkles, Loader2, Copy, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import createDOMPurify from "dompurify";
+
 
 const AILessonGenerator = () => {
   const [topic, setTopic] = useState("");
@@ -72,6 +74,20 @@ const AILessonGenerator = () => {
     setCopied(true);
     toast({ title: "Copied!", description: "Lesson plan copied to clipboard." });
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  // sanitize AI generated HTML output for safety
+  const purify = typeof window !== "undefined" ? createDOMPurify(window as any) : null;
+  const sanitizeHtml = (html: string) => {
+    try {
+      if (purify) {
+        return purify.sanitize(html);
+      }
+    } catch (e) {
+      // continue to fallback
+    }
+    // fallback: strip <script> tags and on* attributes as a minimal defense
+    return html.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "").replace(/on\w+=\"[^\"]*\"/gi, "");
   };
 
   return (
@@ -185,14 +201,16 @@ const AILessonGenerator = () => {
               <div
                 className="whitespace-pre-wrap text-sm leading-relaxed"
                 dangerouslySetInnerHTML={{
-                  __html: generatedPlan
-                    .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mt-4 mb-2 text-foreground">$1</h3>')
-                    .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold mt-6 mb-3 text-foreground">$1</h2>')
-                    .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold mt-6 mb-4 text-foreground">$1</h1>')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-foreground">$1</strong>')
-                    .replace(/^\* (.*$)/gim, '<li class="ml-4 text-muted-foreground">$1</li>')
-                    .replace(/^- (.*$)/gim, '<li class="ml-4 text-muted-foreground">$1</li>')
-                    .replace(/^\d+\. (.*$)/gim, '<li class="ml-4 text-muted-foreground list-decimal">$1</li>')
+                  __html: sanitizeHtml(
+                    generatedPlan
+                      .replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold mt-4 mb-2 text-foreground">$1</h3>')
+                      .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold mt-6 mb-3 text-foreground">$1</h2>')
+                      .replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold mt-6 mb-4 text-foreground">$1</h1>')
+                      .replace(/\*\*(.*?)\*\*/g, '<strong class="text-foreground">$1</strong>')
+                      .replace(/^\* (.*$)/gim, '<li class="ml-4 text-muted-foreground">$1</li>')
+                      .replace(/^- (.*$)/gim, '<li class="ml-4 text-muted-foreground">$1</li>')
+                      .replace(/^\d+\. (.*$)/gim, '<li class="ml-4 text-muted-foreground list-decimal">$1</li>')
+                  )
                 }}
               />
             </div>
