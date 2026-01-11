@@ -4,8 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface Student {
   id: string;
@@ -20,30 +19,22 @@ const MyStudents = () => {
   const { user } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refresh, setRefresh] = useState(0);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (!user) return;
 
     const fetchStudents = async () => {
       setLoading(true);
-      // First, gather students from explicit teacher_students table (teacher-assigned)
-      const { data: explicitStudents } = await supabase
-        .from("teacher_students")
-        .select("student_id")
-        .eq("teacher_id", user.id);
 
-      const explicitIds = (explicitStudents || []).map((r: any) => r.student_id);
-
-      // Get students that have lessons with this teacher as well
+      // Get students that have lessons with this teacher
       const { data: lessons } = await supabase
         .from("lessons")
         .select("student_id, status, scheduled_date, scheduled_time")
         .eq("teacher_id", user.id);
 
-      // Combine ids
+      // Get unique student ids
       const idSet = new Set<string>();
-      explicitIds.forEach((id) => idSet.add(id));
       (lessons || []).forEach((l: any) => idSet.add(l.student_id));
 
       if (idSet.size === 0) {
@@ -55,7 +46,10 @@ const MyStudents = () => {
       const studentIds = Array.from(idSet);
 
       // Fetch profiles for these students
-      const { data: profiles } = await supabase.from("profiles").select("user_id, full_name, email").in("user_id", studentIds);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name, email")
+        .in("user_id", studentIds);
 
       // For each student, compute stats from lessons
       const studentStats = new Map<string, { total: number; completed: number; nextLesson?: string }>();
@@ -84,43 +78,11 @@ const MyStudents = () => {
     };
 
     fetchStudents();
-  }, [user, refresh]);
-
-  // New: add student by email
-  const [addEmail, setAddEmail] = useState("");
-  const handleAddStudentByEmail = async () => {
-    if (!addEmail || !user) return;
-    const { data: profile } = await supabase.from("profiles").select("user_id, email").eq("email", addEmail).single();
-    if (!profile) {
-      alert("No user with that email exists");
-      return;
-    }
-
-    const { error } = await supabase.from("teacher_students").insert([{ teacher_id: user.id, student_id: profile.user_id }]);
-    if (error) {
-      alert("Error assigning student: " + error.message);
-      return;
-    }
-
-    // Refresh list
-    setAddEmail("");
-    setRefresh((r) => r + 1);
-  };
-
-
+  }, [user]);
 
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold">My Students</h2>
-
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <div className="flex-1">
-          <Input placeholder="Enter student email to add" value={addEmail} onChange={(e) => setAddEmail(e.target.value)} />
-        </div>
-        <div>
-          <Button className="btn-primary" onClick={handleAddStudentByEmail}>Add Student</Button>
-        </div>
-      </div>
 
       <Card className="bg-card border-border">
         <CardHeader>
@@ -130,7 +92,7 @@ const MyStudents = () => {
           {loading ? (
             <p className="text-muted-foreground">Loading students...</p>
           ) : students.length === 0 ? (
-            <p className="text-muted-foreground">No students assigned yet.</p>
+            <p className="text-muted-foreground">No students yet. Students will appear here once they book lessons with you.</p>
           ) : (
             <Table>
               <TableHeader>

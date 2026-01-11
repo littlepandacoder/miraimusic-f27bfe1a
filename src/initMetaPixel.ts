@@ -9,7 +9,9 @@ export function initMetaPixel(pixelId = "1421609375270323") {
     // Avoid double-initialization
     if ((window as any).fbq) return;
 
-    (function(f: any, b: any, e: any, v: any, n: any, t: any, s: any) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const initFbq = (f: any, b: any, e: any, v: any) => {
+      let n: any, t: any, s: any;
       if (f.fbq) return;
       n = f.fbq = function() {
         n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
@@ -24,7 +26,8 @@ export function initMetaPixel(pixelId = "1421609375270323") {
       t.src = v;
       s = b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t, s);
-    })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+    };
+    initFbq(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
 
     try {
       (window as any).fbq('init', pixelId);
