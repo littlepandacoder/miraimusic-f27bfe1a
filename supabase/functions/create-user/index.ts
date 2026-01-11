@@ -12,17 +12,35 @@ serve(async (req) => {
   }
 
   try {
-    // Require a shared secret to prevent unauthenticated creation of users
-    const createSecret = Deno.env.get("CREATE_USER_SECRET");
-    const provided = req.headers.get("x-create-user-secret");
-    if (!createSecret || provided !== createSecret) {
+    // Require an Authorization: Bearer <access_token> header and check that the calling user is an admin.
+    const authHeader = req.headers.get("authorization") || req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
     }
+    const accessToken = authHeader.split(" ")[1];
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+
+    // Verify token and ensure the caller has admin role
+    const { data: userResult, error: userError } = await supabaseAdmin.auth.getUser(accessToken);
+    if (userError || !userResult?.data?.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+    }
+    const callerId = userResult.data.user.id;
+
+    const { data: roleRow, error: roleError } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", callerId)
+      .eq("role", "admin")
+      .single();
+
+    if (roleError || !roleRow) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403, headers: corsHeaders });
+    }
 
     const { email, password, full_name, role } = await req.json();
 
