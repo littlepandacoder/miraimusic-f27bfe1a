@@ -4,11 +4,12 @@ import DashboardLayout from "./DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { Users, Calendar, BookOpen, Clock } from "lucide-react";
+import { Users, Calendar, BookOpen, Clock, Gamepad2 } from "lucide-react";
 import MyStudents from "./teacher/MyStudents";
 import LessonPlans from "./teacher/LessonPlans";
 import TeacherSchedule from "./teacher/TeacherSchedule";
 import TeacherSlots from "./teacher/TeacherSlots";
+import ManageFoundation from "./admin/ManageFoundation";
 
 const TeacherHome = () => {
   const { user } = useAuth();
@@ -130,6 +131,7 @@ const TeacherDashboard = () => {
         <Route path="/lesson-plans" element={<LessonPlans />} />
         <Route path="/schedule" element={<TeacherSchedule />} />
         <Route path="/slots" element={<TeacherSlots />} />
+        <Route path="/foundation" element={<ManageFoundation />} />
       </Routes>
     </DashboardLayout>
   );

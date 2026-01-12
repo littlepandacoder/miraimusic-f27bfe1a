@@ -469,10 +469,9 @@ const FoundationLessonPlan = () => {
                     </div>
                     <div>
                       <div className="flex items-center gap-2 mb-1">
-                        <p className="font-semibold">{index + 1}. {lesson.title}</p>
+                        <p className="text-lg font-bold">{index + 1}. {lesson.title}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground">{lesson.description}</p>
-                      <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {lesson.duration} min
@@ -521,38 +520,45 @@ const FoundationLessonPlan = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
-            <div className="space-y-4">
-              <p className="text-muted-foreground">{currentLesson.description}</p>
-              
-              <div className="bg-muted/30 rounded-lg p-4">
-                <h4 className="font-semibold mb-2">Learning Objectives:</h4>
-                <ul className="text-sm text-muted-foreground space-y-2">
-                  <li>• Master the key concepts and techniques covered in this lesson</li>
-                  <li>• Practice and apply what you've learned through exercises</li>
-                  <li>• Build your musical foundation progressively</li>
+            <div className="space-y-6">
+              <div className="bg-muted/30 rounded-lg p-6">
+                <h4 className="text-xl font-bold mb-4">Learning Objectives:</h4>
+                <ul className="text-lg text-muted-foreground space-y-3">
+                  <li className="flex items-start gap-3">
+                    <span className="text-xl mt-1">•</span>
+                    <span>Master the key concepts and techniques covered in this lesson</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-xl mt-1">•</span>
+                    <span>Practice and apply what you've learned through exercises</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="text-xl mt-1">•</span>
+                    <span>Build your musical foundation progressively</span>
+                  </li>
                 </ul>
               </div>
 
-              <div className="flex items-center gap-2 text-sm">
-                <Clock className="w-4 h-4 text-muted-foreground" />
-                <span>Duration: {currentLesson.duration} minutes</span>
+              <div className="flex items-center gap-3 text-lg">
+                <Clock className="w-6 h-6 text-muted-foreground" />
+                <span className="text-xl font-semibold">Duration: {currentLesson.duration} minutes</span>
               </div>
 
               <div className="flex gap-3 pt-4">
                 {currentLesson.status === "completed" ? (
                   <>
-                    <Button className="flex-1">Review Lesson</Button>
-                    <Button variant="outline" className="flex-1">Take Again</Button>
+                    <Button className="flex-1 text-lg py-6">Review Lesson</Button>
+                    <Button variant="outline" className="flex-1 text-lg py-6">Take Again</Button>
                   </>
                 ) : currentLesson.status === "in-progress" ? (
                   <>
-                    <Button className="flex-1">Continue Learning</Button>
-                    <Button variant="outline" className="flex-1">Pause</Button>
+                    <Button className="flex-1 text-lg py-6">Continue Learning</Button>
+                    <Button variant="outline" className="flex-1 text-lg py-6">Pause</Button>
                   </>
                 ) : (
                   <>
-                    <Button className="flex-1">Start Lesson</Button>
-                    <Button variant="outline" className="flex-1">Save for Later</Button>
+                    <Button className="flex-1 text-lg py-6">Start Lesson</Button>
+                    <Button variant="outline" className="flex-1 text-lg py-6">Save for Later</Button>
                   </>
                 )}
               </div>

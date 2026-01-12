@@ -9,32 +9,41 @@ export function initMetaPixel(pixelId = "1421609375270323") {
     // Avoid double-initialization
     if ((window as any).fbq) return;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const initFbq = (f: any, b: any, e: any, v: any) => {
-      let n: any, t: any, s: any;
-      if (f.fbq) return;
-      n = f.fbq = function() {
-        n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
-      };
-      if (!f._fbq) f._fbq = n;
-      n.push = n;
-      n.loaded = true;
-      n.version = '2.0';
-      n.queue = [];
-      t = b.createElement(e);
-      t.async = true;
-      t.src = v;
-      s = b.getElementsByTagName(e)[0];
-      s.parentNode.insertBefore(t, s);
-    };
-    initFbq(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+    // Wrap in setTimeout to ensure DOM is ready
+    setTimeout(() => {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const initFbq = (f: any, b: any, e: any, v: any) => {
+          let n: any, t: any, s: any;
+          if (f.fbq) return;
+          n = f.fbq = function() {
+            n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments);
+          };
+          if (!f._fbq) f._fbq = n;
+          n.push = n;
+          n.loaded = true;
+          n.version = '2.0';
+          n.queue = [];
+          t = b.createElement(e);
+          t.async = true;
+          t.src = v;
+          s = b.getElementsByTagName(e)[0];
+          if (s && s.parentNode) {
+            s.parentNode.insertBefore(t, s);
+          }
+        };
+        initFbq(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
 
-    try {
-      (window as any).fbq('init', pixelId);
-      (window as any).fbq('track', 'PageView');
-    } catch (err) {
-      // ignore
-    }
+        try {
+          (window as any).fbq('init', pixelId);
+          (window as any).fbq('track', 'PageView');
+        } catch (err) {
+          // ignore
+        }
+      } catch (innerErr) {
+        // ignore inner errors
+      }
+    }, 0);
   } catch (err) {
     // ignore
   }

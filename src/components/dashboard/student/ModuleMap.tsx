@@ -288,6 +288,16 @@ const ModuleMap = () => {
                       Continue
                     </Button>
                   )}
+                  {module.status === "completed" && (
+                    <Button 
+                      size="sm" 
+                      className="shrink-0"
+                      variant="outline"
+                      onClick={() => navigate(`/dashboard/foundation/lesson-plan/${module.id}`)}
+                    >
+                      Review
+                    </Button>
+                  )}
                 </div>
               </div>
             );
@@ -321,14 +331,12 @@ const ModuleMap = () => {
                 {selectedModule.xpReward} XP
               </span>
             </div>
-            {selectedModule.status !== "completed" && (
-              <Button 
-                className="w-full btn-primary"
-                onClick={() => navigate(`/dashboard/foundation/lesson-plan/${selectedModule.id}`)}
-              >
-                {selectedModule.status === "in-progress" ? "Continue Learning" : "Start Module"}
-              </Button>
-            )}
+            <Button 
+              className="w-full btn-primary"
+              onClick={() => navigate(`/dashboard/foundation/lesson-plan/${selectedModule.id}`)}
+            >
+              {selectedModule.status === "completed" ? "Review Module" : selectedModule.status === "in-progress" ? "Continue Learning" : "Start Module"}
+            </Button>
           </CardContent>
         </Card>
       )}

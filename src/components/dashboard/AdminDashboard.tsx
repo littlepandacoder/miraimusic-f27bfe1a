@@ -3,10 +3,11 @@ import { Routes, Route } from "react-router-dom";
 import DashboardLayout from "./DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Users, Calendar, BookOpen, UserPlus } from "lucide-react";
+import { Users, Calendar, BookOpen, UserPlus, Gamepad2 } from "lucide-react";
 import ManageUsers from "./admin/ManageUsers";
 import ManageLessons from "./admin/ManageLessons";
 import ManageSlots from "./admin/ManageSlots";
+import ManageFoundation from "./admin/ManageFoundation";
 
 const AdminHome = () => {
   const [stats, setStats] = useState({
@@ -120,6 +121,7 @@ const AdminDashboard = () => {
         <Route path="/users" element={<ManageUsers />} />
         <Route path="/lessons" element={<ManageLessons />} />
         <Route path="/slots" element={<ManageSlots />} />
+        <Route path="/foundation" element={<ManageFoundation />} />
       </Routes>
     </DashboardLayout>
   );

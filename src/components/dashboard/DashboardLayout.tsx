@@ -39,7 +39,9 @@ const DashboardLayout = ({ children, title, role }: DashboardLayoutProps) => {
         ...baseItems,
         { href: "/dashboard/users", icon: Users, label: "Manage Users" },
         { href: "/dashboard/lessons", icon: Calendar, label: "All Lessons" },
-        { href: "/dashboard/slots", icon: ClipboardList, label: "Time Slots" },        { href: "/dashboard/districts", icon: Settings, label: "Districts" },      ];
+        { href: "/dashboard/slots", icon: ClipboardList, label: "Time Slots" },        
+        { href: "/dashboard/foundation", icon: Gamepad2, label: "Foundation Modules" },
+        { href: "/dashboard/districts", icon: Settings, label: "Districts" },      ];
     }
 
     if (role === "teacher") {
@@ -49,6 +51,7 @@ const DashboardLayout = ({ children, title, role }: DashboardLayoutProps) => {
         { href: "/dashboard/lesson-plans", icon: BookOpen, label: "Lesson Plans" },
         { href: "/dashboard/schedule", icon: Calendar, label: "Schedule" },
         { href: "/dashboard/slots", icon: ClipboardList, label: "My Slots" },
+        { href: "/dashboard/foundation", icon: Gamepad2, label: "Foundation Modules" },
       ];
     }
 
