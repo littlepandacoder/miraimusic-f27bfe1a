@@ -10,6 +10,8 @@ import LessonPlans from "./teacher/LessonPlans";
 import TeacherSchedule from "./teacher/TeacherSchedule";
 import TeacherSlots from "./teacher/TeacherSlots";
 import ManageFoundation from "./admin/ManageFoundation";
+import LessonEditor from "./teacher/LessonEditor";
+import LessonViewer from "./student/LessonViewer";
 
 const TeacherHome = () => {
   const { user } = useAuth();
@@ -132,6 +134,8 @@ const TeacherDashboard = () => {
         <Route path="/schedule" element={<TeacherSchedule />} />
         <Route path="/slots" element={<TeacherSlots />} />
         <Route path="/foundation" element={<ManageFoundation />} />
+        <Route path="/foundation/lesson-editor/:moduleId/:lessonId" element={<LessonEditor />} />
+        <Route path="/foundation/lesson-viewer/:moduleId/:lessonId" element={<LessonViewer />} />
       </Routes>
     </DashboardLayout>
   );

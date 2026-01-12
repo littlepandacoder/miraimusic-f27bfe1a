@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +17,8 @@ import {
   Zap,
   Target,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  BookOpenText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -71,6 +73,7 @@ const INITIAL_MODULES: Module[] = [
 ];
 
 const ManageFoundation = () => {
+  const navigate = useNavigate();
   const [modules, setModules] = useState<Module[]>(INITIAL_MODULES);
   const [expandedModuleId, setExpandedModuleId] = useState<string | null>(null);
   const [editingModule, setEditingModule] = useState<Module | null>(null);
@@ -377,9 +380,11 @@ const ManageFoundation = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => openEditLesson(module, lesson)}
+                          onClick={() => navigate(`/dashboard/foundation/lesson-editor/${module.id}/${lesson.id}`)}
+                          className="gap-2"
                         >
-                          <Edit className="w-4 h-4" />
+                          <BookOpenText className="w-4 h-4" />
+                          Edit
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>

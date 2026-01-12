@@ -29,13 +29,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch user roles
-          const { data: rolesData } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", session.user.id);
-          
-          setRoles((rolesData?.map(r => r.role as UserRole)) || []);
+          try {
+            // Fetch user roles
+            const { data: rolesData, error: rolesError } = await supabase
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", session.user.id);
+            
+            if (rolesError) {
+              console.error("Error fetching roles:", rolesError);
+              setRoles([]);
+            } else {
+              setRoles((rolesData?.map(r => r.role as UserRole)) || []);
+            }
+          } catch (err) {
+            console.error("Error in auth state change:", err);
+            setRoles([]);
+          }
         } else {
           setRoles([]);
         }
@@ -43,32 +53,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", session.user.id)
-          .then(({ data: rolesData }) => {
+        try {
+          const { data: rolesData, error: rolesError } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", session.user.id);
+          
+          if (rolesError) {
+            console.error("Error fetching roles:", rolesError);
+            setRoles([]);
+          } else {
             setRoles((rolesData?.map(r => r.role as UserRole)) || []);
-            setLoading(false);
-          });
-      } else {
-        setLoading(false);
+          }
+        } catch (err) {
+          console.error("Error fetching roles:", err);
+          setRoles([]);
+        }
       }
+      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    // Clear any stale session before signing in to prevent refresh token issues
-    await supabase.auth.signOut();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    try {
+      // Clear any stale session before signing in to prevent refresh token issues
+      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      return { error };
+    } catch (err) {
+      console.error("Sign in error:", err);
+      return { error: err as Error };
+    }
   };
 
   const signOut = async () => {

@@ -11,6 +11,7 @@ import Resources from "./student/Resources";
 import BookLesson from "./student/BookLesson";
 import ModuleMap from "./student/ModuleMap";
 import FoundationLessonPlan from "./student/FoundationLessonPlan";
+import LessonViewer from "./student/LessonViewer";
 
 const StudentHome = () => {
   const { user } = useAuth();
@@ -221,6 +222,7 @@ const StudentDashboard = () => {
         <Route path="/book" element={<BookLesson />} />
         <Route path="/foundation" element={<ModuleMap />} />
         <Route path="/foundation/lesson-plan/:moduleId" element={<FoundationLessonPlan />} />
+        <Route path="/foundation/lesson-viewer/:moduleId/:lessonId" element={<LessonViewer />} />
       </Routes>
     </DashboardLayout>
   );
