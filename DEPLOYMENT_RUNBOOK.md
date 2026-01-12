@@ -21,6 +21,10 @@ How to run locally (alternative)
 4. Deploy function:
    - `supabase functions deploy create-user --project-ref <PROJECT_REF>`
    - `supabase functions deploy autosave-foundation --project-ref <PROJECT_REF>`
+   - `supabase functions deploy progress-api --project-ref <PROJECT_REF>`
+
+6. Apply the new progress migration:
+   - `supabase db push --project-ref <PROJECT_REF> --file supabase/migrations/20260112_add_progress_tables.sql`
 
 5. Apply the new foundation migration(s):
    - `supabase db push --project-ref <PROJECT_REF> --file supabase/migrations/20260112_add_foundation_tables.sql`
