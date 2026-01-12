@@ -11,18 +11,32 @@ if (process.env.NODE_ENV === 'development') {
   const originalWarn = console.warn;
   
   console.error = (...args: any[]) => {
-    // Suppress Meta Pixel and other tracking errors in dev
+    // Suppress Meta Pixel, tracking, and other non-critical errors in dev
     const message = args[0]?.toString?.() || '';
-    if (message.includes('pixel') || message.includes('fbq') || message.includes('facebook')) {
+    if (
+      message.includes('pixel') || 
+      message.includes('fbq') || 
+      message.includes('facebook') ||
+      message.includes('Failed to load resource') ||
+      message.includes('502')
+    ) {
       return;
     }
     originalError.apply(console, args);
   };
 
   console.warn = (...args: any[]) => {
-    // Suppress Meta Pixel warnings in dev
+    // Suppress Meta Pixel warnings and informational messages in dev
     const message = args[0]?.toString?.() || '';
-    if (message.includes('pixel') || message.includes('fbq') || message.includes('facebook')) {
+    if (
+      message.includes('pixel') || 
+      message.includes('fbq') || 
+      message.includes('facebook') ||
+      message.includes('React Router') ||
+      message.includes('Fast Refresh') ||
+      message.includes('future flag') ||
+      message.includes('DevTools')
+    ) {
       return;
     }
     originalWarn.apply(console, args);

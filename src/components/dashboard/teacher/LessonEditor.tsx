@@ -36,6 +36,7 @@ import {
   Play,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Video {
   id: string;
@@ -63,6 +64,8 @@ const LessonEditor = () => {
   const { moduleId, lessonId } = useParams();
   const navigate = useNavigate();
 
+  const { user } = useAuth();
+
   const [lesson, setLesson] = useState<LessonContent>({
     id: lessonId || "",
     title: "",
@@ -85,13 +88,52 @@ const LessonEditor = () => {
 
   // Save lesson
   const handleSaveLesson = async () => {
-    console.log("Saving lesson:", lesson);
-    // TODO: Save to Supabase
-    alert("Lesson saved successfully!");
+    try {
+      // save to supabase
+      const { data, error } = await supabase.from('foundation_lessons').upsert({
+        id: lesson.id || undefined,
+        title: lesson.title,
+        description: lesson.description,
+        duration_minutes: lesson.duration,
+        module_id: lesson.moduleId,
+        content: { videos: lesson.videos, notes: lesson.notes },
+        created_by: lesson.id ? undefined : user?.id,
+        is_published: lesson.status === 'published',
+        updated_at: new Date().toISOString(),
+      });
+
+      if (error) throw error;
+
+      alert('Lesson saved successfully!');
+    } catch (err) {
+      console.error('Save lesson error:', err);
+      alert('Failed to save lesson: ' + String(err));
+    }
   };
 
+  // Autosave lesson on changes (debounced)
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      try {
+        await supabase.from('foundation_lessons').upsert({
+          id: lesson.id || undefined,
+          title: lesson.title,
+          description: lesson.description,
+          duration_minutes: lesson.duration,
+          module_id: lesson.moduleId,
+          content: { videos: lesson.videos, notes: lesson.notes },
+          updated_at: new Date().toISOString(),
+        });
+      } catch (err) {
+        console.warn('Autosave lesson failed:', err);
+      }
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [lesson.title, lesson.description, lesson.duration, lesson.videos, lesson.notes]);
+
   // Add video from external URL
-  const handleAddExternalVideo = () => {
+  const handleAddExternalVideo = async () => {
     if (!videoUrl.trim() || !videoTitle.trim()) return;
 
     const newVideo: Video = {
@@ -110,6 +152,13 @@ const LessonEditor = () => {
     setVideoUrl("");
     setVideoTitle("");
     setIsVideoDialogOpen(false);
+
+    // autosave lesson when teacher adds media
+    try {
+      await handleSaveLesson();
+    } catch (err) {
+      console.warn('Autosave failed after adding video:', err);
+    }
   };
 
   // Handle video file upload
@@ -150,6 +199,13 @@ const LessonEditor = () => {
     setUploadProgress(0);
     setIsUploadMode(false);
     setIsVideoDialogOpen(false);
+
+    // autosave lesson when teacher uploads media
+    try {
+      await handleSaveLesson();
+    } catch (err) {
+      console.warn('Autosave failed after video upload:', err);
+    }
   };
 
   // Delete video
@@ -480,9 +536,20 @@ Recommended Content Structure:
                 Save Lesson
               </Button>
               <Button
-                onClick={() =>
-                  setLesson({ ...lesson, status: "published" })
-                }
+                onClick={async () => {
+                  setLesson({ ...lesson, status: "published" });
+                  try {
+                    await handleSaveLesson();
+                    // Also notify autosave function to mark as published
+                    await fetch('/.netlify/functions/autosave-foundation', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ itemType: 'lesson', action: 'update', data: { id: lesson.id, isPublished: true } })
+                    });
+                  } catch (err) {
+                    console.warn('Publish failed:', err);
+                  }
+                }}
                 variant="outline"
                 className="w-full"
               >

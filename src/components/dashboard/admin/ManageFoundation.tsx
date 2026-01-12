@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,8 @@ import {
   BookOpenText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Lesson {
   id: string;
@@ -74,6 +76,7 @@ const INITIAL_MODULES: Module[] = [
 
 const ManageFoundation = () => {
   const navigate = useNavigate();
+  const { user, roles } = useAuth();
   const [modules, setModules] = useState<Module[]>(INITIAL_MODULES);
   const [expandedModuleId, setExpandedModuleId] = useState<string | null>(null);
   const [editingModule, setEditingModule] = useState<Module | null>(null);
@@ -91,90 +94,194 @@ const ManageFoundation = () => {
   });
 
   // Module CRUD
-  const handleAddModule = () => {
+  const handleAddModule = async () => {
     if (!formData.moduleTitle.trim()) return;
 
-    const newModule: Module = {
-      id: Date.now().toString(),
-      title: formData.moduleTitle,
-      level: formData.moduleLevel,
-      status: "available",
-      xpReward: parseInt(formData.moduleXP),
-      icon: Piano,
-      lessons: [],
-    };
+    // Create module in DB via autosave function
+    try {
+      const res = await fetch('/.netlify/functions/autosave-foundation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemType: 'module',
+          action: 'create',
+          data: {
+            title: formData.moduleTitle,
+            description: '',
+            level: formData.moduleLevel,
+            xpReward: parseInt(formData.moduleXP),
+          }
+        })
+      });
 
-    setModules([...modules, newModule]);
-    resetModuleForm();
-    setIsModuleDialogOpen(false);
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || 'Failed to create module');
+
+      // Refresh list from DB
+      const { data: modulesData } = await supabase.from('foundation_modules').select('*');
+      setModules((modulesData || []).map((m: any) => ({ ...m, lessons: [] })));
+
+      resetModuleForm();
+      setIsModuleDialogOpen(false);
+    } catch (err) {
+      alert('Failed to create module: ' + String(err));
+    }
   };
 
-  const handleUpdateModule = () => {
+  const handleUpdateModule = async () => {
     if (!editingModule || !formData.moduleTitle.trim()) return;
 
-    setModules(modules.map(m => 
-      m.id === editingModule.id 
-        ? { ...m, title: formData.moduleTitle, xpReward: parseInt(formData.moduleXP), level: formData.moduleLevel }
-        : m
-    ));
+    try {
+      const res = await fetch('/.netlify/functions/autosave-foundation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemType: 'module',
+          action: 'update',
+          data: {
+            id: editingModule.id,
+            title: formData.moduleTitle,
+            level: formData.moduleLevel,
+            xpReward: parseInt(formData.moduleXP),
+          }
+        })
+      });
 
-    resetModuleForm();
-    setEditingModule(null);
-    setIsModuleDialogOpen(false);
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || 'Failed to update module');
+
+      const { data: modulesData } = await supabase.from('foundation_modules').select('*');
+      setModules((modulesData || []).map((m: any) => ({ ...m, lessons: [] })));
+
+      resetModuleForm();
+      setEditingModule(null);
+      setIsModuleDialogOpen(false);
+    } catch (err) {
+      alert('Failed to update module: ' + String(err));
+    }
   };
 
-  const handleDeleteModule = (id: string) => {
-    setModules(modules.filter(m => m.id !== id));
+  const handleDeleteModule = async (id: string) => {
+    try {
+      const res = await fetch('/.netlify/functions/autosave-foundation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemType: 'module', action: 'delete', data: { id } }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || 'Failed to delete module');
+
+      const { data: modulesData } = await supabase.from('foundation_modules').select('*');
+      setModules((modulesData || []).map((m: any) => ({ ...m, lessons: [] })));
+    } catch (err) {
+      alert('Failed to delete module: ' + String(err));
+    }
   };
 
   // Lesson CRUD
-  const handleAddLesson = () => {
+  const handleAddLesson = async () => {
     if (!formData.lessonTitle.trim() || !selectedModuleForLesson) return;
 
-    const newLesson: Lesson = {
-      id: `${selectedModuleForLesson}-${Date.now()}`,
-      title: formData.lessonTitle,
-      duration: parseInt(formData.lessonDuration),
-      status: "available",
-    };
+    try {
+      const res = await fetch('/.netlify/functions/autosave-foundation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemType: 'lesson',
+          action: 'create',
+          data: {
+            moduleId: selectedModuleForLesson,
+            title: formData.lessonTitle,
+            description: '',
+            duration: parseInt(formData.lessonDuration),
+          }
+        })
+      });
 
-    setModules(modules.map(m =>
-      m.id === selectedModuleForLesson
-        ? { ...m, lessons: [...m.lessons, newLesson] }
-        : m
-    ));
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || 'Failed to create lesson');
 
-    resetLessonForm();
-    setIsLessonDialogOpen(false);
+      // Refresh lessons
+      const { data: lessonsData } = await supabase.from('foundation_lessons').select('*');
+      // Map lessons into modules
+      const grouped = (lessonsData || []).reduce((acc: any, l: any) => {
+        acc[l.module_id] = acc[l.module_id] || [];
+        acc[l.module_id].push(l);
+        return acc;
+      }, {} as Record<string, any[]>);
+
+      const { data: modulesData } = await supabase.from('foundation_modules').select('*');
+      setModules((modulesData || []).map((m: any) => ({ ...m, lessons: (grouped[m.id] || []) })));
+
+      resetLessonForm();
+      setIsLessonDialogOpen(false);
+    } catch (err) {
+      alert('Failed to create lesson: ' + String(err));
+    }
   };
 
-  const handleUpdateLesson = () => {
+  const handleUpdateLesson = async () => {
     if (!editingLesson || !selectedModuleForLesson || !formData.lessonTitle.trim()) return;
 
-    setModules(modules.map(m =>
-      m.id === selectedModuleForLesson
-        ? {
-            ...m,
-            lessons: m.lessons.map(l =>
-              l.id === editingLesson.id
-                ? { ...l, title: formData.lessonTitle, duration: parseInt(formData.lessonDuration) }
-                : l
-            ),
+    try {
+      const res = await fetch('/.netlify/functions/autosave-foundation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          itemType: 'lesson',
+          action: 'update',
+          data: {
+            id: editingLesson.id,
+            title: formData.lessonTitle,
+            duration: parseInt(formData.lessonDuration),
+            description: '',
           }
-        : m
-    ));
+        })
+      });
 
-    resetLessonForm();
-    setEditingLesson(null);
-    setIsLessonDialogOpen(false);
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || 'Failed to update lesson');
+
+      const { data: lessonsData } = await supabase.from('foundation_lessons').select('*');
+      const grouped = (lessonsData || []).reduce((acc: any, l: any) => {
+        acc[l.module_id] = acc[l.module_id] || [];
+        acc[l.module_id].push(l);
+        return acc;
+      }, {} as Record<string, any[]>);
+
+      const { data: modulesData } = await supabase.from('foundation_modules').select('*');
+      setModules((modulesData || []).map((m: any) => ({ ...m, lessons: (grouped[m.id] || []) })));
+
+      resetLessonForm();
+      setEditingLesson(null);
+      setIsLessonDialogOpen(false);
+    } catch (err) {
+      alert('Failed to update lesson: ' + String(err));
+    }
   };
 
-  const handleDeleteLesson = (moduleId: string, lessonId: string) => {
-    setModules(modules.map(m =>
-      m.id === moduleId
-        ? { ...m, lessons: m.lessons.filter(l => l.id !== lessonId) }
-        : m
-    ));
+  const handleDeleteLesson = async (moduleId: string, lessonId: string) => {
+    try {
+      const res = await fetch('/.netlify/functions/autosave-foundation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemType: 'lesson', action: 'delete', data: { id: lessonId } }),
+      });
+      const json = await res.json();
+      if (!json.success) throw new Error(json.error || 'Failed to delete lesson');
+
+      const { data: lessonsData } = await supabase.from('foundation_lessons').select('*');
+      const grouped = (lessonsData || []).reduce((acc: any, l: any) => {
+        acc[l.module_id] = acc[l.module_id] || [];
+        acc[l.module_id].push(l);
+        return acc;
+      }, {} as Record<string, any[]>);
+
+      const { data: modulesData } = await supabase.from('foundation_modules').select('*');
+      setModules((modulesData || []).map((m: any) => ({ ...m, lessons: (grouped[m.id] || []) })));
+    } catch (err) {
+      alert('Failed to delete lesson: ' + String(err));
+    }
   };
 
   const resetModuleForm = () => {
@@ -204,6 +311,77 @@ const ManageFoundation = () => {
     });
     setIsModuleDialogOpen(true);
   };
+
+  // Autosave modules when editing (debounced)
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (editingModule && formData.moduleTitle.trim()) {
+        try {
+          await fetch('/.netlify/functions/autosave-foundation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              itemType: 'module',
+              action: 'update',
+              data: {
+                id: editingModule.id,
+                title: formData.moduleTitle,
+                level: formData.moduleLevel,
+                xpReward: parseInt(formData.moduleXP),
+              }
+            })
+          });
+        } catch (err) {
+          console.warn('Autosave failed for module:', err);
+        }
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [formData.moduleTitle, formData.moduleLevel, formData.moduleXP, editingModule]);
+
+  // Autosave lessons when editing (debounced)
+  useEffect(() => {
+    const timer = setTimeout(async () => {
+      if (editingLesson && selectedModuleForLesson && formData.lessonTitle.trim()) {
+        try {
+          await fetch('/.netlify/functions/autosave-foundation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              itemType: 'lesson',
+              action: 'update',
+              data: {
+                id: editingLesson.id,
+                title: formData.lessonTitle,
+                duration: parseInt(formData.lessonDuration),
+                description: '',
+              }
+            })
+          });
+        } catch (err) {
+          console.warn('Autosave failed for lesson:', err);
+        }
+      }
+    }, 800);
+
+    return () => clearTimeout(timer);
+  }, [formData.lessonTitle, formData.lessonDuration, editingLesson, selectedModuleForLesson]);
+
+  // Load modules from DB on mount
+  useEffect(() => {
+    async function load() {
+      const { data: modulesData } = await supabase.from('foundation_modules').select('*');
+      const { data: lessonsData } = await supabase.from('foundation_lessons').select('*');
+      const grouped = (lessonsData || []).reduce((acc: any, l: any) => {
+        acc[l.module_id] = acc[l.module_id] || [];
+        acc[l.module_id].push(l);
+        return acc;
+      }, {} as Record<string, any[]>);
+      setModules((modulesData || []).map((m: any) => ({ ...m, lessons: (grouped[m.id] || []) })));
+    }
+    load();
+  }, []);
 
   const openEditLesson = (module: Module, lesson: Lesson) => {
     setSelectedModuleForLesson(module.id);

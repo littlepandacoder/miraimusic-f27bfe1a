@@ -20,6 +20,11 @@ How to run locally (alternative)
    - `supabase db push --project-ref <PROJECT_REF> --file supabase/migrations/20260111_ensure_teacher_students.sql`
 4. Deploy function:
    - `supabase functions deploy create-user --project-ref <PROJECT_REF>`
+   - `supabase functions deploy autosave-foundation --project-ref <PROJECT_REF>`
+
+5. Apply the new foundation migration(s):
+   - `supabase db push --project-ref <PROJECT_REF> --file supabase/migrations/20260112_add_foundation_tables.sql`
+   - `supabase db push --project-ref <PROJECT_REF> --file supabase/migrations/20260112_update_foundation_lessons_meta.sql`
 
 Notes & verification
 - After running the workflow, verify:

@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,47 +39,101 @@ const LessonViewer = ({ lesson: passedLesson }: LessonViewerProps) => {
   const { moduleId, lessonId } = useParams();
   const navigate = useNavigate();
 
-  // Mock lesson data - in production this would come from Supabase
+  // Fetch lesson from DB and enforce created_by/is_published checks
   const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [fetchedLesson, setFetchedLesson] = useState<LessonContent | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const defaultLesson: LessonContent = {
-    id: lessonId || "",
-    title: "Introduction to Piano",
-    description:
-      "Learn about the piano keyboard, how keys are arranged, and basic orientation. This introductory lesson covers the layout of the piano, understanding octaves, and getting comfortable with the keyboard.",
-    duration: 15,
-    moduleTitle: "Welcome to Piano",
-    videos: [
-      {
-        id: "1",
-        title: "Piano Keyboard Introduction",
-        url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        type: "external",
-        duration: 480,
-      },
-      {
-        id: "2",
-        title: "Understanding Octaves",
-        url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        type: "external",
-        duration: 360,
-      },
-    ],
-    notes: "Remember to keep your wrists straight and relax your shoulders while practicing.",
-    learningObjectives: [
-      "Understand the layout of the piano keyboard",
-      "Learn about octaves and how they're arranged",
-      "Become comfortable identifying notes",
-      "Practice proper hand positioning",
-    ],
-    status: "in-progress",
-  };
+  useEffect(() => {
+    async function loadLesson() {
+      if (!lessonId) return;
 
-  const lesson = passedLesson || defaultLesson;
-  const currentVideo = lesson.videos[selectedVideoIndex];
+      try {
+        // Get lesson by id
+        const { data: lessonRow, error: lessonError } = await supabase
+          .from('foundation_lessons')
+          .select('id, title, description, duration_minutes, module_id, content, is_published, created_by')
+          .eq('id', lessonId)
+          .single();
+
+        if (lessonError || !lessonRow) {
+          setErrorMessage('Lesson not found');
+          return;
+        }
+
+        // Only allow students to view if published
+        if (!lessonRow.is_published) {
+          setErrorMessage('This lesson is not yet published.');
+          return;
+        }
+
+        // Ensure the lesson was created by a teacher or admin
+        const { data: roleRow, error: roleError } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', lessonRow.created_by)
+          .limit(1)
+          .single();
+
+        if (roleError || !roleRow || (roleRow.role !== 'teacher' && roleRow.role !== 'admin')) {
+          setErrorMessage('This lesson is unavailable.');
+          return;
+        }
+
+        const content = lessonRow.content || {};
+        const videos = (content.videos || []).map((v: any, idx: number) => ({ id: v.id || String(idx), title: v.title || 'Video', url: v.url || '', type: v.type || 'external', duration: v.duration }));
+
+        const mapped: LessonContent = {
+          id: lessonRow.id,
+          title: lessonRow.title,
+          description: lessonRow.description || '',
+          duration: lessonRow.duration_minutes || (videos[0]?.duration ? Math.floor(videos.reduce((s: number, v: any) => s + (v.duration || 0), 0) / 60) : 0),
+          moduleTitle: '',
+          videos,
+          notes: content.notes || '',
+          learningObjectives: content.learningObjectives || [],
+          status: 'available',
+        };
+
+        // fetch module title
+        const { data: moduleRow } = await supabase.from('foundation_modules').select('title').eq('id', lessonRow.module_id).single();
+        if (moduleRow) mapped.moduleTitle = moduleRow.title;
+
+        setFetchedLesson(mapped);
+      } catch (err) {
+        console.warn('Error loading lesson:', err);
+        setErrorMessage('Failed to load lesson');
+      }
+    }
+
+    loadLesson();
+  }, [lessonId]);
+
+  const lesson = passedLesson || fetchedLesson;
+
+  if (!lesson && errorMessage) {
+    return (
+      <div className="space-y-6 p-6 max-w-6xl mx-auto">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Button>
+        <Card className="bg-card border-border">
+          <CardContent className="py-12 text-center">
+            <p className="text-muted-foreground">{errorMessage}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const currentVideo = lesson?.videos?.[selectedVideoIndex] || null;
+
+  const { user } = useAuth();
 
   const handleDownloadVideo = () => {
+    if (!currentVideo) return;
     alert(`Downloading: ${currentVideo.title}`);
   };
 
@@ -86,10 +142,48 @@ const LessonViewer = ({ lesson: passedLesson }: LessonViewerProps) => {
     alert("Link copied to clipboard!");
   };
 
-  const handleCompleteLesson = () => {
-    setIsCompleted(true);
-    // In production: Save to Supabase
-    alert("Lesson marked as completed! Great job! 🎉");
+  const handleCompleteLesson = async () => {
+    if (!user || !moduleId) {
+      setIsCompleted(true);
+      alert("Lesson marked as completed! Great job! 🎉");
+      return;
+    }
+
+    if (isCompleted) return;
+
+    try {
+      // count total lessons in module
+      const { data: lessonsData } = await supabase.from('foundation_lessons').select('id').eq('module_id', moduleId);
+      const totalLessons = (lessonsData || []).length || 1;
+
+      // fetch existing progress
+      const { data: prog, error: progErr } = await supabase
+        .from('student_foundation_progress')
+        .select('*')
+        .eq('student_id', user.id)
+        .eq('module_id', moduleId)
+        .single();
+
+      let newCompleted = 1;
+      if (prog && !progErr) {
+        newCompleted = Math.min(totalLessons, prog.completed_lessons + 1);
+      }
+
+      const progressPercent = Math.round((newCompleted / totalLessons) * 100);
+
+      await supabase.from('student_foundation_progress').upsert({
+        student_id: user.id,
+        module_id: moduleId,
+        completed_lessons: newCompleted,
+        progress_percent: progressPercent,
+      }, { onConflict: ['student_id', 'module_id'] });
+
+      setIsCompleted(true);
+      alert('Lesson marked as completed! Great job! 🎉');
+    } catch (err) {
+      console.warn('Error marking completion:', err);
+      alert('Failed to mark lesson as complete.');
+    }
   };
 
   return (

@@ -20,6 +20,7 @@ import {
   Clock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 interface LessonItem {
   id: string;
@@ -320,16 +321,46 @@ const FoundationLessonPlan = () => {
   const [module, setModule] = useState<Module | null>(null);
 
   useEffect(() => {
-    if (moduleId && MODULES_DATA[moduleId]) {
-      setModule(MODULES_DATA[moduleId]);
-      // Set the first available or in-progress lesson
-      const firstUnfinished = MODULES_DATA[moduleId].lessons.find(
-        l => l.status !== "completed" && l.status !== "locked"
-      );
-      if (firstUnfinished) {
-        setCurrentLesson(firstUnfinished);
+    async function load() {
+      if (moduleId) {
+        // Try to load from DB if available
+        const { data: moduleRow } = await supabase.from('foundation_modules').select('*').eq('id', moduleId).single();
+        if (moduleRow) {
+          setModule({
+            id: moduleRow.id,
+            title: moduleRow.title,
+            description: moduleRow.description || '',
+            level: moduleRow.level || 'beginner',
+            status: 'available',
+            lessons: [],
+            xpReward: moduleRow.xp_reward || 0,
+            completedLessons: 0,
+            totalLessons: 0,
+          });
+
+          const { data: lessons } = await supabase.from('foundation_lessons').select('*').eq('module_id', moduleId).order('created_at', { ascending: true });
+          const firstUnfinished = (lessons || []).find((l: any) => l.is_published === true);
+          if (firstUnfinished) {
+            // Navigate to the real lesson viewer page
+            navigate(`/dashboard/foundation/lesson-viewer/${moduleId}/${firstUnfinished.id}`);
+            return;
+          }
+        }
+
+        // Fallback to local data
+        if (MODULES_DATA[moduleId]) {
+          setModule(MODULES_DATA[moduleId]);
+          const firstUnfinishedLocal = MODULES_DATA[moduleId].lessons.find(
+            l => l.status !== 'completed' && l.status !== 'locked'
+          );
+          if (firstUnfinishedLocal) {
+            setCurrentLesson(firstUnfinishedLocal);
+          }
+        }
       }
     }
+
+    load();
   }, [moduleId]);
 
   if (!module) {
