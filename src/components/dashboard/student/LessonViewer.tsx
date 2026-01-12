@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Play, Download, Share2, CheckCircle, Clock } from "lucide-react";
-import { VideoPlayer } from "./VideoPlayer";
+import VideoPlayer from "../shared/VideoPlayer";
 import { cn } from "@/lib/utils";
 
 interface Video {
