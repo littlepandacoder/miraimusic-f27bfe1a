@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Calendar } from "@/components/ui/calendar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Trash2, Clock, Calendar as CalendarIcon } from "lucide-react";
+import { Plus, Trash2, Clock, Calendar as CalendarIcon, BookOpen, User } from "lucide-react";
 import { format, startOfWeek, addDays } from "date-fns";
 
 interface TimeSlot {
@@ -24,11 +24,21 @@ interface TimeSlot {
   is_active: boolean;
 }
 
+interface BookedLesson {
+  id: string;
+  scheduled_date: string;
+  scheduled_time: string;
+  duration_minutes: number;
+  status: string;
+  student_name?: string;
+}
+
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 const TeacherSlots = () => {
   const { user } = useAuth();
   const [slots, setSlots] = useState<TimeSlot[]>([]);
+  const [bookedLessons, setBookedLessons] = useState<BookedLesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
@@ -56,11 +66,40 @@ const TeacherSlots = () => {
       .order("start_time");
 
     setSlots(data || []);
+  };
+
+  const fetchBookedLessons = async () => {
+    if (!user) return;
+
+    const { data } = await supabase
+      .from("lessons")
+      .select("*")
+      .eq("teacher_id", user.id)
+      .order("scheduled_date")
+      .order("scheduled_time");
+
+    if (data) {
+      const lessonsWithNames = await Promise.all(
+        data.map(async (lesson) => {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("full_name")
+            .eq("user_id", lesson.student_id)
+            .single();
+          return {
+            ...lesson,
+            student_name: profile?.full_name || "Unknown",
+          };
+        })
+      );
+      setBookedLessons(lessonsWithNames);
+    }
     setLoading(false);
   };
 
   useEffect(() => {
     fetchSlots();
+    fetchBookedLessons();
   }, [user]);
 
   const handleCreateSlot = async () => {
@@ -147,12 +186,37 @@ const TeacherSlots = () => {
     return slots.filter((slot) => slot.day_of_week === dayOfWeek);
   };
 
+  // Get booked lessons for a specific date
+  const getBookedLessonsForDate = (date: Date) => {
+    const dateStr = format(date, "yyyy-MM-dd");
+    return bookedLessons.filter((lesson) => lesson.scheduled_date === dateStr);
+  };
+
   // Check if date has slots
   const hasSlots = (date: Date) => {
     return getSlotsForDate(date).length > 0;
   };
 
+  // Check if date has booked lessons
+  const hasBookedLessons = (date: Date) => {
+    return getBookedLessonsForDate(date).length > 0;
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "scheduled":
+        return "bg-cyan-500/20 text-cyan-400 border-cyan-500/50";
+      case "completed":
+        return "bg-green-500/20 text-green-400 border-green-500/50";
+      case "cancelled":
+        return "bg-destructive/20 text-destructive border-destructive/50";
+      default:
+        return "bg-muted text-muted-foreground";
+    }
+  };
+
   const selectedDateSlots = selectedDate ? getSlotsForDate(selectedDate) : [];
+  const selectedDateLessons = selectedDate ? getBookedLessonsForDate(selectedDate) : [];
 
   return (
     <div className="space-y-6">
@@ -297,17 +361,28 @@ const TeacherSlots = () => {
                   className="rounded-md border border-border pointer-events-auto"
                   modifiers={{
                     hasSlots: (date) => hasSlots(date),
+                    hasBookings: (date) => hasBookedLessons(date),
                   }}
                   modifiersStyles={{
                     hasSlots: {
                       fontWeight: "bold",
                       backgroundColor: "hsl(var(--primary) / 0.1)",
                     },
+                    hasBookings: {
+                      border: "2px solid hsl(var(--primary))",
+                      borderRadius: "50%",
+                    },
                   }}
                 />
-                <p className="text-sm text-muted-foreground mt-3">
-                  Highlighted dates have configured time slots
-                </p>
+                <div className="space-y-1 mt-3">
+                  <p className="text-sm text-muted-foreground">
+                    Highlighted dates have configured time slots
+                  </p>
+                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                    <span className="w-4 h-4 border-2 border-primary rounded-full inline-block" />
+                    Dates with booked lessons
+                  </p>
+                </div>
               </CardContent>
             </Card>
 
@@ -315,50 +390,100 @@ const TeacherSlots = () => {
               <CardHeader>
                 <CardTitle className="text-lg">
                   {selectedDate
-                    ? `Slots for ${format(selectedDate, "EEEE")}`
+                    ? `Schedule for ${format(selectedDate, "EEEE, MMM d")}`
                     : "Select a Date"}
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 {!selectedDate ? (
                   <p className="text-muted-foreground">
-                    Select a date to view time slots
-                  </p>
-                ) : selectedDateSlots.length === 0 ? (
-                  <p className="text-muted-foreground">
-                    No slots configured for {DAYS[selectedDate.getDay()]}s
+                    Select a date to view schedule
                   </p>
                 ) : (
-                  <div className="space-y-3">
-                    {selectedDateSlots.map((slot) => (
-                      <div
-                        key={slot.id}
-                        className="flex items-center justify-between p-3 rounded-lg bg-secondary"
-                      >
-                        <div className="flex items-center gap-3">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-medium">
-                            {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
-                          </span>
-                          <Badge variant={slot.is_active ? "default" : "secondary"}>
-                            {slot.is_active ? "Active" : "Inactive"}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Switch
-                            checked={slot.is_active}
-                            onCheckedChange={(checked) => handleToggleActive(slot.id, checked)}
-                          />
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteSlot(slot.id)}
+                  <div className="space-y-4">
+                    {/* Booked Lessons Section */}
+                    {selectedDateLessons.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                          <BookOpen className="h-4 w-4" />
+                          Booked Lessons
+                        </h4>
+                        {selectedDateLessons.map((lesson) => (
+                          <div
+                            key={lesson.id}
+                            className="p-3 rounded-lg bg-primary/10 border border-primary/30"
                           >
-                            <Trash2 className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </div>
+                            <div className="flex items-center justify-between flex-wrap gap-2">
+                              <div className="flex items-center gap-3">
+                                <Clock className="h-4 w-4 text-primary" />
+                                <span className="font-medium">
+                                  {lesson.scheduled_time.slice(0, 5)}
+                                </span>
+                                <span className="text-sm text-muted-foreground">
+                                  ({lesson.duration_minutes} min)
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {lesson.student_name && (
+                                  <Badge variant="secondary" className="flex items-center gap-1">
+                                    <User className="h-3 w-3" />
+                                    {lesson.student_name}
+                                  </Badge>
+                                )}
+                                <Badge className={getStatusColor(lesson.status)}>
+                                  {lesson.status}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
+
+                    {/* Available Slots Section */}
+                    {selectedDateSlots.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          Available Slots
+                        </h4>
+                        {selectedDateSlots.map((slot) => (
+                          <div
+                            key={slot.id}
+                            className="flex items-center justify-between p-3 rounded-lg bg-secondary"
+                          >
+                            <div className="flex items-center gap-3">
+                              <Clock className="h-4 w-4 text-muted-foreground" />
+                              <span className="font-medium">
+                                {slot.start_time.slice(0, 5)} - {slot.end_time.slice(0, 5)}
+                              </span>
+                              <Badge variant={slot.is_active ? "default" : "secondary"}>
+                                {slot.is_active ? "Active" : "Inactive"}
+                              </Badge>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Switch
+                                checked={slot.is_active}
+                                onCheckedChange={(checked) => handleToggleActive(slot.id, checked)}
+                              />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleDeleteSlot(slot.id)}
+                              >
+                                <Trash2 className="w-4 h-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {selectedDateSlots.length === 0 && selectedDateLessons.length === 0 && (
+                      <p className="text-muted-foreground">
+                        No schedule for {DAYS[selectedDate.getDay()]}s
+                      </p>
+                    )}
                   </div>
                 )}
               </CardContent>
