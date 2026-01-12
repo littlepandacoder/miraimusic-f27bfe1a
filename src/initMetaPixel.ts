@@ -32,19 +32,21 @@ export function initMetaPixel(pixelId = "1421609375270323") {
             s.parentNode.insertBefore(t, s);
           }
         };
+
         initFbq(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
 
+        // Initialize fbq
         try {
           (window as any).fbq('init', pixelId);
           (window as any).fbq('track', 'PageView');
-        } catch (err) {
-          // ignore
+        } catch (fbqErr) {
+          // Silently ignore fbq errors
         }
       } catch (innerErr) {
-        // ignore inner errors
+        // Silently ignore inner errors
       }
     }, 0);
   } catch (err) {
-    // ignore
+    // Silently ignore outer errors
   }
 }
