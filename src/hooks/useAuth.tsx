@@ -30,20 +30,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         if (session?.user) {
           try {
-            // Fetch user roles
+            // Fetch user roles with timeout to prevent hanging
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+            
             const { data: rolesData, error: rolesError } = await supabase
               .from("user_roles")
               .select("role")
               .eq("user_id", session.user.id);
             
+            clearTimeout(timeoutId);
+            
             if (rolesError) {
-              console.error("Error fetching roles:", rolesError);
+              console.warn("Warning: Could not fetch user roles:", rolesError.message);
+              // Don't block login if roles can't be fetched
               setRoles([]);
             } else {
               setRoles((rolesData?.map(r => r.role as UserRole)) || []);
             }
           } catch (err) {
-            console.error("Error in auth state change:", err);
+            console.warn("Warning: Error fetching roles:", err);
+            // Don't block login if roles fetch fails
             setRoles([]);
           }
         } else {
@@ -59,19 +66,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (session?.user) {
         try {
+          // Fetch user roles with timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3000);
+          
           const { data: rolesData, error: rolesError } = await supabase
             .from("user_roles")
             .select("role")
             .eq("user_id", session.user.id);
           
+          clearTimeout(timeoutId);
+          
           if (rolesError) {
-            console.error("Error fetching roles:", rolesError);
+            console.warn("Warning: Could not fetch user roles:", rolesError.message);
             setRoles([]);
           } else {
             setRoles((rolesData?.map(r => r.role as UserRole)) || []);
           }
         } catch (err) {
-          console.error("Error fetching roles:", err);
+          console.warn("Warning: Error fetching roles:", err);
           setRoles([]);
         }
       }
@@ -83,10 +96,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      // Clear any stale session before signing in to prevent refresh token issues
-      await supabase.auth.signOut();
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      return { error };
+      // Don't sign out before signing in - this causes race conditions
+      // Just attempt to sign in directly
+      const { data, error } = await supabase.auth.signInWithPassword({ 
+        email, 
+        password 
+      });
+      
+      if (error) {
+        return { error };
+      }
+      
+      // Wait a moment for auth state to update through the listener
+      // before returning to allow the UI to catch up
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      return { error: null };
     } catch (err) {
       console.error("Sign in error:", err);
       return { error: err as Error };
