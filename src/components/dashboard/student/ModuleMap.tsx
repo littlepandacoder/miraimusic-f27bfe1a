@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -121,6 +122,7 @@ const FOUNDATION_MODULES: Module[] = [
 
 const ModuleMap = () => {
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
+  const navigate = useNavigate();
 
   const totalXP = FOUNDATION_MODULES
     .filter(m => m.status === "completed")
@@ -269,12 +271,20 @@ const ModuleMap = () => {
 
                   {/* Action Button */}
                   {module.status === "available" && (
-                    <Button size="sm" className="shrink-0">
+                    <Button 
+                      size="sm" 
+                      className="shrink-0"
+                      onClick={() => navigate(`/dashboard/foundation/lesson-plan/${module.id}`)}
+                    >
                       Start
                     </Button>
                   )}
                   {module.status === "in-progress" && (
-                    <Button size="sm" className="shrink-0">
+                    <Button 
+                      size="sm" 
+                      className="shrink-0"
+                      onClick={() => navigate(`/dashboard/foundation/lesson-plan/${module.id}`)}
+                    >
                       Continue
                     </Button>
                   )}
@@ -312,7 +322,10 @@ const ModuleMap = () => {
               </span>
             </div>
             {selectedModule.status !== "completed" && (
-              <Button className="w-full btn-primary">
+              <Button 
+                className="w-full btn-primary"
+                onClick={() => navigate(`/dashboard/foundation/lesson-plan/${selectedModule.id}`)}
+              >
                 {selectedModule.status === "in-progress" ? "Continue Learning" : "Start Module"}
               </Button>
             )}

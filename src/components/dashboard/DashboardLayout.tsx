@@ -10,7 +10,8 @@ import {
   Calendar, 
   BookOpen, 
   Settings,
-  ClipboardList
+  ClipboardList,
+  Gamepad2
 } from "lucide-react";
 
 interface DashboardLayoutProps {
@@ -54,8 +55,9 @@ const DashboardLayout = ({ children, title, role }: DashboardLayoutProps) => {
     return [
       ...baseItems,
       { href: "/dashboard/my-lessons", icon: Calendar, label: "My Lessons" },
-      { href: "/dashboard/resources", icon: BookOpen, label: "Resources" },
+      { href: "/dashboard/foundation", icon: Gamepad2, label: "Foundation Fundamentals" },
       { href: "/dashboard/book", icon: ClipboardList, label: "Book Lesson" },
+      { href: "/dashboard/resources", icon: BookOpen, label: "Resources" },
     ];
   };
 
