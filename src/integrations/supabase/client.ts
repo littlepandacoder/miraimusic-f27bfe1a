@@ -2,8 +2,14 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+// Read raw env values (Vite may include quotes if .env contains them).
+const rawUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const rawKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+
+// Sanitize by trimming and stripping surrounding quotes if present.
+const stripQuotes = (s?: string) => s?.trim().replace(/^['"]|['"]$/g, "") || "";
+const SUPABASE_URL = stripQuotes(rawUrl);
+const SUPABASE_PUBLISHABLE_KEY = stripQuotes(rawKey);
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
@@ -15,3 +21,23 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     autoRefreshToken: true,
   }
 });
+
+// Helpful dev-time diagnostics: warn if envs look missing or malformed.
+if (import.meta.env.DEV) {
+  try {
+    const missing = [];
+    if (!SUPABASE_URL) missing.push("VITE_SUPABASE_URL");
+    if (!SUPABASE_PUBLISHABLE_KEY) missing.push("VITE_SUPABASE_PUBLISHABLE_KEY");
+
+    if (missing.length) {
+      // eslint-disable-next-line no-console
+      console.warn(`[supabase] Missing env vars: ${missing.join(", ")}. Check your .env and restart dev server.`);
+    } else {
+      // eslint-disable-next-line no-console
+      console.debug(`[supabase] initialized with URL: ${SUPABASE_URL} (key present: ${Boolean(SUPABASE_PUBLISHABLE_KEY)})`);
+    }
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn("[supabase] Error during env diagnostics:", err);
+  }
+}

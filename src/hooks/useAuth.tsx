@@ -25,6 +25,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        if (import.meta.env.DEV) {
+          // Helpful debug in dev to trace silent auth state changes
+          // Do not log secrets; only show event and user identifier
+          // eslint-disable-next-line no-console
+          console.debug(`[auth] onAuthStateChange event=${event} user=${session?.user?.email ?? session?.user?.id ?? 'null'}`);
+        }
+
         setSession(session);
         setUser(session?.user ?? null);
         
@@ -61,6 +68,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.debug(`[auth] getSession returned user=${session?.user?.email ?? session?.user?.id ?? 'null'}`);
+      }
+
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -102,7 +114,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email, 
         password 
       });
-      
+      if (import.meta.env.DEV) {
+        // eslint-disable-next-line no-console
+        console.debug('[auth] signInWithPassword result', { data, error });
+      }
+
       if (error) {
         return { error };
       }
