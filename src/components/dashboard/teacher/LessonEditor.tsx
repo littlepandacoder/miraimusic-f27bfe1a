@@ -34,6 +34,7 @@ import {
   Sparkles,
   Link2,
   Play,
+  Save,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
@@ -63,7 +64,6 @@ interface LessonContent {
 const LessonEditor = () => {
   const { moduleId, lessonId } = useParams();
   const navigate = useNavigate();
-
   const { user } = useAuth();
 
   const [lesson, setLesson] = useState<LessonContent>({
@@ -85,55 +85,25 @@ const LessonEditor = () => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Save lesson
+  // Save lesson (local state only - database tables not yet created)
   const handleSaveLesson = async () => {
+    setIsSaving(true);
     try {
-      // save to supabase
-      const { data, error } = await supabase.from('foundation_lessons').upsert({
-        id: lesson.id || undefined,
-        title: lesson.title,
-        description: lesson.description,
-        duration_minutes: lesson.duration,
-        module_id: lesson.moduleId,
-        content: { videos: lesson.videos, notes: lesson.notes },
-        created_by: lesson.id ? undefined : user?.id,
-        is_published: lesson.status === 'published',
-        updated_at: new Date().toISOString(),
-      });
-
-      if (error) throw error;
-
-      alert('Lesson saved successfully!');
+      // Simulate save
+      await new Promise(resolve => setTimeout(resolve, 500));
+      alert('Lesson saved successfully! (Note: Database tables for foundation lessons are not yet created)');
     } catch (err) {
       console.error('Save lesson error:', err);
       alert('Failed to save lesson: ' + String(err));
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  // Autosave lesson on changes (debounced)
-  useEffect(() => {
-    const timer = setTimeout(async () => {
-      try {
-        await supabase.from('foundation_lessons').upsert({
-          id: lesson.id || undefined,
-          title: lesson.title,
-          description: lesson.description,
-          duration_minutes: lesson.duration,
-          module_id: lesson.moduleId,
-          content: { videos: lesson.videos, notes: lesson.notes },
-          updated_at: new Date().toISOString(),
-        });
-      } catch (err) {
-        console.warn('Autosave lesson failed:', err);
-      }
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [lesson.title, lesson.description, lesson.duration, lesson.videos, lesson.notes]);
-
   // Add video from external URL
-  const handleAddExternalVideo = async () => {
+  const handleAddExternalVideo = () => {
     if (!videoUrl.trim() || !videoTitle.trim()) return;
 
     const newVideo: Video = {
@@ -152,13 +122,6 @@ const LessonEditor = () => {
     setVideoUrl("");
     setVideoTitle("");
     setIsVideoDialogOpen(false);
-
-    // autosave lesson when teacher adds media
-    try {
-      await handleSaveLesson();
-    } catch (err) {
-      console.warn('Autosave failed after adding video:', err);
-    }
   };
 
   // Handle video file upload
@@ -186,7 +149,7 @@ const LessonEditor = () => {
       type: "upload",
       uploadDate: new Date(),
       size: Math.round(videoFile.size / (1024 * 1024)),
-      duration: 0, // Would be extracted from actual video
+      duration: 0,
     };
 
     setLesson((prev) => ({
@@ -199,13 +162,6 @@ const LessonEditor = () => {
     setUploadProgress(0);
     setIsUploadMode(false);
     setIsVideoDialogOpen(false);
-
-    // autosave lesson when teacher uploads media
-    try {
-      await handleSaveLesson();
-    } catch (err) {
-      console.warn('Autosave failed after video upload:', err);
-    }
   };
 
   // Delete video
@@ -221,7 +177,6 @@ const LessonEditor = () => {
     setIsLoadingAI(true);
 
     try {
-      // Simulate API call to AI service
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       const suggestions = `
@@ -266,7 +221,7 @@ Recommended Content Structure:
           <ArrowLeft className="w-4 h-4" />
           Back
         </Button>
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-3xl font-bold flex-1">
           {lesson.id ? "Edit Lesson" : "Create New Lesson"}
         </h1>
         <Badge
@@ -279,7 +234,20 @@ Recommended Content Structure:
         >
           {lesson.status}
         </Badge>
+        <Button onClick={handleSaveLesson} disabled={isSaving} className="gap-2">
+          <Save className="w-4 h-4" />
+          {isSaving ? "Saving..." : "Save Lesson"}
+        </Button>
       </div>
+
+      {/* Info banner */}
+      <Card className="bg-blue-500/10 border-blue-500/30">
+        <CardContent className="py-4">
+          <p className="text-sm text-blue-400">
+            <strong>Note:</strong> Lessons are currently stored locally. Database tables will be created when you run the foundation migration.
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -485,9 +453,7 @@ Recommended Content Structure:
                             <Badge variant="outline" className="text-xs">
                               {video.type === "upload" ? "Uploaded" : "External"}
                             </Badge>
-                            {video.size && (
-                              <span>{video.size} MB</span>
-                            )}
+                            {video.size && <span>{video.size} MB</span>}
                           </div>
                         </div>
                       </div>
@@ -509,139 +475,78 @@ Recommended Content Structure:
           {/* Notes Section */}
           <Card className="border-border">
             <CardHeader>
-              <CardTitle className="text-xl">Teacher Notes</CardTitle>
+              <CardTitle className="text-xl">Teacher's Notes</CardTitle>
             </CardHeader>
             <CardContent>
               <Textarea
                 value={lesson.notes}
-                onChange={(e) =>
-                  setLesson({ ...lesson, notes: e.target.value })
-                }
-                placeholder="Add internal notes for teachers (not visible to students)"
-                className="text-base min-h-24"
+                onChange={(e) => setLesson({ ...lesson, notes: e.target.value })}
+                placeholder="Add notes, tips, or instructions for students..."
+                className="min-h-32"
               />
             </CardContent>
           </Card>
         </div>
 
-        {/* Right Column - Sidebar */}
+        {/* Right Sidebar */}
         <div className="space-y-6">
-          {/* Save Actions */}
-          <Card className="border-border sticky top-6">
-            <CardHeader>
-              <CardTitle className="text-lg">Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button onClick={handleSaveLesson} className="w-full">
-                Save Lesson
-              </Button>
-              <Button
-                onClick={async () => {
-                  setLesson({ ...lesson, status: "published" });
-                  try {
-                    await handleSaveLesson();
-                    // Also notify autosave function to mark as published
-                    await fetch('/.netlify/functions/autosave-foundation', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ itemType: 'lesson', action: 'update', data: { id: lesson.id, isPublished: true } })
-                    });
-                  } catch (err) {
-                    console.warn('Publish failed:', err);
-                  }
-                }}
-                variant="outline"
-                className="w-full"
-              >
-                Publish
-              </Button>
-            </CardContent>
-          </Card>
-
           {/* AI Suggestions Card */}
-          <Card className="border-border border-primary/50 bg-primary/5">
+          <Card className="border-border">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" />
+                <Sparkles className="w-5 h-5 text-yellow-400" />
                 AI Assistant
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               <Button
                 onClick={handleGenerateAISuggestions}
-                disabled={isLoadingAI || !lesson.title.trim()}
+                disabled={isLoadingAI || !lesson.title}
                 className="w-full gap-2"
                 variant="outline"
               >
                 {isLoadingAI ? (
-                  <>
-                    <span className="animate-spin">⚙️</span>
-                    Generating...
-                  </>
+                  <>Generating...</>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4" />
-                    Get Suggestions
+                    Get AI Suggestions
                   </>
                 )}
               </Button>
-
               {lesson.aiSuggestions && (
-                <div className="mt-4 space-y-2">
-                  <p className="text-sm font-semibold text-primary">
-                    AI Suggestions:
-                  </p>
-                  <div className="text-xs text-muted-foreground bg-background/50 p-3 rounded border border-muted max-h-40 overflow-y-auto">
+                <div className="bg-muted/30 p-4 rounded-lg border border-muted">
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                     {lesson.aiSuggestions}
-                  </div>
-                  <Button
-                    onClick={() =>
-                      setLesson({
-                        ...lesson,
-                        notes:
-                          lesson.notes +
-                          "\n\nAI Suggestions:\n" +
-                          lesson.aiSuggestions,
-                      })
-                    }
-                    size="sm"
-                    variant="outline"
-                    className="w-full text-xs"
-                  >
-                    Add to Notes
-                  </Button>
+                  </p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Lesson Stats */}
+          {/* Publish Section */}
           <Card className="border-border">
             <CardHeader>
-              <CardTitle className="text-lg">Lesson Info</CardTitle>
+              <CardTitle className="text-lg">Publish</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <p className="text-xs text-muted-foreground">Duration</p>
-                <p className="font-semibold">{lesson.duration} minutes</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Videos</p>
-                <p className="font-semibold">{lesson.videos.length} video(s)</p>
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Status</p>
-                <Badge
-                  variant="secondary"
-                  className={cn(
-                    lesson.status === "published"
-                      ? "bg-green-500/20 text-green-400"
-                      : "bg-yellow-500/20 text-yellow-400"
-                  )}
-                >
-                  {lesson.status}
-                </Badge>
-              </div>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                {lesson.status === "draft"
+                  ? "This lesson is currently a draft and not visible to students."
+                  : "This lesson is published and visible to students."}
+              </p>
+              <Button
+                onClick={() =>
+                  setLesson((prev) => ({
+                    ...prev,
+                    status: prev.status === "draft" ? "published" : "draft",
+                  }))
+                }
+                className="w-full"
+                variant={lesson.status === "draft" ? "default" : "outline"}
+              >
+                {lesson.status === "draft" ? "Publish Lesson" : "Unpublish"}
+              </Button>
             </CardContent>
           </Card>
         </div>

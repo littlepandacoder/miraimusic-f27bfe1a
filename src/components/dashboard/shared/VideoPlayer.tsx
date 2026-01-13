@@ -120,7 +120,7 @@ export const VideoPlayer = ({
         className="w-full h-full"
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
-        onTimeUpdate={(e) => setCurrentTime(e.currentTime)}
+        onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
         onClick={togglePlayPause}
       />

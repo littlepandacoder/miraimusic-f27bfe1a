@@ -21,7 +21,6 @@ import {
   BookOpenText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
 interface Lesson {
@@ -93,195 +92,91 @@ const ManageFoundation = () => {
     lessonDuration: "20",
   });
 
-  // Module CRUD
-  const handleAddModule = async () => {
+  // Module CRUD (local state only for now - foundation tables not yet created)
+  const handleAddModule = () => {
     if (!formData.moduleTitle.trim()) return;
-
-    // Create module in DB via autosave function
-    try {
-      const res = await fetch('/.netlify/functions/autosave-foundation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          itemType: 'module',
-          action: 'create',
-          data: {
-            title: formData.moduleTitle,
-            description: '',
-            level: formData.moduleLevel,
-            xpReward: parseInt(formData.moduleXP),
-          }
-        })
-      });
-
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || 'Failed to create module');
-
-      // Refresh list from DB
-      const { data: modulesData } = await supabase.from('foundation_modules').select('*');
-      setModules((modulesData || []).map((m: any) => ({ ...m, lessons: [] })));
-
-      resetModuleForm();
-      setIsModuleDialogOpen(false);
-    } catch (err) {
-      alert('Failed to create module: ' + String(err));
-    }
+    
+    const newModule: Module = {
+      id: `module-${Date.now()}`,
+      title: formData.moduleTitle,
+      level: formData.moduleLevel,
+      status: "available",
+      xpReward: parseInt(formData.moduleXP) || 100,
+      icon: Music,
+      lessons: [],
+    };
+    
+    setModules([...modules, newModule]);
+    resetModuleForm();
+    setIsModuleDialogOpen(false);
   };
 
-  const handleUpdateModule = async () => {
+  const handleUpdateModule = () => {
     if (!editingModule || !formData.moduleTitle.trim()) return;
 
-    try {
-      const res = await fetch('/.netlify/functions/autosave-foundation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          itemType: 'module',
-          action: 'update',
-          data: {
-            id: editingModule.id,
-            title: formData.moduleTitle,
-            level: formData.moduleLevel,
-            xpReward: parseInt(formData.moduleXP),
-          }
-        })
-      });
+    setModules(modules.map(m => 
+      m.id === editingModule.id 
+        ? { ...m, title: formData.moduleTitle, level: formData.moduleLevel, xpReward: parseInt(formData.moduleXP) || 100 }
+        : m
+    ));
 
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || 'Failed to update module');
-
-      const { data: modulesData } = await supabase.from('foundation_modules').select('*');
-      setModules((modulesData || []).map((m: any) => ({ ...m, lessons: [] })));
-
-      resetModuleForm();
-      setEditingModule(null);
-      setIsModuleDialogOpen(false);
-    } catch (err) {
-      alert('Failed to update module: ' + String(err));
-    }
+    resetModuleForm();
+    setEditingModule(null);
+    setIsModuleDialogOpen(false);
   };
 
-  const handleDeleteModule = async (id: string) => {
-    try {
-      const res = await fetch('/.netlify/functions/autosave-foundation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemType: 'module', action: 'delete', data: { id } }),
-      });
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || 'Failed to delete module');
-
-      const { data: modulesData } = await supabase.from('foundation_modules').select('*');
-      setModules((modulesData || []).map((m: any) => ({ ...m, lessons: [] })));
-    } catch (err) {
-      alert('Failed to delete module: ' + String(err));
-    }
+  const handleDeleteModule = (id: string) => {
+    setModules(modules.filter(m => m.id !== id));
   };
 
-  // Lesson CRUD
-  const handleAddLesson = async () => {
+  // Lesson CRUD (local state only)
+  const handleAddLesson = () => {
     if (!formData.lessonTitle.trim() || !selectedModuleForLesson) return;
 
-    try {
-      const res = await fetch('/.netlify/functions/autosave-foundation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          itemType: 'lesson',
-          action: 'create',
-          data: {
-            moduleId: selectedModuleForLesson,
-            title: formData.lessonTitle,
-            description: '',
-            duration: parseInt(formData.lessonDuration),
-          }
-        })
-      });
+    const newLesson: Lesson = {
+      id: `lesson-${Date.now()}`,
+      title: formData.lessonTitle,
+      duration: parseInt(formData.lessonDuration) || 20,
+      status: "available",
+    };
 
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || 'Failed to create lesson');
+    setModules(modules.map(m => 
+      m.id === selectedModuleForLesson 
+        ? { ...m, lessons: [...m.lessons, newLesson] }
+        : m
+    ));
 
-      // Refresh lessons
-      const { data: lessonsData } = await supabase.from('foundation_lessons').select('*');
-      // Map lessons into modules
-      const grouped = (lessonsData || []).reduce((acc: any, l: any) => {
-        acc[l.module_id] = acc[l.module_id] || [];
-        acc[l.module_id].push(l);
-        return acc;
-      }, {} as Record<string, any[]>);
-
-      const { data: modulesData } = await supabase.from('foundation_modules').select('*');
-      setModules((modulesData || []).map((m: any) => ({ ...m, lessons: (grouped[m.id] || []) })));
-
-      resetLessonForm();
-      setIsLessonDialogOpen(false);
-    } catch (err) {
-      alert('Failed to create lesson: ' + String(err));
-    }
+    resetLessonForm();
+    setIsLessonDialogOpen(false);
   };
 
-  const handleUpdateLesson = async () => {
+  const handleUpdateLesson = () => {
     if (!editingLesson || !selectedModuleForLesson || !formData.lessonTitle.trim()) return;
 
-    try {
-      const res = await fetch('/.netlify/functions/autosave-foundation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          itemType: 'lesson',
-          action: 'update',
-          data: {
-            id: editingLesson.id,
-            title: formData.lessonTitle,
-            duration: parseInt(formData.lessonDuration),
-            description: '',
+    setModules(modules.map(m => 
+      m.id === selectedModuleForLesson 
+        ? { 
+            ...m, 
+            lessons: m.lessons.map(l => 
+              l.id === editingLesson.id 
+                ? { ...l, title: formData.lessonTitle, duration: parseInt(formData.lessonDuration) || 20 }
+                : l
+            )
           }
-        })
-      });
+        : m
+    ));
 
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || 'Failed to update lesson');
-
-      const { data: lessonsData } = await supabase.from('foundation_lessons').select('*');
-      const grouped = (lessonsData || []).reduce((acc: any, l: any) => {
-        acc[l.module_id] = acc[l.module_id] || [];
-        acc[l.module_id].push(l);
-        return acc;
-      }, {} as Record<string, any[]>);
-
-      const { data: modulesData } = await supabase.from('foundation_modules').select('*');
-      setModules((modulesData || []).map((m: any) => ({ ...m, lessons: (grouped[m.id] || []) })));
-
-      resetLessonForm();
-      setEditingLesson(null);
-      setIsLessonDialogOpen(false);
-    } catch (err) {
-      alert('Failed to update lesson: ' + String(err));
-    }
+    resetLessonForm();
+    setEditingLesson(null);
+    setIsLessonDialogOpen(false);
   };
 
-  const handleDeleteLesson = async (moduleId: string, lessonId: string) => {
-    try {
-      const res = await fetch('/.netlify/functions/autosave-foundation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemType: 'lesson', action: 'delete', data: { id: lessonId } }),
-      });
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || 'Failed to delete lesson');
-
-      const { data: lessonsData } = await supabase.from('foundation_lessons').select('*');
-      const grouped = (lessonsData || []).reduce((acc: any, l: any) => {
-        acc[l.module_id] = acc[l.module_id] || [];
-        acc[l.module_id].push(l);
-        return acc;
-      }, {} as Record<string, any[]>);
-
-      const { data: modulesData } = await supabase.from('foundation_modules').select('*');
-      setModules((modulesData || []).map((m: any) => ({ ...m, lessons: (grouped[m.id] || []) })));
-    } catch (err) {
-      alert('Failed to delete lesson: ' + String(err));
-    }
+  const handleDeleteLesson = (moduleId: string, lessonId: string) => {
+    setModules(modules.map(m => 
+      m.id === moduleId 
+        ? { ...m, lessons: m.lessons.filter(l => l.id !== lessonId) }
+        : m
+    ));
   };
 
   const resetModuleForm = () => {
@@ -311,77 +206,6 @@ const ManageFoundation = () => {
     });
     setIsModuleDialogOpen(true);
   };
-
-  // Autosave modules when editing (debounced)
-  useEffect(() => {
-    const timer = setTimeout(async () => {
-      if (editingModule && formData.moduleTitle.trim()) {
-        try {
-          await fetch('/.netlify/functions/autosave-foundation', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              itemType: 'module',
-              action: 'update',
-              data: {
-                id: editingModule.id,
-                title: formData.moduleTitle,
-                level: formData.moduleLevel,
-                xpReward: parseInt(formData.moduleXP),
-              }
-            })
-          });
-        } catch (err) {
-          console.warn('Autosave failed for module:', err);
-        }
-      }
-    }, 800);
-
-    return () => clearTimeout(timer);
-  }, [formData.moduleTitle, formData.moduleLevel, formData.moduleXP, editingModule]);
-
-  // Autosave lessons when editing (debounced)
-  useEffect(() => {
-    const timer = setTimeout(async () => {
-      if (editingLesson && selectedModuleForLesson && formData.lessonTitle.trim()) {
-        try {
-          await fetch('/.netlify/functions/autosave-foundation', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              itemType: 'lesson',
-              action: 'update',
-              data: {
-                id: editingLesson.id,
-                title: formData.lessonTitle,
-                duration: parseInt(formData.lessonDuration),
-                description: '',
-              }
-            })
-          });
-        } catch (err) {
-          console.warn('Autosave failed for lesson:', err);
-        }
-      }
-    }, 800);
-
-    return () => clearTimeout(timer);
-  }, [formData.lessonTitle, formData.lessonDuration, editingLesson, selectedModuleForLesson]);
-
-  // Load modules from DB on mount
-  useEffect(() => {
-    async function load() {
-      const { data: modulesData } = await supabase.from('foundation_modules').select('*');
-      const { data: lessonsData } = await supabase.from('foundation_lessons').select('*');
-      const grouped = (lessonsData || []).reduce((acc: any, l: any) => {
-        acc[l.module_id] = acc[l.module_id] || [];
-        acc[l.module_id].push(l);
-        return acc;
-      }, {} as Record<string, any[]>);
-      setModules((modulesData || []).map((m: any) => ({ ...m, lessons: (grouped[m.id] || []) })));
-    }
-    load();
-  }, []);
 
   const openEditLesson = (module: Module, lesson: Lesson) => {
     setSelectedModuleForLesson(module.id);
@@ -443,7 +267,7 @@ const ManageFoundation = () => {
                 <select
                   value={formData.moduleLevel}
                   onChange={(e) => setFormData({ ...formData, moduleLevel: e.target.value as any })}
-                  className="w-full px-3 py-2 border rounded-md text-lg mt-1"
+                  className="w-full px-3 py-2 border rounded-md text-lg mt-1 bg-background"
                 >
                   <option value="beginner">Beginner</option>
                   <option value="intermediate">Intermediate</option>
@@ -473,6 +297,15 @@ const ManageFoundation = () => {
         </Dialog>
       </div>
 
+      {/* Info banner */}
+      <Card className="bg-blue-500/10 border-blue-500/30">
+        <CardContent className="py-4">
+          <p className="text-sm text-blue-400">
+            <strong>Note:</strong> Foundation modules are currently stored locally. Database tables will be created when you run the foundation migration.
+          </p>
+        </CardContent>
+      </Card>
+
       {/* Modules List */}
       <div className="space-y-4">
         {modules.map((module) => (
@@ -492,41 +325,40 @@ const ManageFoundation = () => {
                   </button>
                   <div>
                     <CardTitle className="text-2xl">{module.title}</CardTitle>
-                    <div className="flex items-center gap-3 mt-2">
-                      <Badge className={cn("text-sm", getLevelColor(module.level))}>
+                    <div className="flex items-center gap-2 mt-2">
+                      <Badge className={cn("text-xs", getLevelColor(module.level))}>
                         {module.level}
                       </Badge>
-                      <span className="text-lg font-semibold text-yellow-400">
+                      <Badge variant="outline" className="text-xs gap-1">
+                        <Trophy className="w-3 h-3 text-yellow-400" />
                         {module.xpReward} XP
-                      </span>
-                      <span className="text-lg text-muted-foreground">
+                      </Badge>
+                      <Badge variant="outline" className="text-xs">
                         {module.lessons.length} lessons
-                      </span>
+                      </Badge>
                     </div>
                   </div>
                 </div>
-                <div className="flex gap-2">
+
+                <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      openEditModule(module);
-                    }}
+                    onClick={() => openEditModule(module)}
                   >
                     <Edit className="w-4 h-4" />
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button size="sm" variant="destructive" onClick={(e) => e.stopPropagation()}>
+                      <Button size="sm" variant="destructive">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Module</AlertDialogTitle>
+                        <AlertDialogTitle>Delete Module?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Are you sure you want to delete "{module.title}"? This action cannot be undone.
+                          This will delete "{module.title}" and all its lessons. This action cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
@@ -541,111 +373,123 @@ const ManageFoundation = () => {
               </div>
             </CardHeader>
 
-            {/* Lessons List */}
+            {/* Expanded Lessons */}
             {expandedModuleId === module.id && (
-              <CardContent className="pt-0 border-t">
-                <div className="space-y-3 mt-6">
-                  {module.lessons.map((lesson, idx) => (
-                    <div
-                      key={lesson.id}
-                      className="flex items-center justify-between p-4 rounded-lg bg-muted/30 border border-muted"
-                    >
-                      <div>
-                        <p className="text-lg font-semibold">{idx + 1}. {lesson.title}</p>
-                        <p className="text-sm text-muted-foreground mt-1">{lesson.duration} minutes</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => navigate(`/dashboard/foundation/lesson-editor/${module.id}/${lesson.id}`)}
-                          className="gap-2"
-                        >
-                          <BookOpenText className="w-4 h-4" />
-                          Edit
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button size="sm" variant="destructive">
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Lesson</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete "{lesson.title}"? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDeleteLesson(module.id, lesson.id)}>
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Add Lesson Button */}
-                  <Dialog open={isLessonDialogOpen} onOpenChange={setIsLessonDialogOpen}>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full gap-2"
-                        onClick={() => {
-                          setSelectedModuleForLesson(module.id);
-                          setEditingLesson(null);
-                          resetLessonForm();
-                        }}
-                      >
-                        <Plus className="w-4 h-4" />
-                        Add Lesson
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>{editingLesson ? "Edit Lesson" : "Add New Lesson"}</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <div>
-                          <label className="text-sm font-semibold">Lesson Title</label>
-                          <Input
-                            value={formData.lessonTitle}
-                            onChange={(e) => setFormData({ ...formData, lessonTitle: e.target.value })}
-                            placeholder="Enter lesson title"
-                            className="text-lg h-10 mt-1"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-sm font-semibold">Duration (minutes)</label>
-                          <Input
-                            type="number"
-                            value={formData.lessonDuration}
-                            onChange={(e) => setFormData({ ...formData, lessonDuration: e.target.value })}
-                            placeholder="Enter duration"
-                            className="text-lg h-10 mt-1"
-                          />
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsLessonDialogOpen(false)}>
-                          Cancel
-                        </Button>
-                        <Button onClick={editingLesson ? handleUpdateLesson : handleAddLesson}>
-                          {editingLesson ? "Update" : "Create"}
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
+              <CardContent className="border-t">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-semibold">Lessons</h3>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedModuleForLesson(module.id);
+                      setEditingLesson(null);
+                      resetLessonForm();
+                      setIsLessonDialogOpen(true);
+                    }}
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    Add Lesson
+                  </Button>
                 </div>
+
+                {module.lessons.length === 0 ? (
+                  <p className="text-muted-foreground text-sm py-4 text-center">
+                    No lessons yet. Add your first lesson!
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {module.lessons.map((lesson, index) => (
+                      <div
+                        key={lesson.id}
+                        className="flex items-center justify-between p-3 bg-muted/30 rounded-lg"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-medium text-muted-foreground w-6">
+                            {index + 1}.
+                          </span>
+                          <div>
+                            <p className="font-medium">{lesson.title}</p>
+                            <p className="text-xs text-muted-foreground">{lesson.duration} min</p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => openEditLesson(module, lesson)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button size="sm" variant="ghost" className="text-destructive">
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Delete Lesson?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will delete "{lesson.title}". This action cannot be undone.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteLesson(module.id, lesson.id)}>
+                                  Delete
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             )}
           </Card>
         ))}
       </div>
+
+      {/* Lesson Dialog */}
+      <Dialog open={isLessonDialogOpen} onOpenChange={setIsLessonDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingLesson ? "Edit Lesson" : "Add New Lesson"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-semibold">Lesson Title</label>
+              <Input
+                value={formData.lessonTitle}
+                onChange={(e) => setFormData({ ...formData, lessonTitle: e.target.value })}
+                placeholder="Enter lesson title"
+                className="text-lg h-10 mt-1"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-semibold">Duration (minutes)</label>
+              <Input
+                type="number"
+                value={formData.lessonDuration}
+                onChange={(e) => setFormData({ ...formData, lessonDuration: e.target.value })}
+                placeholder="Enter duration"
+                className="text-lg h-10 mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsLessonDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={editingLesson ? handleUpdateLesson : handleAddLesson}>
+              {editingLesson ? "Update" : "Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
