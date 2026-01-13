@@ -68,26 +68,6 @@ serve(async (req) => {
       role,
     });
 
-    // If new user is a student, initialize foundation progress (0%) for all foundation modules
-    if (role === "student") {
-      // fetch all foundation modules
-      const { data: modules, error: modulesError } = await supabaseAdmin
-        .from("foundation_modules")
-        .select("id");
-
-      if (!modulesError && modules && modules.length > 0) {
-        const rows = modules.map((m: any) => ({
-          student_id: userId,
-          module_id: m.id,
-          completed_lessons: 0,
-          progress_percent: 0,
-        }));
-
-        // upsert to avoid duplicates
-        await supabaseAdmin.from("student_foundation_progress").upsert(rows, { onConflict: ["student_id", "module_id"] });
-      }
-    }
-
     return new Response(JSON.stringify({ success: true, userId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

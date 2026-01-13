@@ -20,7 +20,6 @@ import {
   Clock
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
 
 interface LessonItem {
   id: string;
@@ -321,46 +320,15 @@ const FoundationLessonPlan = () => {
   const [module, setModule] = useState<Module | null>(null);
 
   useEffect(() => {
-    async function load() {
-      if (moduleId) {
-        // Try to load from DB if available
-        const { data: moduleRow } = await supabase.from('foundation_modules').select('*').eq('id', moduleId).single();
-        if (moduleRow) {
-          setModule({
-            id: moduleRow.id,
-            title: moduleRow.title,
-            description: moduleRow.description || '',
-            level: moduleRow.level || 'beginner',
-            status: 'available',
-            lessons: [],
-            xpReward: moduleRow.xp_reward || 0,
-            completedLessons: 0,
-            totalLessons: 0,
-          });
-
-          const { data: lessons } = await supabase.from('foundation_lessons').select('*').eq('module_id', moduleId).order('created_at', { ascending: true });
-          const firstUnfinished = (lessons || []).find((l: any) => l.is_published === true);
-          if (firstUnfinished) {
-            // Navigate to the real lesson viewer page
-            navigate(`/dashboard/foundation/lesson-viewer/${moduleId}/${firstUnfinished.id}`);
-            return;
-          }
-        }
-
-        // Fallback to local data
-        if (MODULES_DATA[moduleId]) {
-          setModule(MODULES_DATA[moduleId]);
-          const firstUnfinishedLocal = MODULES_DATA[moduleId].lessons.find(
-            l => l.status !== 'completed' && l.status !== 'locked'
-          );
-          if (firstUnfinishedLocal) {
-            setCurrentLesson(firstUnfinishedLocal);
-          }
-        }
+    if (moduleId && MODULES_DATA[moduleId]) {
+      setModule(MODULES_DATA[moduleId]);
+      const firstUnfinished = MODULES_DATA[moduleId].lessons.find(
+        l => l.status !== 'completed' && l.status !== 'locked'
+      );
+      if (firstUnfinished) {
+        setCurrentLesson(firstUnfinished);
       }
     }
-
-    load();
   }, [moduleId]);
 
   if (!module) {
@@ -498,34 +466,40 @@ const FoundationLessonPlan = () => {
                         <Lock className="w-5 h-5 text-muted-foreground" />
                       )}
                     </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="text-lg font-bold">{index + 1}. {lesson.title}</p>
-                      </div>
-                      <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-                        <span className="flex items-center gap-1">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg">
+                        {index + 1}. {lesson.title}
+                      </h4>
+                      <p className="text-sm text-muted-foreground mt-1">{lesson.description}</p>
+                      <div className="flex items-center gap-4 mt-2">
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           {lesson.duration} min
                         </span>
-                        {lesson.status === "completed" && (
-                          <span className="text-green-400 font-semibold">✓ Completed</span>
-                        )}
-                        {lesson.status === "in-progress" && (
-                          <span className="text-primary font-semibold">In Progress</span>
-                        )}
+                        <Badge className={cn(
+                          "text-xs",
+                          lesson.status === "completed" ? "bg-green-500/20 text-green-400" :
+                          lesson.status === "in-progress" ? "bg-primary/20 text-primary" :
+                          lesson.status === "available" ? "bg-cyan-500/20 text-cyan-400" :
+                          "bg-muted text-muted-foreground"
+                        )}>
+                          {lesson.status === "in-progress" ? "In Progress" : 
+                           lesson.status.charAt(0).toUpperCase() + lesson.status.slice(1)}
+                        </Badge>
                       </div>
                     </div>
                   </div>
                   {lesson.status !== "locked" && (
-                    <Button
-                      size="sm"
-                      className="shrink-0"
+                    <Button 
+                      size="sm" 
+                      variant={lesson.status === "completed" ? "outline" : "default"}
                       onClick={(e) => {
                         e.stopPropagation();
                         setCurrentLesson(lesson);
                       }}
                     >
-                      {lesson.status === "completed" ? "Review" : lesson.status === "in-progress" ? "Continue" : "Start"}
+                      {lesson.status === "completed" ? "Review" : 
+                       lesson.status === "in-progress" ? "Continue" : "Start"}
                     </Button>
                   )}
                 </div>
@@ -535,64 +509,26 @@ const FoundationLessonPlan = () => {
         </CardContent>
       </Card>
 
-      {/* Current Lesson Detail */}
+      {/* Current Lesson Preview */}
       {currentLesson && (
-        <Card className="bg-card border-border border-primary">
-          <CardHeader className="bg-primary/10">
-            <CardTitle className="flex items-center justify-between">
-              <span>Now Learning: {currentLesson.title}</span>
-              <Badge className={cn(
-                currentLesson.status === "completed" ? "bg-green-500/20 text-green-400 border-green-500" :
-                currentLesson.status === "in-progress" ? "bg-primary/20 text-primary border-primary" :
-                "bg-cyan-500/20 text-cyan-400 border-cyan-500"
-              )}>
-                {currentLesson.status}
-              </Badge>
+        <Card className="bg-card border-border border-2 border-primary">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Play className="w-5 h-5 text-primary" />
+              Currently Selected: {currentLesson.title}
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-6">
-            <div className="space-y-6">
-              <div className="bg-muted/30 rounded-lg p-6">
-                <h4 className="text-xl font-bold mb-4">Learning Objectives:</h4>
-                <ul className="text-lg text-muted-foreground space-y-3">
-                  <li className="flex items-start gap-3">
-                    <span className="text-xl mt-1">•</span>
-                    <span>Master the key concepts and techniques covered in this lesson</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-xl mt-1">•</span>
-                    <span>Practice and apply what you've learned through exercises</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <span className="text-xl mt-1">•</span>
-                    <span>Build your musical foundation progressively</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div className="flex items-center gap-3 text-lg">
-                <Clock className="w-6 h-6 text-muted-foreground" />
-                <span className="text-xl font-semibold">Duration: {currentLesson.duration} minutes</span>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                {currentLesson.status === "completed" ? (
-                  <>
-                    <Button className="flex-1 text-lg py-6">Review Lesson</Button>
-                    <Button variant="outline" className="flex-1 text-lg py-6">Take Again</Button>
-                  </>
-                ) : currentLesson.status === "in-progress" ? (
-                  <>
-                    <Button className="flex-1 text-lg py-6">Continue Learning</Button>
-                    <Button variant="outline" className="flex-1 text-lg py-6">Pause</Button>
-                  </>
-                ) : (
-                  <>
-                    <Button className="flex-1 text-lg py-6">Start Lesson</Button>
-                    <Button variant="outline" className="flex-1 text-lg py-6">Save for Later</Button>
-                  </>
-                )}
-              </div>
+          <CardContent>
+            <p className="text-muted-foreground mb-4">{currentLesson.description}</p>
+            <div className="flex items-center gap-4">
+              <Badge className="bg-primary/20 text-primary">
+                <Clock className="w-3 h-3 mr-1" />
+                {currentLesson.duration} minutes
+              </Badge>
+              <Button>
+                <Play className="w-4 h-4 mr-2" />
+                Start Lesson
+              </Button>
             </div>
           </CardContent>
         </Card>

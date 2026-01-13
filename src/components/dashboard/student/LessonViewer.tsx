@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,82 +34,64 @@ interface LessonViewerProps {
   lesson?: LessonContent;
 }
 
+// Sample lesson data for demonstration
+const SAMPLE_LESSONS: Record<string, LessonContent> = {
+  "1-1": {
+    id: "1-1",
+    title: "Introduction to Piano",
+    description: "Learn about the piano keyboard, how keys are arranged, and basic orientation. This lesson covers the fundamental layout of the piano and helps you become familiar with the instrument.",
+    duration: 15,
+    moduleTitle: "Welcome to Piano",
+    videos: [
+      { id: "v1", title: "Welcome to Piano", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", type: "external", duration: 300 },
+      { id: "v2", title: "Keyboard Layout", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", type: "external", duration: 420 },
+    ],
+    notes: "Remember to sit at the center of the keyboard with your back straight. The middle C is your reference point for finding all other notes.",
+    learningObjectives: [
+      "Identify all 88 keys on a standard piano",
+      "Locate middle C and understand its importance",
+      "Understand the pattern of black and white keys",
+      "Learn proper hand positioning on the keyboard"
+    ],
+    status: "completed"
+  },
+  "3-4": {
+    id: "3-4",
+    title: "Rhythm Notation",
+    description: "Learn dotted notes and how to read complex rhythms. Understanding rhythm notation is essential for playing music accurately.",
+    duration: 20,
+    moduleTitle: "Rhythm Basics",
+    videos: [
+      { id: "v1", title: "Understanding Dotted Notes", url: "https://www.youtube.com/embed/dQw4w9WgXcQ", type: "external", duration: 600 },
+    ],
+    notes: "A dotted note increases the duration by half of its original value. Practice counting aloud to internalize the rhythm patterns.",
+    learningObjectives: [
+      "Understand how dots affect note duration",
+      "Read and count dotted rhythms",
+      "Practice clapping complex rhythm patterns",
+      "Apply rhythm notation to simple melodies"
+    ],
+    status: "in-progress"
+  }
+};
+
 const LessonViewer = ({ lesson: passedLesson }: LessonViewerProps) => {
   const { moduleId, lessonId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
-  // Fetch lesson from DB and enforce created_by/is_published checks
   const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
   const [isCompleted, setIsCompleted] = useState(false);
-  const [fetchedLesson, setFetchedLesson] = useState<LessonContent | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Get lesson from passed props or sample data
+  const lesson = passedLesson || (lessonId ? SAMPLE_LESSONS[lessonId] : null);
+
   useEffect(() => {
-    async function loadLesson() {
-      if (!lessonId) return;
-
-      try {
-        // Get lesson by id
-        const { data: lessonRow, error: lessonError } = await supabase
-          .from('foundation_lessons')
-          .select('id, title, description, duration_minutes, module_id, content, is_published, created_by')
-          .eq('id', lessonId)
-          .single();
-
-        if (lessonError || !lessonRow) {
-          setErrorMessage('Lesson not found');
-          return;
-        }
-
-        // Only allow students to view if published
-        if (!lessonRow.is_published) {
-          setErrorMessage('This lesson is not yet published.');
-          return;
-        }
-
-        // Ensure the lesson was created by a teacher or admin
-        const { data: roleRow, error: roleError } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', lessonRow.created_by)
-          .limit(1)
-          .single();
-
-        if (roleError || !roleRow || (roleRow.role !== 'teacher' && roleRow.role !== 'admin')) {
-          setErrorMessage('This lesson is unavailable.');
-          return;
-        }
-
-        const content = lessonRow.content || {};
-        const videos = (content.videos || []).map((v: any, idx: number) => ({ id: v.id || String(idx), title: v.title || 'Video', url: v.url || '', type: v.type || 'external', duration: v.duration }));
-
-        const mapped: LessonContent = {
-          id: lessonRow.id,
-          title: lessonRow.title,
-          description: lessonRow.description || '',
-          duration: lessonRow.duration_minutes || (videos[0]?.duration ? Math.floor(videos.reduce((s: number, v: any) => s + (v.duration || 0), 0) / 60) : 0),
-          moduleTitle: '',
-          videos,
-          notes: content.notes || '',
-          learningObjectives: content.learningObjectives || [],
-          status: 'available',
-        };
-
-        // fetch module title
-        const { data: moduleRow } = await supabase.from('foundation_modules').select('title').eq('id', lessonRow.module_id).single();
-        if (moduleRow) mapped.moduleTitle = moduleRow.title;
-
-        setFetchedLesson(mapped);
-      } catch (err) {
-        console.warn('Error loading lesson:', err);
-        setErrorMessage('Failed to load lesson');
-      }
+    if (!lesson && lessonId && !SAMPLE_LESSONS[lessonId]) {
+      setErrorMessage('Lesson not found');
     }
-
-    loadLesson();
-  }, [lessonId]);
-
-  const lesson = passedLesson || fetchedLesson;
+  }, [lessonId, lesson]);
 
   if (!lesson && errorMessage) {
     return (
@@ -128,9 +109,23 @@ const LessonViewer = ({ lesson: passedLesson }: LessonViewerProps) => {
     );
   }
 
-  const currentVideo = lesson?.videos?.[selectedVideoIndex] || null;
+  if (!lesson) {
+    return (
+      <div className="space-y-6 p-6 max-w-6xl mx-auto">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="gap-2">
+          <ArrowLeft className="w-4 h-4" />
+          Back
+        </Button>
+        <Card className="bg-card border-border">
+          <CardContent className="py-12 text-center">
+            <p className="text-muted-foreground">Loading lesson...</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
-  const { user } = useAuth();
+  const currentVideo = lesson.videos?.[selectedVideoIndex] || null;
 
   const handleDownloadVideo = () => {
     if (!currentVideo) return;
@@ -142,48 +137,9 @@ const LessonViewer = ({ lesson: passedLesson }: LessonViewerProps) => {
     alert("Link copied to clipboard!");
   };
 
-  const handleCompleteLesson = async () => {
-    if (!user || !moduleId) {
-      setIsCompleted(true);
-      alert("Lesson marked as completed! Great job! 🎉");
-      return;
-    }
-
-    if (isCompleted) return;
-
-    try {
-      // count total lessons in module
-      const { data: lessonsData } = await supabase.from('foundation_lessons').select('id').eq('module_id', moduleId);
-      const totalLessons = (lessonsData || []).length || 1;
-
-      // fetch existing progress
-      const { data: prog, error: progErr } = await supabase
-        .from('student_foundation_progress')
-        .select('*')
-        .eq('student_id', user.id)
-        .eq('module_id', moduleId)
-        .single();
-
-      let newCompleted = 1;
-      if (prog && !progErr) {
-        newCompleted = Math.min(totalLessons, prog.completed_lessons + 1);
-      }
-
-      const progressPercent = Math.round((newCompleted / totalLessons) * 100);
-
-      await supabase.from('student_foundation_progress').upsert({
-        student_id: user.id,
-        module_id: moduleId,
-        completed_lessons: newCompleted,
-        progress_percent: progressPercent,
-      }, { onConflict: ['student_id', 'module_id'] });
-
-      setIsCompleted(true);
-      alert('Lesson marked as completed! Great job! 🎉');
-    } catch (err) {
-      console.warn('Error marking completion:', err);
-      alert('Failed to mark lesson as complete.');
-    }
+  const handleCompleteLesson = () => {
+    setIsCompleted(true);
+    alert("Lesson marked as completed! Great job! 🎉");
   };
 
   return (
@@ -212,24 +168,26 @@ const LessonViewer = ({ lesson: passedLesson }: LessonViewerProps) => {
       </div>
 
       {/* Video Player Section */}
-      <Card className="border-border overflow-hidden">
-        <div className="aspect-video bg-black">
-          <VideoPlayer
-            src={currentVideo.url}
-            title={currentVideo.title}
-            onDownload={handleDownloadVideo}
-            onShare={handleShareVideo}
-          />
-        </div>
-        <CardContent className="p-4">
-          <p className="font-semibold">{currentVideo.title}</p>
-          {currentVideo.duration && (
-            <p className="text-sm text-muted-foreground">
-              Duration: {Math.floor(currentVideo.duration / 60)} minutes
-            </p>
-          )}
-        </CardContent>
-      </Card>
+      {currentVideo && (
+        <Card className="border-border overflow-hidden">
+          <div className="aspect-video bg-black">
+            <VideoPlayer
+              src={currentVideo.url}
+              title={currentVideo.title}
+              onDownload={handleDownloadVideo}
+              onShare={handleShareVideo}
+            />
+          </div>
+          <CardContent className="p-4">
+            <p className="font-semibold">{currentVideo.title}</p>
+            {currentVideo.duration && (
+              <p className="text-sm text-muted-foreground">
+                Duration: {Math.floor(currentVideo.duration / 60)} minutes
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
