@@ -41,6 +41,7 @@ const DashboardLayout = ({ children, title, role }: DashboardLayoutProps) => {
         { href: "/dashboard/lessons", icon: Calendar, label: "All Lessons" },
         { href: "/dashboard/slots", icon: ClipboardList, label: "Time Slots" },        
         { href: "/dashboard/foundation", icon: Gamepad2, label: "Foundation Modules" },
+        { href: "/dashboard/gamified-maps", icon: Gamepad2, label: "Gamified Maps" },
         { href: "/dashboard/districts", icon: Settings, label: "Districts" },      ];
     }
 

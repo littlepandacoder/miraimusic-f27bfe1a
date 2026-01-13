@@ -250,6 +250,8 @@ const ManageFoundation = () => {
 
     resetLessonForm();
     setIsLessonDialogOpen(false);
+    // Open preview of the newly added lesson
+    navigate(`/dashboard/foundation/lesson-viewer/${selectedModuleForLesson}/${newLesson.id}?preview=1`);
   };
 
   const handleUpdateLesson = () => {
@@ -287,6 +289,8 @@ const ManageFoundation = () => {
     resetLessonForm();
     setEditingLesson(null);
     setIsLessonDialogOpen(false);
+    // Open preview after updating
+    navigate(`/dashboard/foundation/lesson-viewer/${selectedModuleForLesson}/${editingLesson.id}?preview=1`);
   };
 
   const handleDeleteLesson = (moduleId: string, lessonId: string) => {
@@ -538,6 +542,13 @@ const ManageFoundation = () => {
                             onClick={() => openEditLesson(module, lesson)}
                           >
                             <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => navigate(`/dashboard/foundation/lesson-viewer/${module.id}/${lesson.id}?preview=1`)}
+                          >
+                            Preview
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
