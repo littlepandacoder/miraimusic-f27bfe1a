@@ -38,6 +38,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface Video {
   id: string;
@@ -86,6 +88,7 @@ const LessonEditor = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const { toast } = useToast();
 
   // Save lesson (local state only - database tables not yet created)
   const handleSaveLesson = async () => {
@@ -122,6 +125,28 @@ const LessonEditor = () => {
     setVideoUrl("");
     setVideoTitle("");
     setIsVideoDialogOpen(false);
+
+    // Try to persist to DB if lesson exists in DB
+    (async () => {
+      try {
+        const lessonId = lesson.id;
+        if (!lessonId) return;
+
+  const { error } = await (supabase as any).from("lesson_videos").insert({
+          lesson_id: lessonId,
+          title: newVideo.title,
+          url: newVideo.url,
+          source: "external",
+        });
+        if (error) {
+          console.debug("Could not save external video to DB:", error.message || error);
+        } else {
+          toast({ title: "Saved", description: "External video saved to lesson." });
+        }
+      } catch (err) {
+        console.error("Error saving external video:", err);
+      }
+    })();
   };
 
   // Handle video file upload
@@ -136,32 +161,72 @@ const LessonEditor = () => {
   const handleUploadVideo = async () => {
     if (!videoFile || !videoTitle.trim()) return;
 
-    // Simulate upload progress
-    for (let i = 0; i <= 100; i += 10) {
-      setUploadProgress(i);
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    setUploadProgress(1);
+    try {
+      // Upload to Supabase storage (bucket: lesson-videos)
+      const fileExt = videoFile.name.split(".").pop();
+      const filePath = `${user?.id || "unknown"}/${Date.now()}.${fileExt}`;
+
+      const { data: uploadData, error: uploadErr } = await supabase.storage
+        .from("lesson-videos")
+        .upload(filePath, videoFile, { upsert: false });
+
+      if (uploadErr) {
+        console.error("Upload error:", uploadErr);
+        // fallback to local object URL
+        const fallbackVideo: Video = {
+          id: Date.now().toString(),
+          title: videoTitle,
+          url: URL.createObjectURL(videoFile),
+          type: "upload",
+          uploadDate: new Date(),
+          size: Math.round(videoFile.size / (1024 * 1024)),
+        };
+
+        setLesson((prev) => ({ ...prev, videos: [...prev.videos, fallbackVideo] }));
+        toast({ title: "Upload failed", description: "Saved locally for now." });
+      } else {
+        const { data: urlData } = supabase.storage.from("lesson-videos").getPublicUrl(filePath);
+        const publicUrl = urlData?.publicUrl || "";
+
+        const savedVideo: Video = {
+          id: Date.now().toString(),
+          title: videoTitle,
+          url: publicUrl,
+          type: "upload",
+          uploadDate: new Date(),
+          size: Math.round(videoFile.size / (1024 * 1024)),
+        };
+
+        setLesson((prev) => ({ ...prev, videos: [...prev.videos, savedVideo] }));
+
+        // Try to persist to DB
+        try {
+          const lessonId = lesson.id;
+          if (lessonId) {
+            const { error: dbErr } = await (supabase as any).from("lesson_videos").insert({
+              lesson_id: lessonId,
+              title: savedVideo.title,
+              url: publicUrl,
+              source: "supabase",
+              size_bytes: videoFile.size,
+            });
+            if (dbErr) console.debug("Failed to insert lesson_video:", dbErr.message || dbErr);
+          }
+        } catch (dbErr) {
+          console.error("Error inserting lesson video into DB:", dbErr);
+        }
+      }
+    } catch (err) {
+      console.error("Unexpected upload error:", err);
+      toast({ title: "Error", description: "Failed to upload video." });
+    } finally {
+      setVideoFile(null);
+      setVideoTitle("");
+      setUploadProgress(0);
+      setIsUploadMode(false);
+      setIsVideoDialogOpen(false);
     }
-
-    const newVideo: Video = {
-      id: Date.now().toString(),
-      title: videoTitle,
-      url: URL.createObjectURL(videoFile),
-      type: "upload",
-      uploadDate: new Date(),
-      size: Math.round(videoFile.size / (1024 * 1024)),
-      duration: 0,
-    };
-
-    setLesson((prev) => ({
-      ...prev,
-      videos: [...prev.videos, newVideo],
-    }));
-
-    setVideoFile(null);
-    setVideoTitle("");
-    setUploadProgress(0);
-    setIsUploadMode(false);
-    setIsVideoDialogOpen(false);
   };
 
   // Delete video
