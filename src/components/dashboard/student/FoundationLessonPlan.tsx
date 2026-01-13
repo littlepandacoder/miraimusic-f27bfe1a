@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import trackEvent from "@/lib/telemetry";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -316,6 +318,7 @@ const MODULES_DATA: Record<string, Module> = {
 const FoundationLessonPlan = () => {
   const { moduleId } = useParams<{ moduleId: string }>();
   const navigate = useNavigate();
+  const { user, roles } = useAuth();
   const [currentLesson, setCurrentLesson] = useState<LessonItem | null>(null);
   const [module, setModule] = useState<Module | null>(null);
 
@@ -495,7 +498,10 @@ const FoundationLessonPlan = () => {
                       variant={lesson.status === "completed" ? "outline" : "default"}
                       onClick={(e) => {
                         e.stopPropagation();
-                        setCurrentLesson(lesson);
+                        const preview = roles.includes('teacher') || roles.includes('admin');
+                        try { trackEvent('lesson_start_click', { lessonId: lesson.id, moduleId, userId: user?.id, preview }); } catch (err) {}
+                        // Navigate directly to the lesson viewer page (preview param for teacher/admin)
+                        navigate(`/dashboard/foundation/lesson-viewer/${moduleId}/${lesson.id}${preview ? '?preview=1' : ''}`);
                       }}
                     >
                       {lesson.status === "completed" ? "Review" : 
@@ -525,7 +531,11 @@ const FoundationLessonPlan = () => {
                 <Clock className="w-3 h-3 mr-1" />
                 {currentLesson.duration} minutes
               </Badge>
-              <Button>
+              <Button onClick={() => {
+                const preview = roles.includes('teacher') || roles.includes('admin');
+                try { trackEvent('lesson_start_click', { lessonId: currentLesson.id, moduleId, userId: user?.id, preview }); } catch (err) {}
+                navigate(`/dashboard/foundation/lesson-viewer/${moduleId}/${currentLesson.id}${preview ? '?preview=1' : ''}`);
+              }}>
                 <Play className="w-4 h-4 mr-2" />
                 Start Lesson
               </Button>

@@ -1,6 +1,8 @@
 import { ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { 
   Music, 
@@ -28,6 +30,26 @@ const DashboardLayout = ({ children, title, role }: DashboardLayoutProps) => {
     await signOut();
     navigate("/login");
   };
+
+  const [publishedAvailable, setPublishedAvailable] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const { data, error } = await (supabase as any).from('gamified_maps').select('id').eq('published', true).limit(1).maybeSingle();
+        if (error) {
+          // table might not exist yet
+          console.debug('Could not query gamified_maps for published flag', error.message || error);
+          return;
+        }
+        if (mounted) setPublishedAvailable(!!data);
+      } catch (err) {
+        console.error('Error querying published gamified maps', err);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   const getNavItems = () => {
     const baseItems = [
@@ -60,12 +82,15 @@ const DashboardLayout = ({ children, title, role }: DashboardLayoutProps) => {
       ...baseItems,
       { href: "/dashboard/my-lessons", icon: Calendar, label: "My Lessons" },
       { href: "/dashboard/foundation", icon: Gamepad2, label: "Foundation Fundamentals" },
+      // students only see Gamified Maps after at least one map is published
+      ...(publishedAvailable ? [{ href: "/dashboard/gamified-maps", icon: Gamepad2, label: "Gamified Maps" }] : []),
       { href: "/dashboard/book", icon: ClipboardList, label: "Book Lesson" },
       { href: "/dashboard/resources", icon: BookOpen, label: "Resources" },
     ];
   };
 
   const navItems = getNavItems();
+
 
   return (
     <div className="min-h-screen bg-background flex">

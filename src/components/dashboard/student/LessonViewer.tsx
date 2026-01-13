@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import trackEvent from "@/lib/telemetry";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -86,6 +88,8 @@ const LessonViewer = ({ lesson: passedLesson }: LessonViewerProps) => {
   const [isCompleted, setIsCompleted] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  
+
   // Get lesson from passed props or sample data
   const lesson = passedLesson || (lessonId ? SAMPLE_LESSONS[lessonId] : null);
 
@@ -94,6 +98,35 @@ const LessonViewer = ({ lesson: passedLesson }: LessonViewerProps) => {
       setErrorMessage('Lesson not found');
     }
   }, [lessonId, lesson]);
+
+  // Ensure lesson_progress exists for this user & lesson (best-effort)
+  useEffect(() => {
+    (async () => {
+      try {
+        if (!user || isPreview || !lesson) return;
+        // Upsert a baseline progress row
+        const payload = {
+          lesson_id: lesson.id,
+          student_id: user.id,
+          completed: false,
+          watched_seconds: 0,
+          last_watched_at: new Date().toISOString()
+        };
+        await (supabase as any).from('lesson_progress').upsert([payload], { onConflict: ['lesson_id', 'student_id'] });
+
+        // Fetch existing progress to set completed state
+        const { data: progressData } = await (supabase as any).from('lesson_progress').select('completed').eq('lesson_id', lesson.id).eq('student_id', user.id).limit(1).single();
+        if (progressData && progressData.completed) setIsCompleted(true);
+
+        // Track telemetry event: lesson_view
+        try { trackEvent('lesson_view', { lessonId: lesson.id, moduleId, userId: user.id }); } catch (e) {}
+      } catch (e) {
+        // non-blocking
+        // eslint-disable-next-line no-console
+        console.debug('ensure lesson_progress failed', e);
+      }
+    })();
+  }, [user, isPreview, lesson, moduleId]);
 
   if (!lesson && errorMessage) {
     return (
@@ -142,6 +175,16 @@ const LessonViewer = ({ lesson: passedLesson }: LessonViewerProps) => {
   const handleCompleteLesson = () => {
     setIsCompleted(true);
     alert("Lesson marked as completed! Great job! 🎉");
+    (async () => {
+      try {
+        if (!user) return;
+        await (supabase as any).from('lesson_progress').upsert([{ lesson_id: lesson.id, student_id: user.id, completed: true, watched_seconds: (lesson.videos?.[selectedVideoIndex]?.duration || 0), last_watched_at: new Date().toISOString() }], { onConflict: ['lesson_id', 'student_id'] });
+        try { trackEvent('lesson_completed', { lessonId: lesson.id, moduleId, userId: user.id }); } catch (e) {}
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.debug('Failed to update lesson_progress on complete', e);
+      }
+    })();
   };
 
   return (

@@ -12,6 +12,9 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   hasRole: (role: UserRole) => boolean;
+  // debug: last raw auth error (DEV only)
+  lastAuthError: any | null;
+  clearLastAuthError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,6 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastAuthError, setLastAuthError] = useState<any | null>(null);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -36,6 +40,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          // Ensure the user has baseline lesson_progress rows (first-login initialization)
+          // This is best-effort: if the table doesn't exist or the insert fails we do not block login.
+          (async function ensureUserProgress() {
+            try {
+              const userId = session.user.id;
+              const { data: existing, error: existErr } = await (supabase as any).from('lesson_progress').select('id').eq('student_id', userId).limit(1);
+              if (existErr) return;
+              if (!existing || existing.length === 0) {
+                const { data: lessons } = await (supabase as any).from('module_lessons').select('id');
+                if (lessons && lessons.length > 0) {
+                  const payload = lessons.map((l: any) => ({ lesson_id: l.id, student_id: userId, completed: false, watched_seconds: 0 }));
+                  // Use upsert to be idempotent
+                  await (supabase as any).from('lesson_progress').upsert(payload, { onConflict: ['lesson_id', 'student_id'] });
+                }
+              }
+            } catch (e) {
+              // don't block auth on errors
+              console.debug('ensureUserProgress failed (non-blocking):', e);
+            }
+          })();
+
           try {
             // Fetch user roles with timeout to prevent hanging
             const controller = new AbortController();
@@ -77,6 +102,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
       
       if (session?.user) {
+        // Same ensure-on-first-login behavior for the initial session read
+        (async function ensureUserProgress() {
+          try {
+            const userId = session.user.id;
+            const { data: existing, error: existErr } = await (supabase as any).from('lesson_progress').select('id').eq('student_id', userId).limit(1);
+            if (existErr) return;
+            if (!existing || existing.length === 0) {
+              const { data: lessons } = await (supabase as any).from('module_lessons').select('id');
+              if (lessons && lessons.length > 0) {
+                const payload = lessons.map((l: any) => ({ lesson_id: l.id, student_id: userId, completed: false, watched_seconds: 0 }));
+                await (supabase as any).from('lesson_progress').upsert(payload, { onConflict: ['lesson_id', 'student_id'] });
+              }
+            }
+          } catch (e) {
+            console.debug('ensureUserProgress failed (non-blocking):', e);
+          }
+        })();
+
         try {
           // Fetch user roles with timeout
           const controller = new AbortController();
@@ -120,6 +163,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       if (error) {
+        // store raw error for debug UI in dev
+        if (import.meta.env.DEV) setLastAuthError(error);
+        // Normalize common auth errors for friendlier UI messages
+        try {
+          const anyErr = error as any;
+          if (anyErr.status === 400) {
+            return { error: new Error(anyErr.message || 'Invalid email or password') };
+          }
+        } catch (e) {
+          // fall through
+        }
         return { error };
       }
       
@@ -130,6 +184,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: null };
     } catch (err) {
       console.error("Sign in error:", err);
+      if (import.meta.env.DEV) setLastAuthError(err);
       return { error: err as Error };
     }
   };
@@ -140,8 +195,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const hasRole = (role: UserRole) => roles.includes(role);
 
+  const clearLastAuthError = () => setLastAuthError(null);
+
   return (
-    <AuthContext.Provider value={{ user, session, roles, loading, signIn, signOut, hasRole }}>
+    <AuthContext.Provider value={{ user, session, roles, loading, signIn, signOut, hasRole, lastAuthError, clearLastAuthError }}>
       {children}
     </AuthContext.Provider>
   );

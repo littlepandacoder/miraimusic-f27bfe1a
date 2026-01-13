@@ -27,23 +27,37 @@ const { MongoClient, ObjectId } = require('mongodb');
 const PG_CONN = process.env.PG_CONNECTION || process.env.DATABASE_URL;
 const MONGO_URI = process.env.MONGO_URI;
 
-if (!PG_CONN || !MONGO_URI) {
-  console.error('ERROR: PG_CONNECTION (or DATABASE_URL) and MONGO_URI must be set in env or .env');
+// Dry run flag: --dry-run or DRY_RUN=true will not write to Mongo; it only reports counts and sample docs.
+const argv = process.argv.slice(2);
+const dryRun = argv.includes('--dry-run') || process.env.DRY_RUN === 'true';
+
+if (!PG_CONN) {
+  console.error('ERROR: PG_CONNECTION (or DATABASE_URL) must be set in env or .env');
   process.exit(1);
 }
 
 async function migrate() {
   const pg = new Pool({ connectionString: PG_CONN });
-  const mongo = new MongoClient(MONGO_URI, { useUnifiedTopology: true });
+  let mongo;
+  let db;
+  if (!dryRun) {
+    if (!MONGO_URI) {
+      console.error('ERROR: MONGO_URI must be set in env or .env unless using --dry-run');
+      process.exit(1);
+    }
+    mongo = new MongoClient(MONGO_URI, { useUnifiedTopology: true });
+    await mongo.connect();
+    db = mongo.db();
+    console.log('[migrate] Connected to MongoDB', db.databaseName);
+  } else {
+    console.log('[migrate] Running in dry-run mode: no writes to MongoDB will be performed');
+  }
+
+  // Connect to Postgres
+  await pg.connect();
+  console.log('[migrate] Connected to Postgres');
 
   try {
-    await mongo.connect();
-    const db = mongo.db();
-    console.log('[migrate] Connected to MongoDB', db.databaseName);
-
-    // Connect to Postgres
-    await pg.connect();
-    console.log('[migrate] Connected to Postgres');
 
     // Maps old numeric IDs to new ObjectIds
     const moduleMap = new Map();
@@ -68,10 +82,14 @@ async function migrate() {
           updated_at: r.updated_at ? new Date(r.updated_at) : new Date(),
         };
       });
-      if (modules.length) {
+      console.log(`[migrate] modules -> found ${modules.length}`);
+      if (!dryRun && modules.length) {
         await db.collection('modules').insertMany(modules);
+        console.log(`[migrate] modules -> inserted ${modules.length}`);
       }
-      console.log(`[migrate] modules -> inserted ${modules.length}`);
+      if (dryRun && modules.length) {
+        console.log('[migrate] modules sample:', modules.slice(0, 3));
+      }
     } catch (err) {
       console.warn('[migrate] skipping modules:', err.message || err);
     }
@@ -95,10 +113,14 @@ async function migrate() {
           updated_at: r.updated_at ? new Date(r.updated_at) : new Date(),
         };
       });
-      if (lessons.length) {
+      console.log(`[migrate] lessons -> found ${lessons.length}`);
+      if (!dryRun && lessons.length) {
         await db.collection('lessons').insertMany(lessons);
+        console.log(`[migrate] lessons -> inserted ${lessons.length}`);
       }
-      console.log(`[migrate] lessons -> inserted ${lessons.length}`);
+      if (dryRun && lessons.length) {
+        console.log('[migrate] lessons sample:', lessons.slice(0, 3));
+      }
     } catch (err) {
       console.warn('[migrate] skipping lessons:', err.message || err);
     }
@@ -117,10 +139,14 @@ async function migrate() {
         duration_seconds: r.duration_seconds,
         created_at: r.created_at ? new Date(r.created_at) : new Date(),
       }));
-      if (vids.length) {
+      console.log(`[migrate] lesson_videos -> found ${vids.length}`);
+      if (!dryRun && vids.length) {
         await db.collection('videos').insertMany(vids);
+        console.log(`[migrate] lesson_videos -> inserted ${vids.length}`);
       }
-      console.log(`[migrate] lesson_videos -> inserted ${vids.length}`);
+      if (dryRun && vids.length) {
+        console.log('[migrate] lesson_videos sample:', vids.slice(0, 3));
+      }
     } catch (err) {
       console.warn('[migrate] skipping lesson_videos:', err.message || err);
     }
@@ -137,10 +163,14 @@ async function migrate() {
         watched_seconds: r.watched_seconds,
         last_watched_at: r.last_watched_at ? new Date(r.last_watched_at) : null,
       }));
-      if (prog.length) {
+      console.log(`[migrate] lesson_progress -> found ${prog.length}`);
+      if (!dryRun && prog.length) {
         await db.collection('lesson_progress').insertMany(prog);
+        console.log(`[migrate] lesson_progress -> inserted ${prog.length}`);
       }
-      console.log(`[migrate] lesson_progress -> inserted ${prog.length}`);
+      if (dryRun && prog.length) {
+        console.log('[migrate] lesson_progress sample:', prog.slice(0, 3));
+      }
     } catch (err) {
       console.warn('[migrate] skipping lesson_progress:', err.message || err);
     }
@@ -154,22 +184,30 @@ async function migrate() {
         user_id: r.user_id,
         role: r.role,
       }));
-      if (roles.length) {
+      console.log(`[migrate] user_roles -> found ${roles.length}`);
+      if (!dryRun && roles.length) {
         await db.collection('user_roles').insertMany(roles);
+        console.log(`[migrate] user_roles -> inserted ${roles.length}`);
       }
-      console.log(`[migrate] user_roles -> inserted ${roles.length}`);
+      if (dryRun && roles.length) {
+        console.log('[migrate] user_roles sample:', roles.slice(0, 3));
+      }
     } catch (err) {
       console.warn('[migrate] skipping user_roles:', err.message || err);
     }
 
     // Create helpful indexes
     try {
-      await db.collection('modules').createIndex({ old_id: 1 });
-      await db.collection('lessons').createIndex({ old_id: 1 });
-      await db.collection('lessons').createIndex({ module_ref: 1 });
-      await db.collection('videos').createIndex({ lesson_ref: 1 });
-      await db.collection('lesson_progress').createIndex({ lesson_ref: 1, student_id: 1 }, { unique: false });
-      console.log('[migrate] Created indexes');
+      if (!dryRun) {
+        await db.collection('modules').createIndex({ old_id: 1 });
+        await db.collection('lessons').createIndex({ old_id: 1 });
+        await db.collection('lessons').createIndex({ module_ref: 1 });
+        await db.collection('videos').createIndex({ lesson_ref: 1 });
+        await db.collection('lesson_progress').createIndex({ lesson_ref: 1, student_id: 1 }, { unique: false });
+        console.log('[migrate] Created indexes');
+      } else {
+        console.log('[migrate] dry-run: skipping index creation');
+      }
     } catch (err) {
       console.warn('[migrate] index creation warnings:', err.message || err);
     }
@@ -177,7 +215,7 @@ async function migrate() {
     console.log('[migrate] Migration completed. Preview collections in MongoDB Atlas.');
   } finally {
     await pg.end().catch(() => {});
-    await mongo.close().catch(() => {});
+    if (mongo) await mongo.close().catch(() => {});
   }
 }
 

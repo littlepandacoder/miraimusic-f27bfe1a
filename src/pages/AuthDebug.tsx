@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function AuthDebug() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [output, setOutput] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const { lastAuthError, clearLastAuthError } = useAuth();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -54,7 +56,12 @@ export default function AuthDebug() {
       </div>
 
       <div className="bg-gray-50 p-3 rounded border overflow-auto max-h-96">
-        <pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify(output, null, 2)}</pre>
+        <pre style={{ whiteSpace: 'pre-wrap' }}>{JSON.stringify({ output, lastAuthError }, null, 2)}</pre>
+        {lastAuthError && (
+          <div className="mt-2 flex gap-2">
+            <Button onClick={() => { clearLastAuthError(); setOutput(null); }}>Clear Debug</Button>
+          </div>
+        )}
       </div>
     </div>
   );
