@@ -90,16 +90,105 @@ const LessonEditor = () => {
   const [isSaving, setIsSaving] = useState(false);
   const { toast } = useToast();
 
+  // Load lesson from DB if editing an existing lesson
+  useEffect(() => {
+    const load = async () => {
+      try {
+        if (!lessonId || lessonId === "new") return;
+
+        const { data: lessonRow, error: lessonErr } = await (supabase as any)
+          .from("module_lessons")
+          .select("*")
+          .eq("id", lessonId)
+          .single();
+
+        if (lessonErr || !lessonRow) {
+          console.debug("Could not load lesson from DB:", lessonErr?.message || lessonErr);
+          return;
+        }
+
+        // Load videos
+        const { data: videos, error: videosErr } = await (supabase as any)
+          .from("lesson_videos")
+          .select("*")
+          .eq("lesson_id", lessonId)
+          .order("created_at", { ascending: true });
+
+        const mappedVideos: Video[] = (videos || []).map((v: any) => ({
+          id: v.id,
+          title: v.title,
+          url: v.url,
+          type: v.source === "supabase" || v.source === "loveable" ? "upload" : "external",
+          uploadDate: v.created_at ? new Date(v.created_at) : new Date(),
+          size: v.size_bytes ? Math.round((v.size_bytes as number) / (1024 * 1024)) : undefined,
+          duration: v.duration_seconds || undefined,
+        }));
+
+        setLesson((prev) => ({
+          ...prev,
+          id: lessonRow.id,
+          title: lessonRow.title || prev.title,
+          description: lessonRow.description || prev.description,
+          duration: lessonRow.duration_minutes || prev.duration,
+          moduleId: lessonRow.module_id || prev.moduleId,
+          status: lessonRow.status || prev.status,
+          videos: mappedVideos,
+        }));
+      } catch (err) {
+        console.error("Error loading lesson:", err);
+      }
+    };
+
+    load();
+  }, [lessonId]);
+
   // Save lesson (local state only - database tables not yet created)
-  const handleSaveLesson = async () => {
+  const handleSaveLesson = async (): Promise<string | null> => {
     setIsSaving(true);
     try {
-      // Simulate save
-      await new Promise(resolve => setTimeout(resolve, 500));
-      alert('Lesson saved successfully! (Note: Database tables for foundation lessons are not yet created)');
+      // If this is a new lesson (no id or lessonId === 'new'), insert
+      if (!lesson.id || lessonId === "new") {
+        const insertPayload = {
+          module_id: lesson.moduleId,
+          title: lesson.title,
+          description: lesson.description,
+          duration_minutes: lesson.duration,
+          status: lesson.status,
+        };
+
+        const { data, error } = await (supabase as any).from("module_lessons").insert(insertPayload).select("*").single();
+        if (error || !data) {
+          console.error("Failed to create lesson:", error);
+          toast({ title: "Error", description: "Failed to create lesson.", variant: "destructive" });
+          return null;
+        }
+
+        setLesson((prev) => ({ ...prev, id: data.id }));
+        toast({ title: "Lesson created", description: "Lesson saved to database." });
+        return data.id;
+      }
+
+      // Otherwise update existing
+      const { error } = await (supabase as any).from("module_lessons").update({
+        title: lesson.title,
+        description: lesson.description,
+        duration_minutes: lesson.duration,
+        status: lesson.status,
+        updated_at: new Date().toISOString(),
+      }).eq("id", lesson.id);
+
+      if (error) {
+        console.error("Failed to update lesson:", error);
+        toast({ title: "Error", description: "Failed to update lesson.", variant: "destructive" });
+        return null;
+      }
+
+      toast({ title: "Lesson saved", description: "Changes saved." });
+      return lesson.id;
     } catch (err) {
-      console.error('Save lesson error:', err);
-      alert('Failed to save lesson: ' + String(err));
+      console.error("Save lesson error:", err);
+      toast({ title: "Error", description: "Unexpected error saving lesson.", variant: "destructive" });
+      return null;
     } finally {
       setIsSaving(false);
     }
@@ -126,13 +215,16 @@ const LessonEditor = () => {
     setVideoTitle("");
     setIsVideoDialogOpen(false);
 
-    // Try to persist to DB if lesson exists in DB
+    // Persist to DB if lesson exists; if not, create lesson first
     (async () => {
       try {
-        const lessonId = lesson.id;
+        let lessonId = lesson.id;
+        if (!lessonId) {
+          lessonId = await handleSaveLesson() || undefined;
+        }
         if (!lessonId) return;
 
-  const { error } = await (supabase as any).from("lesson_videos").insert({
+        const { error } = await (supabase as any).from("lesson_videos").insert({
           lesson_id: lessonId,
           title: newVideo.title,
           url: newVideo.url,
@@ -200,10 +292,15 @@ const LessonEditor = () => {
 
         setLesson((prev) => ({ ...prev, videos: [...prev.videos, savedVideo] }));
 
-        // Try to persist to DB
+        // Ensure lesson exists in DB, then persist video metadata
         try {
-          const lessonId = lesson.id;
-          if (lessonId) {
+          let lessonId = lesson.id;
+          if (!lessonId) {
+            lessonId = await handleSaveLesson() || undefined;
+          }
+          if (!lessonId) {
+            console.debug("No lesson id available to save video metadata");
+          } else {
             const { error: dbErr } = await (supabase as any).from("lesson_videos").insert({
               lesson_id: lessonId,
               title: savedVideo.title,
@@ -212,6 +309,7 @@ const LessonEditor = () => {
               size_bytes: videoFile.size,
             });
             if (dbErr) console.debug("Failed to insert lesson_video:", dbErr.message || dbErr);
+            else toast({ title: "Uploaded", description: "Video uploaded and saved to lesson." });
           }
         } catch (dbErr) {
           console.error("Error inserting lesson video into DB:", dbErr);
@@ -299,7 +397,7 @@ Recommended Content Structure:
         >
           {lesson.status}
         </Badge>
-        <Button onClick={handleSaveLesson} disabled={isSaving} className="gap-2">
+        <Button onClick={async () => { await handleSaveLesson(); }} disabled={isSaving} className="gap-2">
           <Save className="w-4 h-4" />
           {isSaving ? "Saving..." : "Save Lesson"}
         </Button>

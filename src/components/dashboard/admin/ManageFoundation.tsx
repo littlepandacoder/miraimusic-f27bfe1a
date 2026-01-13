@@ -334,14 +334,8 @@ const ManageFoundation = () => {
   };
 
   const openEditLesson = (module: Module, lesson: Lesson) => {
-    setSelectedModuleForLesson(module.id);
-    setEditingLesson(lesson);
-    setFormData({
-      ...formData,
-      lessonTitle: lesson.title,
-      lessonDuration: lesson.duration.toString(),
-    });
-    setIsLessonDialogOpen(true);
+    // Navigate to lesson editor page for full editing
+    navigate(`/dashboard/foundation/lesson-editor/${module.id}/${lesson.id}`);
   };
 
   const getLevelColor = (level: string) => {
@@ -508,10 +502,8 @@ const ManageFoundation = () => {
                     size="sm"
                     variant="outline"
                     onClick={() => {
-                      setSelectedModuleForLesson(module.id);
-                      setEditingLesson(null);
-                      resetLessonForm();
-                      setIsLessonDialogOpen(true);
+                      // Open lesson editor for creating a new lesson
+                      navigate(`/dashboard/foundation/lesson-editor/${module.id}/new`);
                     }}
                   >
                     <Plus className="w-4 h-4 mr-1" />
