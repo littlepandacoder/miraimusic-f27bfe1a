@@ -9,6 +9,7 @@ import SkoolCommunity from "./pages/SkoolCommunity";
 import BookClass from "./pages/BookClass";
 import BookingSuccess from "./pages/BookingSuccess";
 import Login from "./pages/Login";
+import AuthDebug from "./pages/AuthDebug";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
@@ -28,6 +29,8 @@ const App = () => (
             <Route path="/booking-success" element={<BookingSuccess />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard/*" element={<Dashboard />} />
+            {/* Temporary debug route for auth troubleshooting (remove before production) */}
+            <Route path="/auth-debug" element={<AuthDebug />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
