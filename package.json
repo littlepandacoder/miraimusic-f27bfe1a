@@ -10,6 +10,9 @@
     "lint": "eslint .",
     "preview": "vite preview"
   },
+  "migrationScripts": {
+    "pgToMongo": "scripts/migrate_postgres_to_mongo.js"
+  },
   "dependencies": {
     "@elevenlabs/react": "^0.12.3",
     "@hookform/resolvers": "^3.10.0",
