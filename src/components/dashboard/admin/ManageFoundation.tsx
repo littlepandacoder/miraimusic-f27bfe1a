@@ -232,6 +232,23 @@ const ManageFoundation = () => {
         : m
     ));
 
+    // Save a preview session locally so editors/previewer can pick up defaults
+    try {
+      const previewKey = `lesson_preview:${newLesson.id}`;
+      const preview = {
+        id: newLesson.id,
+        title: newLesson.title,
+        duration: newLesson.duration,
+        moduleId: selectedModuleForLesson,
+        notes: "",
+        videos: [],
+        status: "draft",
+      };
+      localStorage.setItem(previewKey, JSON.stringify(preview));
+    } catch (e) {
+      // ignore storage errors
+    }
+
     // Try to persist lesson to DB
     (async () => {
       try {
@@ -289,6 +306,22 @@ const ManageFoundation = () => {
     resetLessonForm();
     setEditingLesson(null);
     setIsLessonDialogOpen(false);
+    // Update preview session so editor defaults reflect the latest edits
+    try {
+      const previewKey = `lesson_preview:${editingLesson?.id}`;
+      const preview = {
+        id: editingLesson?.id,
+        title: formData.lessonTitle,
+        duration: parseInt(formData.lessonDuration) || 20,
+        moduleId: selectedModuleForLesson,
+        notes: "",
+        videos: [],
+        status: "draft",
+      };
+      if (editingLesson?.id) localStorage.setItem(previewKey, JSON.stringify(preview));
+    } catch (e) {
+      // ignore
+    }
     // Open preview after updating
     navigate(`/dashboard/foundation/lesson-viewer/${selectedModuleForLesson}/${editingLesson.id}?preview=1`);
   };

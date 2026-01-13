@@ -96,6 +96,21 @@ const LessonEditor = () => {
       try {
         if (!lessonId || lessonId === "new") return;
 
+        // First check for a preview saved session in localStorage and apply it as defaults
+        try {
+          const previewRaw = localStorage.getItem(`lesson_preview:${lessonId}`);
+          if (previewRaw) {
+            const preview = JSON.parse(previewRaw);
+            setLesson((prev) => ({
+              ...prev,
+              ...preview,
+              id: preview.id || prev.id,
+            }));
+          }
+        } catch (e) {
+          // ignore localStorage parse errors
+        }
+
         const { data: lessonRow, error: lessonErr } = await (supabase as any)
           .from("module_lessons")
           .select("*")
@@ -124,15 +139,17 @@ const LessonEditor = () => {
           duration: v.duration_seconds || undefined,
         }));
 
+        // Merge DB values but keep preview defaults (preview wins)
         setLesson((prev) => ({
-          ...prev,
           id: lessonRow.id,
-          title: lessonRow.title || prev.title,
-          description: lessonRow.description || prev.description,
-          duration: lessonRow.duration_minutes || prev.duration,
+          title: prev.title || lessonRow.title || "",
+          description: prev.description || lessonRow.description || "",
+          duration: prev.duration || lessonRow.duration_minutes || 20,
           moduleId: lessonRow.module_id || prev.moduleId,
-          status: lessonRow.status || prev.status,
-          videos: mappedVideos,
+          videos: prev.videos && prev.videos.length ? prev.videos : mappedVideos,
+          notes: prev.notes || "",
+          aiSuggestions: prev.aiSuggestions || "",
+          status: lessonRow.status || prev.status || "draft",
         }));
       } catch (err) {
         console.error("Error loading lesson:", err);
