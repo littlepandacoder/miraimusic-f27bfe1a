@@ -9,9 +9,12 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview"
+    ,
+    "migrate:pg-to-mongo": "node scripts/migrate_postgres_to_mongo.cjs",
+    "migrate:pg-to-mongo:dry": "node scripts/migrate_postgres_to_mongo.cjs --dry-run"
   },
   "migrationScripts": {
-    "pgToMongo": "scripts/migrate_postgres_to_mongo.js"
+    "pgToMongo": "scripts/migrate_postgres_to_mongo.cjs"
   },
   "dependencies": {
     "@elevenlabs/react": "^0.12.3",
