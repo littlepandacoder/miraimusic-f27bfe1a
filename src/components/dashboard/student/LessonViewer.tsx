@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -78,6 +78,8 @@ const SAMPLE_LESSONS: Record<string, LessonContent> = {
 const LessonViewer = ({ lesson: passedLesson }: LessonViewerProps) => {
   const { moduleId, lessonId } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const isPreview = searchParams.get("preview") === "1";
   const { user } = useAuth();
 
   const [selectedVideoIndex, setSelectedVideoIndex] = useState(0);
@@ -159,6 +161,11 @@ const LessonViewer = ({ lesson: passedLesson }: LessonViewerProps) => {
           <p className="text-sm text-muted-foreground">{lesson.moduleTitle}</p>
           <h1 className="text-3xl font-bold">{lesson.title}</h1>
         </div>
+          {isPreview && (
+            <div className="ml-4">
+              <span className="inline-block px-3 py-1 rounded bg-yellow-100 text-yellow-800 text-sm font-semibold">Preview</span>
+            </div>
+          )}
         {isCompleted && (
           <Badge className="bg-green-500/20 text-green-400 flex items-center gap-2 px-3 py-2">
             <CheckCircle className="w-4 h-4" />
