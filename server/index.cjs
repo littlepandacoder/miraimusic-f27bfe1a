@@ -134,6 +134,32 @@ app.post('/stripe-webhook', async (req, res) => {
           console.error('Failed to create Supabase user for', customerEmail, errText);
         } else {
           console.log('Supabase user created for', customerEmail);
+          // If user was created, try to assign the default "student" role
+          try {
+            const created = await resp.json();
+            const userId = created.id || (created.user && created.user.id) || null;
+            if (userId) {
+              const insertRole = await fetch(`${process.env.SUPABASE_URL}/rest/v1/user_roles`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+                  apikey: SUPABASE_SERVICE_ROLE_KEY
+                },
+                body: JSON.stringify([{ user_id: userId, role: 'student' }])
+              });
+              if (!insertRole.ok) {
+                const t = await insertRole.text();
+                console.error('Failed to assign student role:', t);
+              } else {
+                console.log('Assigned student role to', userId);
+              }
+            } else {
+              console.warn('Could not determine created user id to assign role');
+            }
+          } catch (err2) {
+            console.error('Error assigning student role after user creation:', err2);
+          }
         }
       } catch (err) {
         console.error('Error creating Supabase user on webhook:', err);
