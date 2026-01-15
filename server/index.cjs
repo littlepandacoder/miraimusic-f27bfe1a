@@ -4,7 +4,8 @@ const { MongoClient } = require('mongodb');
 
 const app = express();
 app.use(express.json());
-
+// For raw body needed by Stripe webhook signature verification
+app.use('/stripe-webhook', express.raw({ type: 'application/json' }));
 const MONGO_URI = process.env.MONGO_URI;
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const PORT = process.env.PORT || 3001;
@@ -43,6 +44,114 @@ async function requireAuth(req, res, next) {
 }
 
 app.get('/health', (req, res) => res.json({ ok: true }));
+
+// --- Stripe Checkout creation endpoint ---
+// POST /create-checkout-session
+// Body: { price: number (in cents), recurring: { interval: 'month' } | null, email }
+app.post('/create-checkout-session', async (req, res) => {
+  try {
+    const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY;
+    if (!STRIPE_SECRET) return res.status(501).json({ error: 'Stripe not configured on server. Set STRIPE_SECRET_KEY in server env.' });
+    const stripe = (await import('stripe')).default(STRIPE_SECRET);
+
+    const { email, amount_cents = 2900, recurring = { interval: 'month' } } = req.body || {};
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: recurring ? 'subscription' : 'payment',
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: { name: 'Miraimusic Portal Access' },
+            unit_amount: amount_cents,
+            recurring: recurring ? { interval: recurring.interval } : undefined
+          },
+          quantity: 1
+        }
+      ],
+      customer_email: email,
+      success_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/pricing?canceled=true`
+    });
+
+    res.json({ sessionId: session.id, url: session.url });
+  } catch (err) {
+    console.error('create-checkout-session error', err);
+    res.status(500).json({ error: 'failed to create checkout session' });
+  }
+});
+
+// --- Stripe webhook handler ---
+// Configure STRIPE_WEBHOOK_SECRET in server env to validate signatures
+app.post('/stripe-webhook', async (req, res) => {
+  const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY;
+  const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!STRIPE_SECRET || !STRIPE_WEBHOOK_SECRET) {
+    return res.status(501).send('Stripe webhook not configured');
+  }
+
+  const stripe = (await import('stripe')).default(STRIPE_SECRET);
+  const sig = req.headers['stripe-signature'];
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.error('Webhook signature verification failed.', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Handle completed checkout sessions
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const customerEmail = session.customer_email;
+    // Create or update a user in Supabase via Service Role Key if provided
+    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (SUPABASE_SERVICE_ROLE_KEY && customerEmail) {
+      try {
+        const fetch = globalThis.fetch || (await import('node-fetch')).default;
+        // Generate a random password based on email + timestamp (you may want to improve this)
+        const password = generatePasswordFromEmail(customerEmail);
+
+        // Create user via Supabase Admin API
+        const resp = await fetch(`${process.env.SUPABASE_URL}/auth/v1/admin/users`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+            apikey: SUPABASE_SERVICE_ROLE_KEY
+          },
+          body: JSON.stringify({
+            email: customerEmail,
+            password,
+            email_confirm: true
+          })
+        });
+
+        if (!resp.ok) {
+          const errText = await resp.text();
+          console.error('Failed to create Supabase user for', customerEmail, errText);
+        } else {
+          console.log('Supabase user created for', customerEmail);
+        }
+      } catch (err) {
+        console.error('Error creating Supabase user on webhook:', err);
+      }
+    } else {
+      console.warn('Supabase service role key not provided, skipping user creation.');
+    }
+  }
+
+  res.json({ received: true });
+});
+
+function generatePasswordFromEmail(email) {
+  // Simple deterministic password generator (for demo). Recommend using a secure random generator.
+  const ts = Date.now().toString(36).slice(-6);
+  const name = email.split('@')[0].replace(/[^a-z0-9]/gi, '');
+  return `${name}_${ts}#`;
+}
 
 // List modules
 app.get('/modules', requireAuth, async (req, res) => {
