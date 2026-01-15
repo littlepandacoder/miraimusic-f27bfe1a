@@ -4,6 +4,15 @@ import { supabase } from "@/integrations/supabase/client";
 
 type UserRole = "admin" | "teacher" | "student";
 
+// Track consecutive failed sign-in attempts to trigger aggressive cleanup
+// Problem: After 3+ failed sign-in attempts, Supabase localStorage accumulates stale/invalid
+// refresh tokens. Client tries to use these on next sign-in, gets blocked, and requires manual
+// browser history/storage clearing.
+// Solution: After FAILURE_THRESHOLD consecutive failures, aggressively clear all Supabase
+// storage keys before user must manually intervene. Counter resets on success or explicit sign-out.
+let signInFailureCount = 0;
+const FAILURE_THRESHOLD = 2; // After 2 consecutive failures, aggressively clear stale tokens
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -25,6 +34,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastAuthError, setLastAuthError] = useState<any | null>(null);
+
+  // Helper: remove all Supabase-related keys from localStorage without clearing unrelated data
+  const clearSupabaseStorage = async () => {
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (!k) continue;
+        // Remove keys matching Supabase patterns: sb-*, supabase.*, react-query*, and auth/token/session/refresh keys
+        if (/^(sb-|supabase|sb_|react-query)/i.test(k) || /refresh|auth|token|session/i.test(k)) {
+          keysToRemove.push(k);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+      if (import.meta.env.DEV) {
+        console.debug(`[auth] cleared ${keysToRemove.length} Supabase/auth storage keys:`, keysToRemove);
+      }
+      return keysToRemove.length;
+    } catch (e) {
+      console.warn('[auth] error clearing storage:', e);
+      return 0;
+    }
+  };
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -151,12 +183,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      // Don't sign out before signing in - this causes race conditions
-      // Just attempt to sign in directly
-      const { data, error } = await supabase.auth.signInWithPassword({ 
-        email, 
-        password 
-      });
+      // Quick network check: avoid calling the auth API if the browser is offline
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        const msg = 'No network connection. Please check your internet connection and try again.';
+        if (import.meta.env.DEV) setLastAuthError({ message: msg });
+        return { error: new Error(msg) };
+      }
+      // Attempt to sign in directly. If an existing (stale) session blocks sign-in
+      // we try a signOut + retry once which clears Supabase client storage and fixes
+      // cases where users must manually clear browser storage.
+      let attempt = 0;
+      let data: any = null;
+      let error: any = null;
+      while (attempt < 2) {
+        try {
+          const res = await supabase.auth.signInWithPassword({ email, password });
+          data = res.data;
+          error = res.error;
+        } catch (fetchErr: any) {
+          // Network-level fetch error (e.g., offline) or CORS; normalize it
+          const msg = String(fetchErr?.message || fetchErr || 'Network error while contacting auth server');
+          if (import.meta.env.DEV) console.debug('[auth] network/fetch error during signIn:', msg);
+          // Return a friendly error immediately (don't retry signOut loop)
+          if (import.meta.env.DEV) setLastAuthError({ message: msg });
+          return { error: new Error(msg) };
+        }
+
+        if (!error) break;
+
+        // If error looks like it's caused by an existing/stale session, clear it and retry once
+        const msg = String(error?.message || '').toLowerCase();
+        const shouldClear = /session|already|invalid refresh token|invalid token|invalid_grant/.test(msg) || error?.status === 400 || error?.status === 401;
+        if (shouldClear && attempt === 0) {
+          try {
+            // clear any client-side session state
+            await supabase.auth.signOut();
+            // give storage a moment to clear
+            await new Promise(r => setTimeout(r, 250));
+          } catch (e) {
+            // ignore errors here
+          }
+          attempt++;
+          continue;
+        }
+        break;
+      }
       if (import.meta.env.DEV) {
         // eslint-disable-next-line no-console
         console.debug('[auth] signInWithPassword result', { data, error });
@@ -165,6 +236,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) {
         // store raw error for debug UI in dev
         if (import.meta.env.DEV) setLastAuthError(error);
+        
+        // Track consecutive failures and aggressively clean up stale tokens on threshold
+        signInFailureCount++;
+        if (signInFailureCount >= FAILURE_THRESHOLD) {
+          if (import.meta.env.DEV) console.warn(`[auth] ${signInFailureCount} consecutive sign-in failures - clearing all Supabase/auth storage to prevent token corruption`);
+          await clearSupabaseStorage();
+          signInFailureCount = 0; // reset counter after cleanup
+        }
+        
         // Normalize common auth errors for friendlier UI messages
         try {
           const anyErr = error as any;
@@ -177,20 +257,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error };
       }
       
-      // Wait a moment for auth state to update through the listener
-      // before returning to allow the UI to catch up
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Success: reset failure counter
+      signInFailureCount = 0;
       
+      // Ensure session state is available immediately: fetch session and set local state
+      try {
+        const { data: sessionRes } = await supabase.auth.getSession();
+        const newSession = sessionRes?.session ?? null;
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+
+        // fetch roles as done during normal auth flows
+        if (newSession?.user) {
+          try {
+            const { data: rolesData, error: rolesError } = await supabase
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", newSession.user.id);
+            if (!rolesError) setRoles((rolesData?.map(r => r.role as any)) || []);
+          } catch (e) {
+            // ignore
+            setRoles([]);
+          }
+        }
+      } catch (e) {
+        // non-critical
+      }
+
+      // Wait a moment for auth state to update through the listener before returning to allow the UI to catch up
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       return { error: null };
     } catch (err) {
       console.error("Sign in error:", err);
       if (import.meta.env.DEV) setLastAuthError(err);
+      signInFailureCount++;
       return { error: err as Error };
     }
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    signInFailureCount = 0; // reset counter on explicit sign-out
   };
 
   const hasRole = (role: UserRole) => roles.includes(role);

@@ -39,7 +39,7 @@ const Login = () => {
 
     try {
       const { error } = await signIn(email, password);
-      
+
       if (error) {
         console.error("Sign in error:", error);
         toast({
@@ -47,7 +47,6 @@ const Login = () => {
           description: error.message || "Invalid email or password",
           variant: "destructive",
         });
-        setIsLoading(false);
       } else {
         toast({
           title: "Welcome back!",
@@ -55,6 +54,8 @@ const Login = () => {
         });
         // The useEffect will handle navigation once user is set
       }
+      // Always clear loading after signIn resolves to avoid stuck state
+      setIsLoading(false);
     } catch (err) {
       console.error("Unexpected error during sign in:", err);
       toast({
