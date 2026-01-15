@@ -193,3 +193,62 @@ app.post('/lesson_progress', requireAuth, async (req, res) => {
 });
 
 app.listen(PORT, () => console.log(`Mongo API running on http://localhost:${PORT}`));
+
+// --- Admin management endpoints (requires Supabase service role key)
+// GET /admin/users - list all users (only if calling user is admin)
+app.get('/admin/users', requireAuth, async (req, res) => {
+  try {
+    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!SUPABASE_SERVICE_ROLE_KEY) return res.status(501).json({ error: 'Server missing SUPABASE_SERVICE_ROLE_KEY' });
+
+    // Verify caller is admin by checking user_roles via service role
+    const fetch = globalThis.fetch || (await import('node-fetch')).default;
+    const check = await fetch(`${process.env.SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${req.user.id}&role=eq.admin`, {
+      headers: { Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`, apikey: SUPABASE_SERVICE_ROLE_KEY }
+    });
+    const checkJson = await check.json();
+    if (!Array.isArray(checkJson) || checkJson.length === 0) return res.status(403).json({ error: 'Requires admin role' });
+
+    const resp = await fetch(`${process.env.SUPABASE_URL}/auth/v1/admin/users`, {
+      headers: { Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`, apikey: SUPABASE_SERVICE_ROLE_KEY }
+    });
+    const users = await resp.json();
+    res.json(users);
+  } catch (err) {
+    console.error('admin/users error', err);
+    res.status(500).json({ error: 'server error' });
+  }
+});
+
+// POST /admin/assign-role { user_id, role }
+app.post('/admin/assign-role', requireAuth, async (req, res) => {
+  try {
+    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!SUPABASE_SERVICE_ROLE_KEY) return res.status(501).json({ error: 'Server missing SUPABASE_SERVICE_ROLE_KEY' });
+    const { user_id, role } = req.body || {};
+    if (!user_id || !role) return res.status(400).json({ error: 'user_id and role required' });
+
+    const fetch = globalThis.fetch || (await import('node-fetch')).default;
+    // Verify caller is admin
+    const check = await fetch(`${process.env.SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${req.user.id}&role=eq.admin`, {
+      headers: { Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`, apikey: SUPABASE_SERVICE_ROLE_KEY }
+    });
+    const checkJson = await check.json();
+    if (!Array.isArray(checkJson) || checkJson.length === 0) return res.status(403).json({ error: 'Requires admin role' });
+
+    // Insert role record
+    const insert = await fetch(`${process.env.SUPABASE_URL}/rest/v1/user_roles`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`, apikey: SUPABASE_SERVICE_ROLE_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify([{ user_id, role }])
+    });
+    if (!insert.ok) {
+      const txt = await insert.text();
+      return res.status(500).json({ error: 'failed to assign role', details: txt });
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('assign-role error', err);
+    res.status(500).json({ error: 'server error' });
+  }
+});
