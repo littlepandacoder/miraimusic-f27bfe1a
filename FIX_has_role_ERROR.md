@@ -1,25 +1,14 @@
-# 🎹 Manual Foundation Migration - Copy & Paste Instructions
+# 🔐 Fix: Create has_role Function First
 
-## Why Manual?
-
-The Supabase CLI is having connection issues. The quickest way is to run the SQL directly in the Supabase web console.
+The error means the `has_role()` function doesn't exist in your database. We need to create it before running the migration.
 
 ---
 
-## 📋 Step 1: Go to Supabase Web Console
+## 📋 Step 1: Create the has_role Function
 
-1. Open: https://app.supabase.com
-2. Select your project: **musicable**
-3. Go to **SQL Editor** (left sidebar)
-4. Click **New Query**
+Go to https://app.supabase.com → SQL Editor → New Query
 
----
-
-## 📝 Step 2: Create the has_role Function FIRST
-
-⚠️ **Important**: Run this first! The foundation tables need this function.
-
-Copy and paste this SQL into the SQL Editor:
+Copy and paste this SQL **FIRST** (before the foundation tables migration):
 
 ```sql
 -- Create has_role function for Row Level Security policies
@@ -38,15 +27,15 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 Click **Run** ▶️
 
-**Expected result**: `Query successful - no rows returned`
+**Expected output**: `Query successful - no rows returned`
 
 ---
 
-## 📝 Step 3: Copy & Paste the SQL
+## 🔄 Step 2: Now Run the Foundation Tables Migration
 
-### Migration 1: Create Foundation Tables
+After the function is created, run the main migration SQL (the one with CREATE TABLE public.foundation_modules...)
 
-Copy this entire SQL and paste into a **NEW QUERY** in the SQL Editor:
+Copy and paste this:
 
 ```sql
 -- Create foundation modules
@@ -127,13 +116,13 @@ FOR ALL
 USING (public.has_role(auth.uid(), 'admin') OR public.has_role(auth.uid(), 'teacher'));
 ```
 
-Then click **Run** ▶️
+Click **Run** ▶️
 
 ---
 
-## 🌱 Step 3: Seed Default Modules and Lessons
+## 🌱 Step 3: Seed the Data
 
-Paste this SQL into a **new query** and run:
+Create a **new query** and paste:
 
 ```sql
 -- Seed default modules
@@ -224,67 +213,22 @@ Click **Run** ▶️
 
 ---
 
-## ✅ Step 4: Verify Success
-
-After both queries run successfully:
+## ✅ Verify Success
 
 1. Go to **Table Editor** (left sidebar)
-2. You should see these new tables:
-   - `foundation_modules` (5 rows)
-   - `foundation_lessons` (35+ rows)
-   - `student_foundation_progress` (empty, for tracking)
-
-3. Click on `foundation_modules` and verify you see:
-   - Welcome to Piano
-   - Reading Notes
-   - Rhythm Basics
-   - Your First Chords
-   - Simple Melodies
+2. You should see:
+   - ✓ `foundation_modules` (5 rows)
+   - ✓ `foundation_lessons` (35+ rows)
+   - ✓ `student_foundation_progress` (empty)
 
 ---
 
-## 🎯 What This Creates
+## 🎯 Done!
 
-✅ **foundation_modules** - 5 music learning modules  
-✅ **foundation_lessons** - Detailed lessons for each module  
-✅ **student_foundation_progress** - Tracks student progress  
-✅ **Row Level Security** - Access control policies  
-✅ **Seed Data** - All modules and lessons ready to use  
+Your foundation migration is complete! Your app can now save foundation module changes to the database.
 
----
-
-## 💻 Your App Can Now:
-
-After these migrations run:
-
-```typescript
-// Query modules
-const { data: modules } = await supabase
-  .from('foundation_modules')
-  .select('*');
-
-// Save changes
-await supabase
-  .from('foundation_modules')
-  .update({ title: 'New Title' })
-  .eq('id', moduleId);
-
-// Track progress
-await supabase
-  .from('student_foundation_progress')
-  .upsert({
-    student_id: userId,
-    module_id: moduleId,
-    completed_lessons: 2,
-    progress_percent: 50
-  });
-```
-
----
-
-## 🎉 Done!
-
-Your foundation module database is ready. Foundation module changes will now be saved to the database!
-
-**Time to complete**: ~2 minutes  
-**Next step**: Test in your app and deploy to production
+**Key steps**:
+1. Create `has_role()` function ← **Do this first!**
+2. Run foundation tables migration
+3. Seed default modules and lessons
+4. Verify in Table Editor

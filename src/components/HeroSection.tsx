@@ -1,6 +1,4 @@
 import PianoKeyboard from "./PianoKeyboard";
-import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
 
 const HeroSection = () => {
   return (
@@ -31,30 +29,6 @@ const HeroSection = () => {
             >
               JOIN SKOOL COMMUNITY
             </a>
-            <button
-              onClick={async () => {
-                try {
-                  const userResult = await supabase.auth.getUser();
-                  const email = userResult?.data?.user?.email || '';
-                  const apiUrl = (import.meta.env.VITE_API_URL as string) || 'http://localhost:3001';
-                  const resp = await fetch(`${apiUrl}/create-checkout-session`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
-                  });
-                  const data = await resp.json();
-                  if (data.url) window.location.href = data.url;
-                  else if (data.sessionId) window.location.href = `https://checkout.stripe.com/pay/${data.sessionId}`;
-                  else alert('Failed to create checkout session');
-                } catch (err) {
-                  console.error(err);
-                  alert('Payment could not be initiated');
-                }
-              }}
-              className="btn-primary inline-block animate-slide-up"
-            >
-              Subscribe — $29/mo
-            </button>
           </div>
         </div>
 
