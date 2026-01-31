@@ -12,7 +12,11 @@ WHERE table_name = 'user_roles' AND column_name = 'role';
 DROP POLICY IF EXISTS "Admins can view all roles" ON public.user_roles;
 DROP POLICY IF EXISTS "Admins can manage roles" ON public.user_roles;
 
--- Step 2: Update has_role function to handle enum
+-- Step 2: Drop and recreate has_role function to handle enum
+-- Must drop first because we're changing parameter names
+DROP FUNCTION IF EXISTS public.has_role(UUID, TEXT);
+DROP FUNCTION IF EXISTS public.has_role(UUID, app_role);
+
 CREATE OR REPLACE FUNCTION public.has_role(_user_id UUID, _role TEXT)
 RETURNS BOOLEAN
 LANGUAGE plpgsql

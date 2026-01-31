@@ -8,7 +8,11 @@
 DROP POLICY IF EXISTS "Admins can view all roles" ON public.user_roles;
 DROP POLICY IF EXISTS "Admins can manage roles" ON public.user_roles;
 
--- Step 2: Recreate the has_role function to properly bypass RLS
+-- Step 2: Drop and recreate the has_role function to properly bypass RLS
+-- Must drop first because we're changing parameter names
+DROP FUNCTION IF EXISTS public.has_role(UUID, TEXT);
+DROP FUNCTION IF EXISTS public.has_role(UUID, app_role);
+
 CREATE OR REPLACE FUNCTION public.has_role(_user_id UUID, _role TEXT)
 RETURNS BOOLEAN
 LANGUAGE plpgsql
