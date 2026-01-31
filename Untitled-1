@@ -1,0 +1,5 @@
+MONGO_URI='mongodb+srv://user:pass@cluster.mongodb.net/miraimusic-staging'
+SUPABASE_URL='https://your-project.supabase.co'
+# Optional (only for admin server-side Supabase actions)
+SUPABASE_SERVICE_ROLE_KEY='...' 
+PORT=3000
