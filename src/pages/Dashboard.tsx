@@ -7,7 +7,7 @@ import StudentDashboard from "@/components/dashboard/StudentDashboard";
 import { Loader2 } from "lucide-react";
 
 const Dashboard = () => {
-  const { user, loading, hasRole } = useAuth();
+  const { user, loading, hasRole, roles } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -15,6 +15,15 @@ const Dashboard = () => {
       navigate("/login");
     }
   }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (!loading && user) {
+      console.log('[Dashboard] User roles:', roles);
+      console.log('[Dashboard] Has admin?', hasRole("admin"));
+      console.log('[Dashboard] Has teacher?', hasRole("teacher"));
+      console.log('[Dashboard] Has student?', hasRole("student"));
+    }
+  }, [loading, user, roles, hasRole]);
 
   if (loading) {
     return (

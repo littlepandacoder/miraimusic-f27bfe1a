@@ -126,7 +126,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               // Don't block login if roles can't be fetched
               setRoles([]);
             } else {
-              setRoles((rolesData?.map(r => r.role as UserRole)) || []);
+              const userRoles = (rolesData?.map(r => r.role as UserRole)) || [];
+              setRoles(userRoles);
+              if (import.meta.env.DEV) {
+                console.debug(`[auth] User roles loaded:`, userRoles, `for user:`, session.user.email);
+              }
             }
           } catch (err) {
             console.warn("Warning: Error fetching roles:", err);
@@ -184,7 +188,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.warn("Warning: Could not fetch user roles:", rolesError.message);
             setRoles([]);
           } else {
-            setRoles((rolesData?.map(r => r.role as UserRole)) || []);
+            const userRoles = (rolesData?.map(r => r.role as UserRole)) || [];
+            setRoles(userRoles);
+            if (import.meta.env.DEV) {
+              console.debug(`[auth] User roles loaded on init:`, userRoles, `for user:`, session.user.email);
+            }
           }
         } catch (err) {
           console.warn("Warning: Error fetching roles:", err);
@@ -314,7 +322,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               .from("user_roles")
               .select("role")
               .eq("user_id", newSession.user.id);
-            if (!rolesError) setRoles((rolesData?.map(r => r.role as any)) || []);
+            if (!rolesError) {
+              const userRoles = (rolesData?.map(r => r.role as any)) || [];
+              setRoles(userRoles);
+              if (import.meta.env.DEV) {
+                console.debug(`[auth] User roles loaded after sign-in:`, userRoles);
+              }
+            }
           } catch (e) {
             // ignore
             setRoles([]);
