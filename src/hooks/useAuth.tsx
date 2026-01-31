@@ -2,6 +2,14 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
+// Dev-only helpers to quickly reproduce the raw GoTrue response when debugging 400s
+// These read the same envs as the client (strip surrounding quotes if present).
+const _rawUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const _rawKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
+const _stripQuotes = (s?: string) => s?.trim().replace(/^['\"]|['\"]$/g, "") || "";
+const DEV_SUPABASE_URL = _stripQuotes(_rawUrl);
+const DEV_SUPABASE_PUBLISHABLE_KEY = _stripQuotes(_rawKey);
+
 type UserRole = "admin" | "teacher" | "student";
 
 // Track consecutive failed sign-in attempts to trigger aggressive cleanup
@@ -39,14 +47,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const clearSupabaseStorage = async () => {
     try {
       const keysToRemove: string[] = [];
+      // Collect all keys first (don't modify during iteration)
+      const allKeys: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (!k) continue;
-        // Remove keys matching Supabase patterns: sb-*, supabase.*, react-query*, and auth/token/session/refresh keys
-        if (/^(sb-|supabase|sb_|react-query)/i.test(k) || /refresh|auth|token|session/i.test(k)) {
+        if (k) allKeys.push(k);
+      }
+      
+      // Now check which keys to remove (only Supabase-specific keys)
+      for (const k of allKeys) {
+        // Only match keys that START with Supabase patterns - be very specific
+        if (/^sb-/i.test(k) || /^supabase\./i.test(k) || /^sb_/i.test(k)) {
           keysToRemove.push(k);
         }
       }
+      
+      // Remove the identified keys
       keysToRemove.forEach(k => localStorage.removeItem(k));
       if (import.meta.env.DEV) {
         console.debug(`[auth] cleared ${keysToRemove.length} Supabase/auth storage keys:`, keysToRemove);
@@ -231,6 +247,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (import.meta.env.DEV) {
         // eslint-disable-next-line no-console
         console.debug('[auth] signInWithPassword result', { data, error });
+      }
+
+      // DEV: If we get a 400 from the token endpoint, attempt a one-off debug fetch
+      // to the same endpoint and log the raw response body. This helps capture the
+      // GoTrue JSON message that sometimes isn't visible in the normalized error.
+      if (import.meta.env.DEV && error && (error as any)?.status === 400 && DEV_SUPABASE_URL && DEV_SUPABASE_PUBLISHABLE_KEY) {
+        try {
+          // Do a single debug fetch to surface the raw response body in the console.
+          // NOTE: This sends the plaintext password to the same endpoint (dev-only).
+          const debugResp = await fetch(`${DEV_SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              apikey: DEV_SUPABASE_PUBLISHABLE_KEY,
+            },
+            body: JSON.stringify({ email, password }),
+          });
+          const text = await debugResp.text();
+          // eslint-disable-next-line no-console
+          console.debug('[auth][dev-debug] raw token endpoint response', { status: debugResp.status, body: text });
+        } catch (dbgErr) {
+          // eslint-disable-next-line no-console
+          console.warn('[auth][dev-debug] failed to fetch token endpoint for debug:', dbgErr);
+        }
       }
 
       if (error) {
