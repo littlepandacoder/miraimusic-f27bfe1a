@@ -12,15 +12,6 @@ const DEV_SUPABASE_PUBLISHABLE_KEY = _stripQuotes(_rawKey);
 
 type UserRole = "admin" | "teacher" | "student";
 
-// Track consecutive failed sign-in attempts to trigger aggressive cleanup
-// Problem: After 3+ failed sign-in attempts, Supabase localStorage accumulates stale/invalid
-// refresh tokens. Client tries to use these on next sign-in, gets blocked, and requires manual
-// browser history/storage clearing.
-// Solution: After FAILURE_THRESHOLD consecutive failures, aggressively clear all Supabase
-// storage keys before user must manually intervene. Counter resets on success or explicit sign-out.
-let signInFailureCount = 0;
-const FAILURE_THRESHOLD = 2; // After 2 consecutive failures, aggressively clear stale tokens
-
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -44,20 +35,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [lastAuthError, setLastAuthError] = useState<any | null>(null);
 
   // Helper: remove all Supabase-related keys from localStorage without clearing unrelated data
-  const clearSupabaseStorage = async () => {
+  const clearSupabaseStorage = () => {
     try {
       const keysToRemove: string[] = [];
       // Collect all keys first (don't modify during iteration)
-      const allKeys: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (k) allKeys.push(k);
-      }
-      
-      // Now check which keys to remove (only Supabase-specific keys)
-      for (const k of allKeys) {
-        // Only match keys that START with Supabase patterns - be very specific
-        if (/^sb-/i.test(k) || /^supabase\./i.test(k) || /^sb_/i.test(k)) {
+        if (k && (/^sb-/i.test(k) || /^supabase\./i.test(k) || /^sb_/i.test(k))) {
           keysToRemove.push(k);
         }
       }
@@ -65,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Remove the identified keys
       keysToRemove.forEach(k => localStorage.removeItem(k));
       if (import.meta.env.DEV) {
-        console.debug(`[auth] cleared ${keysToRemove.length} Supabase/auth storage keys:`, keysToRemove);
+        console.debug(`[auth] cleared ${keysToRemove.length} Supabase storage keys`);
       }
       return keysToRemove.length;
     } catch (e) {
@@ -207,50 +191,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      // Quick network check: avoid calling the auth API if the browser is offline
+      // Quick network check
       if (typeof navigator !== 'undefined' && !navigator.onLine) {
         const msg = 'No network connection. Please check your internet connection and try again.';
         if (import.meta.env.DEV) setLastAuthError({ message: msg });
         return { error: new Error(msg) };
       }
-      // Attempt to sign in directly. If an existing (stale) session blocks sign-in
-      // we try a signOut + retry once which clears Supabase client storage and fixes
-      // cases where users must manually clear browser storage.
-      let attempt = 0;
+      
+      // Always clear any stale session before attempting sign in
+      // This prevents the "need to clear history" issue
+      try {
+        await supabase.auth.signOut();
+        clearSupabaseStorage();
+        await new Promise(r => setTimeout(r, 100));
+      } catch (e) {
+        // ignore cleanup errors
+      }
+      
+      // Attempt sign in
       let data: any = null;
       let error: any = null;
-      while (attempt < 2) {
-        try {
-          const res = await supabase.auth.signInWithPassword({ email, password });
-          data = res.data;
-          error = res.error;
-        } catch (fetchErr: any) {
-          // Network-level fetch error (e.g., offline) or CORS; normalize it
-          const msg = String(fetchErr?.message || fetchErr || 'Network error while contacting auth server');
-          if (import.meta.env.DEV) console.debug('[auth] network/fetch error during signIn:', msg);
-          // Return a friendly error immediately (don't retry signOut loop)
-          if (import.meta.env.DEV) setLastAuthError({ message: msg });
-          return { error: new Error(msg) };
-        }
-
-        if (!error) break;
-
-        // If error looks like it's caused by an existing/stale session, clear it and retry once
-        const msg = String(error?.message || '').toLowerCase();
-        const shouldClear = /session|already|invalid refresh token|invalid token|invalid_grant/.test(msg) || error?.status === 400 || error?.status === 401;
-        if (shouldClear && attempt === 0) {
-          try {
-            // clear any client-side session state
-            await supabase.auth.signOut();
-            // give storage a moment to clear
-            await new Promise(r => setTimeout(r, 250));
-          } catch (e) {
-            // ignore errors here
-          }
-          attempt++;
-          continue;
-        }
-        break;
+      
+      try {
+        const res = await supabase.auth.signInWithPassword({ email, password });
+        data = res.data;
+        error = res.error;
+      } catch (fetchErr: any) {
+        const msg = String(fetchErr?.message || fetchErr || 'Network error while contacting auth server');
+        if (import.meta.env.DEV) console.debug('[auth] network/fetch error during signIn:', msg);
+        if (import.meta.env.DEV) setLastAuthError({ message: msg });
+        return { error: new Error(msg) };
       }
       if (import.meta.env.DEV) {
         // eslint-disable-next-line no-console
@@ -285,28 +255,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // store raw error for debug UI in dev
         if (import.meta.env.DEV) setLastAuthError(error);
         
-        // Track consecutive failures and aggressively clean up stale tokens on threshold
-        signInFailureCount++;
-        if (signInFailureCount >= FAILURE_THRESHOLD) {
-          if (import.meta.env.DEV) console.warn(`[auth] ${signInFailureCount} consecutive sign-in failures - clearing all Supabase/auth storage to prevent token corruption`);
-          await clearSupabaseStorage();
-          signInFailureCount = 0; // reset counter after cleanup
-        }
-        
         // Normalize common auth errors for friendlier UI messages
-        try {
-          const anyErr = error as any;
-          if (anyErr.status === 400) {
-            return { error: new Error(anyErr.message || 'Invalid email or password') };
-          }
-        } catch (e) {
-          // fall through
-        }
-        return { error };
+        const anyErr = error as any;
+        const msg = anyErr.message || 'Invalid email or password';
+        return { error: new Error(msg) };
       }
-      
-      // Success: reset failure counter
-      signInFailureCount = 0;
       
       // Ensure session state is available immediately: fetch session and set local state
       try {
@@ -330,7 +283,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               }
             }
           } catch (e) {
-            // ignore
             setRoles([]);
           }
         }
@@ -338,21 +290,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // non-critical
       }
 
-      // Wait a moment for auth state to update through the listener before returning to allow the UI to catch up
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Wait a moment for auth state to update
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       return { error: null };
     } catch (err) {
       console.error("Sign in error:", err);
       if (import.meta.env.DEV) setLastAuthError(err);
-      signInFailureCount++;
       return { error: err as Error };
     }
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    signInFailureCount = 0; // reset counter on explicit sign-out
+    clearSupabaseStorage();
+    setUser(null);
+    setSession(null);
+    setRoles([]);
   };
 
   const hasRole = (role: UserRole) => roles.includes(role);
