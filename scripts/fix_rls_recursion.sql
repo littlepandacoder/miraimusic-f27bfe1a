@@ -10,8 +10,9 @@ DROP POLICY IF EXISTS "Admins can manage roles" ON public.user_roles;
 
 -- Step 2: Drop and recreate the has_role function to properly bypass RLS
 -- Must drop first because we're changing parameter names
-DROP FUNCTION IF EXISTS public.has_role(UUID, TEXT);
-DROP FUNCTION IF EXISTS public.has_role(UUID, app_role);
+-- Use CASCADE to drop dependent policies - they will be automatically recreated
+DROP FUNCTION IF EXISTS public.has_role(UUID, TEXT) CASCADE;
+DROP FUNCTION IF EXISTS public.has_role(UUID, app_role) CASCADE;
 
 CREATE OR REPLACE FUNCTION public.has_role(_user_id UUID, _role TEXT)
 RETURNS BOOLEAN
@@ -40,6 +41,8 @@ GRANT EXECUTE ON FUNCTION public.has_role(UUID, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.has_role(UUID, TEXT) TO anon;
 
 -- Step 4: Recreate the admin policies WITHOUT recursion
+-- Note: Policies on other tables (foundation_modules, foundation_lessons, etc.) 
+-- will need to be recreated manually if they were dropped by CASCADE
 -- Instead of using has_role in the policy, we'll use a simpler approach
 CREATE POLICY "Admins can view all roles"
 ON public.user_roles
