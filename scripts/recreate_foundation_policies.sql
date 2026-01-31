@@ -2,12 +2,14 @@
 -- Run this AFTER fix_rls_recursion.sql or fix_rls_recursion_enum.sql
 
 -- Foundation Modules Policies
-CREATE POLICY IF NOT EXISTS "Admins can manage foundation modules"
+DROP POLICY IF EXISTS "Admins can manage foundation modules" ON public.foundation_modules;
+CREATE POLICY "Admins can manage foundation modules"
 ON public.foundation_modules
 FOR ALL
 USING (public.has_role(auth.uid(), 'admin'));
 
-CREATE POLICY IF NOT EXISTS "Teachers and Admins can view foundation modules"
+DROP POLICY IF EXISTS "Teachers and Admins can view foundation modules" ON public.foundation_modules;
+CREATE POLICY "Teachers and Admins can view foundation modules"
 ON public.foundation_modules
 FOR SELECT
 USING (
@@ -16,12 +18,14 @@ USING (
 );
 
 -- Foundation Lessons Policies
-CREATE POLICY IF NOT EXISTS "Admins can manage foundation lessons"
+DROP POLICY IF EXISTS "Admins can manage foundation lessons" ON public.foundation_lessons;
+CREATE POLICY "Admins can manage foundation lessons"
 ON public.foundation_lessons
 FOR ALL
 USING (public.has_role(auth.uid(), 'admin'));
 
-CREATE POLICY IF NOT EXISTS "Teachers and Admins can view foundation lessons"
+DROP POLICY IF EXISTS "Teachers and Admins can view foundation lessons" ON public.foundation_lessons;
+CREATE POLICY "Teachers and Admins can view foundation lessons"
 ON public.foundation_lessons
 FOR SELECT
 USING (
@@ -30,7 +34,8 @@ USING (
 );
 
 -- Student Foundation Progress Policies
-CREATE POLICY IF NOT EXISTS "Teachers and Admins can manage progress"
+DROP POLICY IF EXISTS "Teachers and Admins can manage progress" ON public.student_foundation_progress;
+CREATE POLICY "Teachers and Admins can manage progress"
 ON public.student_foundation_progress
 FOR ALL
 USING (
