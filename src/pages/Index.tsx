@@ -16,7 +16,6 @@ const Index = () => {
         <WhyPerfectSection />
         <GamifiedSection />
         <AssessmentSection />
-        <AssessmentSection />
       </main>
       <Footer />
     </div>
