@@ -60,11 +60,13 @@ const DashboardLayout = ({ children, title, role }: DashboardLayoutProps) => {
       return [
         ...baseItems,
         { href: "/dashboard/users", icon: Users, label: "Manage Users" },
+        { href: "/dashboard/courses", icon: BookOpen, label: "Course Content" },
         { href: "/dashboard/lessons", icon: Calendar, label: "All Lessons" },
         { href: "/dashboard/slots", icon: ClipboardList, label: "Time Slots" },        
         { href: "/dashboard/foundation", icon: Gamepad2, label: "Foundation Modules" },
         { href: "/dashboard/gamified-maps", icon: Gamepad2, label: "Gamified Maps" },
-        { href: "/dashboard/districts", icon: Settings, label: "Districts" },      ];
+        { href: "/dashboard/districts", icon: Settings, label: "Districts" },
+      ];
     }
 
     if (role === "teacher") {
@@ -80,9 +82,9 @@ const DashboardLayout = ({ children, title, role }: DashboardLayoutProps) => {
 
     return [
       ...baseItems,
+      { href: "/dashboard/courses", icon: BookOpen, label: "Course Library" },
       { href: "/dashboard/my-lessons", icon: Calendar, label: "My Lessons" },
       { href: "/dashboard/foundation", icon: Gamepad2, label: "Foundation Fundamentals" },
-      // students only see Gamified Maps after at least one map is published
       ...(publishedAvailable ? [{ href: "/dashboard/gamified-maps", icon: Gamepad2, label: "Gamified Maps" }] : []),
       { href: "/dashboard/book", icon: ClipboardList, label: "Book Lesson" },
       { href: "/dashboard/resources", icon: BookOpen, label: "Resources" },
