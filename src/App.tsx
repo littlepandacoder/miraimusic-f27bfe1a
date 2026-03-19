@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
-import SkoolCommunity from "./pages/SkoolCommunity";
 import BookClass from "./pages/BookClass";
 import BookingSuccess from "./pages/BookingSuccess";
 import Login from "./pages/Login";
