@@ -10,6 +10,7 @@ import BookClass from "./pages/BookClass";
 import BookingSuccess from "./pages/BookingSuccess";
 import Login from "./pages/Login";
 import AuthDebug from "./pages/AuthDebug";
+import Pricing from "./pages/Pricing";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/book-class" element={<BookClass />} />
             <Route path="/booking-success" element={<BookingSuccess />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/pricing" element={<Pricing />} />
             <Route path="/dashboard/*" element={<Dashboard />} />
             {/* Temporary debug route for auth troubleshooting (remove before production) */}
             <Route path="/auth-debug" element={<AuthDebug />} />
