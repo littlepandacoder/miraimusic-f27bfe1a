@@ -10,6 +10,7 @@ import BookClass from "./pages/BookClass";
 import BookingSuccess from "./pages/BookingSuccess";
 import Login from "./pages/Login";
 import AuthDebug from "./pages/AuthDebug";
+import Pricing from "./pages/Pricing";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
