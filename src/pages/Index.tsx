@@ -4,7 +4,6 @@ import FeaturesSection from "@/components/FeaturesSection";
 import WhyPerfectSection from "@/components/WhyPerfectSection";
 import GamifiedSection from "@/components/GamifiedSection";
 import AssessmentSection from "@/components/AssessmentSection";
-import AssessmentSection from "@/components/AssessmentSection";
 import Footer from "@/components/Footer";
 
 const Index = () => {
