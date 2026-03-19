@@ -13,6 +13,7 @@ import ModuleMap from "./student/ModuleMap";
 import FoundationLessonPlan from "./student/FoundationLessonPlan";
 import LessonViewer from "./student/LessonViewer";
 import GamifiedMapsStudent from "./student/GamifiedMapsStudent";
+import CourseLibrary from "./student/CourseLibrary";
 
 const StudentHome = () => {
   const { user } = useAuth();
