@@ -60,11 +60,13 @@ const DashboardLayout = ({ children, title, role }: DashboardLayoutProps) => {
       return [
         ...baseItems,
         { href: "/dashboard/users", icon: Users, label: "Manage Users" },
+        { href: "/dashboard/courses", icon: BookOpen, label: "Course Content" },
         { href: "/dashboard/lessons", icon: Calendar, label: "All Lessons" },
         { href: "/dashboard/slots", icon: ClipboardList, label: "Time Slots" },        
         { href: "/dashboard/foundation", icon: Gamepad2, label: "Foundation Modules" },
         { href: "/dashboard/gamified-maps", icon: Gamepad2, label: "Gamified Maps" },
-        { href: "/dashboard/districts", icon: Settings, label: "Districts" },      ];
+        { href: "/dashboard/districts", icon: Settings, label: "Districts" },
+      ];
     }
 
     if (role === "teacher") {
