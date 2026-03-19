@@ -226,6 +226,7 @@ const StudentDashboard = () => {
         <Route path="/foundation/lesson-plan/:moduleId" element={<FoundationLessonPlan />} />
         <Route path="/foundation/lesson-viewer/:moduleId/:lessonId" element={<LessonViewer />} />
         <Route path="/gamified-maps" element={<GamifiedMapsStudent />} />
+        <Route path="/courses" element={<CourseLibrary />} />
       </Routes>
     </DashboardLayout>
   );
