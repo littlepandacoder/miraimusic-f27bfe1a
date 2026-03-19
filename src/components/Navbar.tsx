@@ -61,13 +61,6 @@ const Navbar = () => {
               </a>
             ))}
             <Link
-              to="/skool-community"
-              className="nav-link py-2 text-pink font-semibold"
-              onClick={() => setIsOpen(false)}
-            >
-              Skool Community
-            </Link>
-            <Link
               to="/pricing"
               className="nav-link py-2 font-semibold"
               onClick={() => setIsOpen(false)}
