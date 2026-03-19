@@ -6,7 +6,7 @@ import "./index.css";
 import { initMetaPixel } from "./initMetaPixel";
 
 // Suppress Meta Pixel console errors in development
-if (process.env.NODE_ENV === 'development') {
+if (import.meta.env.DEV) {
   const originalError = console.error;
   const originalWarn = console.warn;
   
