@@ -9,6 +9,7 @@ import ManageLessons from "./admin/ManageLessons";
 import ManageSlots from "./admin/ManageSlots";
 import ManageFoundation from "./admin/ManageFoundation";
 import ManageGamifiedMaps from "./admin/ManageGamifiedMaps";
+import ManageCourses from "./admin/ManageCourses";
 import LessonEditor from "./teacher/LessonEditor";
 import LessonViewer from "./student/LessonViewer";
 
