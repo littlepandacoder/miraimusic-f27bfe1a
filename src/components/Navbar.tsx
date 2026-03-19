@@ -26,9 +26,6 @@ const Navbar = () => {
                 {link.label}
               </a>
             ))}
-            <Link to="/skool-community" className="nav-link text-pink font-semibold">
-              Skool Community
-            </Link>
             <Link to="/pricing" className="nav-link font-semibold">
               Pricing
             </Link>
