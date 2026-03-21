@@ -921,6 +921,10 @@ function getAC(){
   if(_ac.state==='suspended')_ac.resume();
   return _ac;
 }
+// Ensure AudioContext is unlocked on ANY user interaction
+['click','touchstart','keydown'].forEach(evt=>{
+  document.addEventListener(evt,function _unlock(){getAC();document.removeEventListener(evt,_unlock,true);},true);
+});
 
 function synthPiano(hz,when,dur,vol){
   try{
