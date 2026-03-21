@@ -1525,22 +1525,32 @@ function drawStaff(){
   ctx2.fillStyle=ng;ctx2.fillText('𝄢',sx-48,bst+2*lg+6);
   ctx2.font='11px "DM Mono",monospace';ctx2.fillStyle=ns;ctx2.textAlign='left';ctx2.fillText('TREBLE CLEF',sx,tt-14);
   ctx2.fillStyle=ng;ctx2.fillText('BASS CLEF',sx,bst-14);
-  function dn(x,y,color,label,ledger){
+  function dn(x,y,color,label,ledger,midLineY){
     if(ledger){ctx2.strokeStyle=lc;ctx2.lineWidth=1.5;ctx2.beginPath();ctx2.moveTo(x-14,y);ctx2.lineTo(x+14,y);ctx2.stroke();}
     ctx2.fillStyle=color;ctx2.beginPath();ctx2.ellipse(x,y,10,7,-.2,0,Math.PI*2);ctx2.fill();
-    ctx2.strokeStyle=color;ctx2.lineWidth=1.5;ctx2.beginPath();ctx2.moveTo(x+10,y);ctx2.lineTo(x+10,y-35);ctx2.stroke();
+    ctx2.strokeStyle=color;ctx2.lineWidth=1.5;
+    // Stem direction: at or above middle line = stem down (left), below = stem up (right)
+    if(midLineY!==undefined&&y<=midLineY){
+      // Stem down on left
+      ctx2.beginPath();ctx2.moveTo(x-10,y);ctx2.lineTo(x-10,y+35);ctx2.stroke();
+    } else {
+      // Stem up on right
+      ctx2.beginPath();ctx2.moveTo(x+10,y);ctx2.lineTo(x+10,y-35);ctx2.stroke();
+    }
     if(label){ctx2.fillStyle=tc;ctx2.font='9px "DM Mono",monospace';ctx2.textAlign='center';ctx2.fillText(label,x,y+17);}
   }
+  const trebleMidY=tt+2*lg; // B4 line = 3rd line of treble
+  const bassMidY=bst+2*lg;  // D3 line = 3rd line of bass
   const tNotes=[{y:tt+4*lg,l:'E4'},{y:tt+3*lg,l:'G4'},{y:tt+2*lg,l:'B4'},{y:tt+lg,l:'D5'},{y:tt,l:'F5'}];
   const tSpaces=[{y:tt+3.5*lg,l:'F4'},{y:tt+2.5*lg,l:'A4'},{y:tt+1.5*lg,l:'C5'},{y:tt+.5*lg,l:'E5'}];
   const allT=[...tNotes.map(n=>({...n,c:ng})),...tSpaces.map(n=>({...n,c:ns}))].sort((a,b)=>b.y-a.y);
-  allT.forEach((n,i)=>dn(sx+80+i*32,n.y,n.c,n.l));
-  const mcY=tt+5*lg+6;dn(sx+80,mcY,nc,'C4',true);
+  allT.forEach((n,i)=>dn(sx+80+i*32,n.y,n.c,n.l,false,trebleMidY));
+  const mcY=tt+5*lg+6;dn(sx+80,mcY,nc,'C4',true,trebleMidY);
   ctx2.fillStyle=nc;ctx2.font='bold 9px "DM Mono",monospace';ctx2.textAlign='center';ctx2.fillText('★ Middle C',sx+80,mcY+29);
   const bNotes=[{y:bst+4*lg,l:'G2'},{y:bst+3*lg,l:'B2'},{y:bst+2*lg,l:'D3'},{y:bst+lg,l:'F3'},{y:bst,l:'A3'}];
   const bSpaces=[{y:bst+3.5*lg,l:'A2'},{y:bst+2.5*lg,l:'C3'},{y:bst+1.5*lg,l:'E3'},{y:bst+.5*lg,l:'G3'}];
   const allB=[...bNotes.map(n=>({...n,c:ng})),...bSpaces.map(n=>({...n,c:ns}))].sort((a,b)=>b.y-a.y);
-  allB.forEach((n,i)=>dn(sx+80+i*32,n.y,n.c,n.l));
+  allB.forEach((n,i)=>dn(sx+80+i*32,n.y,n.c,n.l,false,bassMidY));
   ctx2.font='9px "DM Mono",monospace';ctx2.textAlign='left';
   [[ng,'Line notes',0],[ns,'Space notes',95],[nc,'Middle C',195]].forEach(([c,label,ox])=>{
     ctx2.fillStyle=c;ctx2.fillRect(sx+ox,H-26,10,10);ctx2.fillStyle=tc;ctx2.fillText(label,sx+ox+14,H-17);
