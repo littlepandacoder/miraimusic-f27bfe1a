@@ -921,6 +921,10 @@ function getAC(){
   if(_ac.state==='suspended')_ac.resume();
   return _ac;
 }
+// Ensure AudioContext is unlocked on ANY user interaction
+['click','touchstart','keydown'].forEach(evt=>{
+  document.addEventListener(evt,function _unlock(){getAC();document.removeEventListener(evt,_unlock,true);},true);
+});
 
 function synthPiano(hz,when,dur,vol){
   try{
@@ -1431,24 +1435,29 @@ function drawBar(patternIdx,playheadProgress){
     const noteProg=isActive?(phBeat-nsB)/note.beats:0;
     const blockY=stTop+lg*4.6,blockH=30,pad=5;
 
-    mCtx.fillStyle=isActive?`${note.color}35`:` ${note.color}12`;mCtx.beginPath();mCtx.roundRect(nsX+pad,blockY,nSpW-pad*2,blockH,4);mCtx.fill();
-    if(isActive&&noteProg>0){mCtx.fillStyle=`${note.color}80`;mCtx.beginPath();mCtx.roundRect(nsX+pad,blockY,(nSpW-pad*2)*noteProg,blockH,4);mCtx.fill();}
-    mCtx.strokeStyle=isActive?note.color:`${note.color}33`;mCtx.lineWidth=isActive?2:1;mCtx.beginPath();mCtx.roundRect(nsX+pad,blockY,nSpW-pad*2,blockH,4);mCtx.stroke();
-    mCtx.font=`${Math.min(11,nSpW*.12)}px "DM Mono",monospace`;mCtx.fillStyle=isActive?note.color:`${note.color}77`;mCtx.textAlign='center';
+    // Background block
+    mCtx.fillStyle=isActive?`${note.color}45`:`${note.color}12`;mCtx.beginPath();mCtx.roundRect(nsX+pad,blockY,nSpW-pad*2,blockH,4);mCtx.fill();
+    if(isActive&&noteProg>0){mCtx.fillStyle=`${note.color}90`;mCtx.beginPath();mCtx.roundRect(nsX+pad,blockY,(nSpW-pad*2)*noteProg,blockH,4);mCtx.fill();}
+    mCtx.strokeStyle=isActive?note.color:`${note.color}33`;mCtx.lineWidth=isActive?2.5:1;mCtx.beginPath();mCtx.roundRect(nsX+pad,blockY,nSpW-pad*2,blockH,4);mCtx.stroke();
+    mCtx.font=`${Math.min(11,nSpW*.12)}px "DM Mono",monospace`;mCtx.fillStyle=isActive?'#fff':`${note.color}77`;mCtx.textAlign='center';
     mCtx.fillText(`${note.beats} beat${note.beats!==1?'s':''}`,nCX,blockY+blockH*.65);
 
+    // Note head on staff
     const nr={whole:[13,9],half:[11,8],quarter:[11,8],eighth:[11,8]}[note.type];
-    if(isActive){mCtx.shadowColor=note.color;mCtx.shadowBlur=20;}
-    mCtx.strokeStyle=isActive?note.color:`${note.color}99`;mCtx.lineWidth=isActive?3:2.5;mCtx.fillStyle=isActive?note.color:`${note.color}99`;
-    if(note.type==='whole'){mCtx.beginPath();mCtx.ellipse(nCX,noteY,nr[0],nr[1],-.18,0,Math.PI*2);mCtx.stroke();mCtx.fillStyle=isActive?'rgba(10,8,20,.6)':'rgba(10,8,20,.9)';mCtx.beginPath();mCtx.ellipse(nCX+2,noteY,nr[0]*.42,nr[1]*.5,-.4,0,Math.PI*2);mCtx.fill();}
+    if(isActive){mCtx.shadowColor=note.color;mCtx.shadowBlur=25;}
+    const noteColor=isActive?note.color:`${note.color}55`;
+    mCtx.strokeStyle=isActive?note.color:`${note.color}66`;mCtx.lineWidth=isActive?3:2;mCtx.fillStyle=noteColor;
+    if(note.type==='whole'){mCtx.beginPath();mCtx.ellipse(nCX,noteY,nr[0],nr[1],-.18,0,Math.PI*2);mCtx.stroke();mCtx.fillStyle=isActive?'rgba(10,8,20,.5)':'rgba(10,8,20,.9)';mCtx.beginPath();mCtx.ellipse(nCX+2,noteY,nr[0]*.42,nr[1]*.5,-.4,0,Math.PI*2);mCtx.fill();}
     else if(note.type==='half'){mCtx.beginPath();mCtx.ellipse(nCX,noteY,nr[0],nr[1],-.18,0,Math.PI*2);mCtx.stroke();mCtx.beginPath();mCtx.moveTo(nCX+nr[0],noteY);mCtx.lineTo(nCX+nr[0],noteY-44);mCtx.stroke();}
-    else if(note.type==='quarter'){mCtx.fillStyle=isActive?note.color:`${note.color}99`;mCtx.beginPath();mCtx.ellipse(nCX,noteY,nr[0],nr[1],-.18,0,Math.PI*2);mCtx.fill();mCtx.beginPath();mCtx.moveTo(nCX+nr[0],noteY);mCtx.lineTo(nCX+nr[0],noteY-44);mCtx.stroke();}
-    else if(note.type==='eighth'){mCtx.fillStyle=isActive?note.color:`${note.color}99`;mCtx.beginPath();mCtx.ellipse(nCX,noteY,nr[0],nr[1],-.18,0,Math.PI*2);mCtx.fill();mCtx.beginPath();mCtx.moveTo(nCX+nr[0],noteY);mCtx.lineTo(nCX+nr[0],noteY-44);mCtx.stroke();mCtx.beginPath();mCtx.moveTo(nCX+nr[0],noteY-44);mCtx.bezierCurveTo(nCX+nr[0]+17,noteY-32,nCX+nr[0]+19,noteY-20,nCX+nr[0]+7,noteY-14);mCtx.lineWidth=2;mCtx.stroke();}
+    else if(note.type==='quarter'){mCtx.fillStyle=noteColor;mCtx.beginPath();mCtx.ellipse(nCX,noteY,nr[0],nr[1],-.18,0,Math.PI*2);mCtx.fill();mCtx.beginPath();mCtx.moveTo(nCX+nr[0],noteY);mCtx.lineTo(nCX+nr[0],noteY-44);mCtx.stroke();}
+    else if(note.type==='eighth'){mCtx.fillStyle=noteColor;mCtx.beginPath();mCtx.ellipse(nCX,noteY,nr[0],nr[1],-.18,0,Math.PI*2);mCtx.fill();mCtx.beginPath();mCtx.moveTo(nCX+nr[0],noteY);mCtx.lineTo(nCX+nr[0],noteY-44);mCtx.stroke();mCtx.beginPath();mCtx.moveTo(nCX+nr[0],noteY-44);mCtx.bezierCurveTo(nCX+nr[0]+17,noteY-32,nCX+nr[0]+19,noteY-20,nCX+nr[0]+7,noteY-14);mCtx.lineWidth=2;mCtx.stroke();}
     mCtx.shadowBlur=0;
-    if(isActive){mCtx.strokeStyle=note.color;mCtx.lineWidth=1.5;mCtx.globalAlpha=0.45;mCtx.beginPath();mCtx.ellipse(nCX,noteY,nr[0]+6,nr[1]+5,-.18,0,Math.PI*2);mCtx.stroke();mCtx.globalAlpha=1;}
-    mCtx.font=isActive?'bold 12px "DM Mono",monospace':'10px "DM Mono",monospace';mCtx.fillStyle=isActive?note.color:`${note.color}55`;mCtx.textAlign='center';mCtx.fillText(note.name,nCX,stTop-8);
+    // Glow ring when active
+    if(isActive){mCtx.strokeStyle=note.color;mCtx.lineWidth=2;mCtx.globalAlpha=0.55;mCtx.beginPath();mCtx.ellipse(nCX,noteY,nr[0]+8,nr[1]+6,-.18,0,Math.PI*2);mCtx.stroke();mCtx.globalAlpha=1;}
+    // Note label above
+    mCtx.font=isActive?'bold 13px "DM Mono",monospace':'10px "DM Mono",monospace';mCtx.fillStyle=isActive?'#fff':`${note.color}44`;mCtx.textAlign='center';mCtx.fillText(note.name,nCX,stTop-8);
     const bn=Math.floor(cursor)+1,bf=cursor%1;
-    mCtx.font=isActive?'bold 9px "DM Mono",monospace':'8px "DM Mono",monospace';mCtx.fillStyle=isActive?note.color:'#2d3748';
+    mCtx.font=isActive?'bold 10px "DM Mono",monospace':'8px "DM Mono",monospace';mCtx.fillStyle=isActive?note.color:'#2d3748';
     mCtx.fillText(bf===0?`Beat ${bn}`:`Beat ${bn}+½`,nsX+nSpW/2,blockY+blockH+12);
     cursor+=note.beats;
   });
@@ -1459,12 +1468,12 @@ function drawBar(patternIdx,playheadProgress){
   if(phBeat!==null){
     const phX=barL+Math.min(phBeat/4,1)*barW;
     const grad=mCtx.createLinearGradient(phX-14,0,phX+14,0);
-    grad.addColorStop(0,'rgba(255,45,120,0)');grad.addColorStop(.5,'rgba(255,45,120,0.22)');grad.addColorStop(1,'rgba(255,45,120,0)');
+    grad.addColorStop(0,'rgba(255,45,120,0)');grad.addColorStop(.5,'rgba(255,45,120,0.28)');grad.addColorStop(1,'rgba(255,45,120,0)');
     mCtx.fillStyle=grad;mCtx.fillRect(phX-14,0,28,MH);
-    mCtx.strokeStyle='#FF2D78';mCtx.lineWidth=2;mCtx.shadowColor='#FF2D78';mCtx.shadowBlur=10;
+    mCtx.strokeStyle='#FF2D78';mCtx.lineWidth=2.5;mCtx.shadowColor='#FF2D78';mCtx.shadowBlur=14;
     mCtx.beginPath();mCtx.moveTo(phX,stTop-8);mCtx.lineTo(phX,MH-24);mCtx.stroke();mCtx.shadowBlur=0;
     mCtx.fillStyle='#FF2D78';mCtx.beginPath();mCtx.moveTo(phX-8,stTop-18);mCtx.lineTo(phX+8,stTop-18);mCtx.lineTo(phX,stTop-6);mCtx.closePath();mCtx.fill();
-    mCtx.font='bold 11px "DM Mono",monospace';mCtx.fillStyle='#FF2D78';mCtx.textAlign='center';
+    mCtx.font='bold 12px "DM Mono",monospace';mCtx.fillStyle='#FF2D78';mCtx.textAlign='center';
     mCtx.fillText(`beat ${Math.min(4,Math.floor(phBeat)+1)}`,phX,MH-10);
   }
 
@@ -1486,12 +1495,28 @@ function startBarPlay(){
   const pattern=barPatterns[barPatternIdx],pitches=patternPitches[barPatternIdx];
   let nextBarStart=barStartAudioTime;
   function scheduleBar(t0){
-    for(let b=0;b<4;b++){const when=t0+b*beatSec;synthClick(b===0,when);const delay=(when-ac.currentTime)*1000;const bi=b;setTimeout(()=>{if(barPlaying)flashBarBeat(bi);},Math.max(0,delay));}
-    let cursor=0;pattern.forEach((note,ni)=>{const when=t0+cursor*beatSec;synthPiano(pitches[ni%pitches.length]||262,when,note.beats*beatSec,0.8);cursor+=note.beats;});
+    for(let b=0;b<4;b++){
+      const when=t0+b*beatSec;
+      synthClick(b===0,when);
+      const delay=(when-ac.currentTime)*1000;const bi=b;
+      setTimeout(()=>{if(barPlaying)flashBarBeat(bi);},Math.max(0,delay));
+    }
+    let cursor=0;
+    pattern.forEach((note,ni)=>{
+      const when=t0+cursor*beatSec;
+      synthPiano(pitches[ni%pitches.length]||262,when,note.beats*beatSec*0.9,0.8);
+      cursor+=note.beats;
+    });
   }
   scheduleBar(nextBarStart);nextBarStart+=barSec;
   barIntervalId=setInterval(()=>{if(!barPlaying)return;while(nextBarStart<ac.currentTime+barSec+0.15){scheduleBar(nextBarStart);nextBarStart+=barSec;}},50);
-  function animate(){if(!barPlaying)return;const elapsed=ac.currentTime-barStartAudioTime;drawBar(barPatternIdx,(elapsed%barSec)/barSec);barAnimFrame=requestAnimationFrame(animate);}
+  function animate(){
+    if(!barPlaying)return;
+    const elapsed=ac.currentTime-barStartAudioTime;
+    const progress=(elapsed%barSec)/barSec;
+    drawBar(barPatternIdx,progress);
+    barAnimFrame=requestAnimationFrame(animate);
+  }
   barAnimFrame=requestAnimationFrame(animate);
 }
 function stopBarPlay(){
@@ -1521,22 +1546,32 @@ function drawStaff(){
   ctx2.fillStyle=ng;ctx2.fillText('𝄢',sx-48,bst+2*lg+6);
   ctx2.font='11px "DM Mono",monospace';ctx2.fillStyle=ns;ctx2.textAlign='left';ctx2.fillText('TREBLE CLEF',sx,tt-14);
   ctx2.fillStyle=ng;ctx2.fillText('BASS CLEF',sx,bst-14);
-  function dn(x,y,color,label,ledger){
+  function dn(x,y,color,label,ledger,midLineY){
     if(ledger){ctx2.strokeStyle=lc;ctx2.lineWidth=1.5;ctx2.beginPath();ctx2.moveTo(x-14,y);ctx2.lineTo(x+14,y);ctx2.stroke();}
     ctx2.fillStyle=color;ctx2.beginPath();ctx2.ellipse(x,y,10,7,-.2,0,Math.PI*2);ctx2.fill();
-    ctx2.strokeStyle=color;ctx2.lineWidth=1.5;ctx2.beginPath();ctx2.moveTo(x+10,y);ctx2.lineTo(x+10,y-35);ctx2.stroke();
+    ctx2.strokeStyle=color;ctx2.lineWidth=1.5;
+    // Stem direction: at or above middle line = stem down (left), below = stem up (right)
+    if(midLineY!==undefined&&y<=midLineY){
+      // Stem down on left
+      ctx2.beginPath();ctx2.moveTo(x-10,y);ctx2.lineTo(x-10,y+35);ctx2.stroke();
+    } else {
+      // Stem up on right
+      ctx2.beginPath();ctx2.moveTo(x+10,y);ctx2.lineTo(x+10,y-35);ctx2.stroke();
+    }
     if(label){ctx2.fillStyle=tc;ctx2.font='9px "DM Mono",monospace';ctx2.textAlign='center';ctx2.fillText(label,x,y+17);}
   }
+  const trebleMidY=tt+2*lg; // B4 line = 3rd line of treble
+  const bassMidY=bst+2*lg;  // D3 line = 3rd line of bass
   const tNotes=[{y:tt+4*lg,l:'E4'},{y:tt+3*lg,l:'G4'},{y:tt+2*lg,l:'B4'},{y:tt+lg,l:'D5'},{y:tt,l:'F5'}];
   const tSpaces=[{y:tt+3.5*lg,l:'F4'},{y:tt+2.5*lg,l:'A4'},{y:tt+1.5*lg,l:'C5'},{y:tt+.5*lg,l:'E5'}];
   const allT=[...tNotes.map(n=>({...n,c:ng})),...tSpaces.map(n=>({...n,c:ns}))].sort((a,b)=>b.y-a.y);
-  allT.forEach((n,i)=>dn(sx+80+i*32,n.y,n.c,n.l));
-  const mcY=tt+5*lg+6;dn(sx+80,mcY,nc,'C4',true);
+  allT.forEach((n,i)=>dn(sx+80+i*32,n.y,n.c,n.l,false,trebleMidY));
+  const mcY=tt+5*lg+6;dn(sx+80,mcY,nc,'C4',true,trebleMidY);
   ctx2.fillStyle=nc;ctx2.font='bold 9px "DM Mono",monospace';ctx2.textAlign='center';ctx2.fillText('★ Middle C',sx+80,mcY+29);
   const bNotes=[{y:bst+4*lg,l:'G2'},{y:bst+3*lg,l:'B2'},{y:bst+2*lg,l:'D3'},{y:bst+lg,l:'F3'},{y:bst,l:'A3'}];
   const bSpaces=[{y:bst+3.5*lg,l:'A2'},{y:bst+2.5*lg,l:'C3'},{y:bst+1.5*lg,l:'E3'},{y:bst+.5*lg,l:'G3'}];
   const allB=[...bNotes.map(n=>({...n,c:ng})),...bSpaces.map(n=>({...n,c:ns}))].sort((a,b)=>b.y-a.y);
-  allB.forEach((n,i)=>dn(sx+80+i*32,n.y,n.c,n.l));
+  allB.forEach((n,i)=>dn(sx+80+i*32,n.y,n.c,n.l,false,bassMidY));
   ctx2.font='9px "DM Mono",monospace';ctx2.textAlign='left';
   [[ng,'Line notes',0],[ns,'Space notes',95],[nc,'Middle C',195]].forEach(([c,label,ox])=>{
     ctx2.fillStyle=c;ctx2.fillRect(sx+ox,H-26,10,10);ctx2.fillStyle=tc;ctx2.fillText(label,sx+ox+14,H-17);
