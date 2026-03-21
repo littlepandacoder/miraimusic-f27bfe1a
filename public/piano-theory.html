@@ -1490,12 +1490,28 @@ function startBarPlay(){
   const pattern=barPatterns[barPatternIdx],pitches=patternPitches[barPatternIdx];
   let nextBarStart=barStartAudioTime;
   function scheduleBar(t0){
-    for(let b=0;b<4;b++){const when=t0+b*beatSec;synthClick(b===0,when);const delay=(when-ac.currentTime)*1000;const bi=b;setTimeout(()=>{if(barPlaying)flashBarBeat(bi);},Math.max(0,delay));}
-    let cursor=0;pattern.forEach((note,ni)=>{const when=t0+cursor*beatSec;synthPiano(pitches[ni%pitches.length]||262,when,note.beats*beatSec,0.8);cursor+=note.beats;});
+    for(let b=0;b<4;b++){
+      const when=t0+b*beatSec;
+      synthClick(b===0,when);
+      const delay=(when-ac.currentTime)*1000;const bi=b;
+      setTimeout(()=>{if(barPlaying)flashBarBeat(bi);},Math.max(0,delay));
+    }
+    let cursor=0;
+    pattern.forEach((note,ni)=>{
+      const when=t0+cursor*beatSec;
+      synthPiano(pitches[ni%pitches.length]||262,when,note.beats*beatSec*0.9,0.8);
+      cursor+=note.beats;
+    });
   }
   scheduleBar(nextBarStart);nextBarStart+=barSec;
   barIntervalId=setInterval(()=>{if(!barPlaying)return;while(nextBarStart<ac.currentTime+barSec+0.15){scheduleBar(nextBarStart);nextBarStart+=barSec;}},50);
-  function animate(){if(!barPlaying)return;const elapsed=ac.currentTime-barStartAudioTime;drawBar(barPatternIdx,(elapsed%barSec)/barSec);barAnimFrame=requestAnimationFrame(animate);}
+  function animate(){
+    if(!barPlaying)return;
+    const elapsed=ac.currentTime-barStartAudioTime;
+    const progress=(elapsed%barSec)/barSec;
+    drawBar(barPatternIdx,progress);
+    barAnimFrame=requestAnimationFrame(animate);
+  }
   barAnimFrame=requestAnimationFrame(animate);
 }
 function stopBarPlay(){
