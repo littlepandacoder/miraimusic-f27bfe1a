@@ -71,6 +71,13 @@ const Navbar = () => {
               Pricing
             </Link>
             <Link
+              to="/blog/piano-theory"
+              className="nav-link py-2 font-semibold"
+              onClick={() => setIsOpen(false)}
+            >
+              Blog
+            </Link>
+            <Link
               to="/login"
               className="flex items-center gap-2 nav-link py-2 font-medium"
               onClick={() => setIsOpen(false)}
