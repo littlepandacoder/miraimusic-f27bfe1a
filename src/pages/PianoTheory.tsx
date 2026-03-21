@@ -5,6 +5,7 @@ const PianoTheory = () => {
       title="Piano Theory — Musicable"
       className="w-full h-screen border-0"
       style={{ minHeight: "100vh" }}
+      allow="autoplay; microphone"
     />
   );
 };
