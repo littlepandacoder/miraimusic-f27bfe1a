@@ -10,6 +10,7 @@ import BookingSuccess from "./pages/BookingSuccess";
 import Login from "./pages/Login";
 import AuthDebug from "./pages/AuthDebug";
 import Pricing from "./pages/Pricing";
+import PianoTheory from "./pages/PianoTheory";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
@@ -25,6 +26,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/blog/piano-theory" element={<PianoTheory />} />
             <Route path="/book-class" element={<BookClass />} />
             <Route path="/booking-success" element={<BookingSuccess />} />
             <Route path="/login" element={<Login />} />
