@@ -29,6 +29,9 @@ const Navbar = () => {
             <Link to="/pricing" className="nav-link font-semibold">
               Pricing
             </Link>
+            <Link to="/blog/piano-theory" className="nav-link font-semibold">
+              Blog
+            </Link>
             <Link 
               to="/login" 
               className="flex items-center gap-2 text-foreground hover:text-primary transition-colors font-medium"
