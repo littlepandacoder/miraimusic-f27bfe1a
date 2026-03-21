@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Piano Theory — Musicable</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════
+   MUSICABLE BRAND TOKENS
+═══════════════════════════════════════ */
+:root {
+  --bg:        #0D1117;
+  --bg2:       #131920;
+  --card:      #161C25;
+  --card2:     #1C2430;
+  --border:    rgba(255,255,255,0.08);
+  --pink:      #FF2D78;
+  --pink-dim:  rgba(255,45,120,0.15);
+  --pink-glow: rgba(255,45,120,0.35);
+  --white:     #FFFFFF;
+  --off-white: #E8ECF0;
+  --muted:     #8892A4;
+  --muted2:    #4A5568;
+
+  /* canvas compat aliases */
+  --gold:    #FF2D78;
+  --gold-dim:#AA1D52;
+  --sky:     #00D4FF;
+  --green:   #39D98A;
+  --light:   #8892A4;
+  --key-white: #F5F2EB;
+  --key-black: #0D1117;
+  --surface:   #161C25;
+  --surface2:  #1C2430;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg);
+  color:var(--off-white);
+  font-family:'Inter',system-ui,sans-serif;
+  font-size:16px;
+  line-height:1.65;
+  overflow-x:hidden;
+}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 2.5rem;height:64px;
+  background:rgba(13,17,23,0.92);
+  backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{
+  font-weight:800;font-size:1.25rem;
+  color:var(--white);letter-spacing:-0.03em;
+}
+.nav-links{display:flex;gap:0.2rem;list-style:none;}
+.nav-links a{
+  display:block;padding:0.35rem 0.85rem;
+  font-size:0.82rem;font-weight:500;
+  color:var(--muted);text-decoration:none;
+  border-radius:6px;transition:color .2s,background .2s;
+}
+.nav-links a:hover{color:var(--white);background:rgba(255,255,255,0.06);}
+.nav-book{
+  background:var(--pink);color:var(--white);
+  font-weight:700;font-size:0.78rem;
+  padding:0.5rem 1.3rem;border-radius:100px;
+  text-decoration:none;letter-spacing:0.04em;
+  text-transform:uppercase;
+  transition:opacity .2s,transform .2s;
+  white-space:nowrap;
+}
+.nav-book:hover{opacity:0.88;transform:scale(1.03);}
+
+/* ── HERO ── */
+.hero{
+  margin-top:64px;
+  min-height:88vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;
+  padding:5rem 2rem 4rem;
+  position:relative;overflow:hidden;
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(255,45,120,0.12) 0%,transparent 65%),
+             radial-gradient(ellipse 50% 40% at 80% 80%,rgba(0,212,255,0.06) 0%,transparent 55%),
+             var(--bg);
+}
+.hero::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,45,120,0.4),transparent);
+}
+.hero-eyebrow{
+  display:inline-flex;align-items:center;gap:0.4rem;
+  background:var(--pink-dim);border:1px solid rgba(255,45,120,0.3);
+  color:var(--pink);font-size:0.72rem;font-weight:700;
+  padding:0.35rem 1rem;border-radius:100px;
+  letter-spacing:0.1em;text-transform:uppercase;
+  margin-bottom:1.5rem;font-family:'DM Mono',monospace;
+}
+.hero h1{
+  font-size:clamp(2.8rem,7vw,6rem);
+  font-weight:900;color:var(--white);
+  letter-spacing:-0.04em;line-height:1.0;
+  margin-bottom:1.2rem;
+}
+.hero h1 .pink{color:var(--pink);}
+.hero-sub{
+  font-size:1.05rem;color:var(--muted);
+  max-width:560px;margin:0 auto 2.5rem;line-height:1.7;
+}
+.hero-cta-row{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-bottom:3rem;}
+.btn-pink{
+  background:var(--pink);color:#fff;
+  font-weight:800;font-size:0.82rem;
+  padding:0.75rem 2rem;border-radius:100px;
+  text-decoration:none;letter-spacing:0.05em;text-transform:uppercase;
+  transition:opacity .2s,transform .2s;border:none;cursor:pointer;
+}
+.btn-pink:hover{opacity:0.88;transform:scale(1.03);}
+.btn-outline{
+  background:transparent;color:var(--white);
+  font-weight:700;font-size:0.82rem;
+  padding:0.75rem 2rem;border-radius:100px;
+  text-decoration:none;letter-spacing:0.05em;text-transform:uppercase;
+  border:2px solid rgba(255,255,255,0.25);cursor:pointer;
+  transition:border-color .2s,color .2s;
+}
+.btn-outline:hover{border-color:var(--pink);color:var(--pink);}
+.hero-tags{display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap;}
+.hero-tag{
+  background:rgba(255,255,255,0.05);
+  border:1px solid var(--border);
+  color:var(--muted);font-size:0.75rem;
+  padding:0.3rem 0.85rem;border-radius:100px;
+  font-family:'DM Mono',monospace;
+}
+
+/* ── PAGE WRAPPER ── */
+.page{max-width:1080px;margin:0 auto;padding:0 2rem;}
+
+/* ── SECTION ── */
+section{padding:5rem 0 4rem;}
+section+section{border-top:1px solid var(--border);}
+
+.section-label{
+  display:inline-flex;align-items:center;gap:0.4rem;
+  font-family:'DM Mono',monospace;font-size:0.68rem;font-weight:500;
+  color:var(--pink);letter-spacing:0.12em;text-transform:uppercase;
+  margin-bottom:0.8rem;
+}
+.section-label::before{
+  content:'';width:16px;height:1px;background:var(--pink);display:block;
+}
+
+h2.section-h2{
+  font-size:clamp(1.6rem,3vw,2.4rem);
+  font-weight:800;color:var(--white);
+  letter-spacing:-0.03em;line-height:1.15;
+  margin-bottom:1rem;
+}
+h2.section-h2 em{font-style:normal;color:var(--pink);}
+h2.section-h2 span.pink{color:var(--pink);}
+
+h3.sub-h3{
+  font-size:1rem;font-weight:700;color:var(--white);
+  margin:2rem 0 0.6rem;
+}
+.prose{font-size:0.95rem;line-height:1.75;color:var(--muted);max-width:700px;}
+.prose p{margin-bottom:0.8rem;}
+.prose strong{color:var(--off-white);font-weight:600;}
+.prose em{color:var(--pink);}
+
+/* ── STAT CARDS ── */
+.stat-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));
+  gap:1px;background:var(--border);
+  border:1px solid var(--border);border-radius:12px;overflow:hidden;
+  margin:2rem 0;
+}
+.stat-card{background:var(--card);padding:1.3rem 1.4rem;}
+.stat-val{font-family:'DM Mono',monospace;font-size:1.6rem;font-weight:500;color:var(--pink);margin-bottom:0.25rem;}
+.stat-lbl{font-size:0.82rem;color:var(--muted);line-height:1.3;}
+
+/* ── OCTAVE GRID ── */
+.octave-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+  gap:1px;background:var(--border);
+  border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:1.5rem 0;
+}
+.octave-card{
+  background:var(--card);padding:1.1rem 1.3rem;
+  cursor:pointer;transition:background .15s;
+  border-left:3px solid var(--card-accent,var(--border));
+}
+.octave-card:hover{background:var(--card2);}
+.octave-card.middle{background:#0f1d18;}
+.oc-name{font-family:'DM Mono',monospace;font-size:1.05rem;color:var(--card-accent,var(--muted));font-weight:500;margin-bottom:0.15rem;}
+.oc-range{font-size:0.72rem;color:var(--muted2);font-family:'DM Mono',monospace;margin-bottom:0.35rem;}
+.oc-desc{font-size:0.82rem;color:var(--muted);}
+.oc-hz{font-family:'DM Mono',monospace;font-size:0.7rem;color:var(--sky);margin-top:0.35rem;}
+
+/* ── PIANO ── */
+.piano-wrap{position:relative;margin:1.5rem 0 1rem;}
+#piano-outer{
+  background:#0a0810;border-radius:10px 10px 14px 14px;
+  padding:14px 14px 20px;
+  box-shadow:0 30px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.04),inset 0 2px 4px rgba(255,255,255,0.04);
+  user-select:none;
+}
+#piano-canvas{display:block;width:100%;height:auto;cursor:pointer;border-radius:3px 3px 6px 6px;}
+.piano-info{
+  margin-top:1rem;min-height:60px;padding:.85rem 1.2rem;
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  display:flex;align-items:center;gap:1.2rem;
+  transition:border-color .3s;
+}
+.piano-info.lit{border-color:var(--pink);}
+.info-note{font-family:'DM Mono',monospace;font-size:2rem;font-weight:500;color:var(--pink);min-width:3rem;transition:transform .15s;}
+.info-note.pop{transform:scale(1.15);}
+.info-details{flex:1;}
+.info-name{font-weight:600;color:var(--white);font-size:0.88rem;}
+.info-hz{font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--sky);}
+.info-staff{font-size:0.8rem;color:var(--muted);}
+.viz-bars{display:flex;align-items:flex-end;gap:3px;height:26px;margin-left:auto;}
+.viz-bar{width:4px;background:var(--pink);border-radius:2px 2px 0 0;transition:height .1s;height:4px;opacity:.6;}
+.piano-hint{font-family:'DM Mono',monospace;font-size:0.63rem;color:var(--muted2);text-align:center;margin-top:.4rem;}
+
+/* ── NOTE CARDS ── */
+.note-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:1rem;margin:1.5rem 0;}
+.note-card{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:1.2rem 1rem 0.9rem;text-align:center;
+  transition:border-color .2s,transform .2s;
+}
+.note-card:hover{border-color:var(--pink);transform:translateY(-2px);}
+.note-symbol-wrap{height:78px;display:flex;align-items:center;justify-content:center;margin-bottom:.6rem;}
+.note-card-title{font-size:0.88rem;font-weight:700;color:var(--white);margin-bottom:.2rem;}
+.note-card-beats{font-family:'DM Mono',monospace;font-size:0.7rem;margin-bottom:.35rem;}
+.note-card-desc{font-size:0.8rem;color:var(--muted);line-height:1.4;}
+.beat-bar-wrap{display:flex;gap:3px;margin-top:.5rem;height:7px;justify-content:center;}
+.beat-seg{height:7px;border-radius:2px;background:rgba(255,255,255,0.08);flex:1;max-width:22px;transition:background .3s;}
+.beat-seg.whole{background:#FF2D78;}
+.beat-seg.half{background:#00D4FF;}
+.beat-seg.quarter{background:#39D98A;}
+.beat-seg.eighth{background:#A78BFA;}
+.note-play-btn{
+  margin-top:.6rem;font-family:'DM Mono',monospace;font-size:0.68rem;
+  padding:.38rem .85rem;background:transparent;border:1px solid var(--border);
+  color:var(--muted);border-radius:100px;cursor:pointer;
+  transition:all .2s;width:100%;letter-spacing:.03em;
+}
+.note-play-btn:hover{border-color:var(--pink);color:var(--pink);}
+.note-play-btn.playing{border-color:var(--pink);color:var(--pink);}
+.play-progress{height:2px;background:var(--pink);border-radius:2px;width:0%;margin-top:.35rem;}
+
+/* ── PATTERN BTNS ── */
+.pattern-btn{
+  font-family:'DM Mono',monospace;font-size:0.7rem;
+  padding:.5rem .95rem;background:var(--card);
+  border:1px solid var(--border);color:var(--muted);
+  border-radius:8px;cursor:pointer;transition:all .2s;
+  text-align:center;line-height:1.5;
+}
+.pattern-btn:hover{border-color:var(--pink);color:var(--pink);}
+.pattern-btn.active{background:var(--pink-dim);border-color:var(--pink);color:var(--pink);font-weight:600;}
+
+/* ── METRONOME ── */
+.metro-grid{display:grid;grid-template-columns:auto 1fr;gap:2.5rem;align-items:start;}
+@media(max-width:680px){.metro-grid{grid-template-columns:1fr;}}
+.metro-wrap{
+  display:flex;flex-direction:column;align-items:center;gap:1rem;
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:1.8rem 2rem;
+}
+.metro-body{position:relative;width:108px;height:148px;}
+.metro-case{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:80px;height:116px;
+  background:linear-gradient(to bottom,#1a1030,#0a0810);
+  clip-path:polygon(10% 0%,90% 0%,100% 100%,0% 100%);
+  border:1px solid rgba(255,45,120,0.2);
+}
+.metro-pendulum{
+  position:absolute;bottom:58px;left:50%;
+  transform-origin:bottom center;transform:translateX(-50%) rotate(0deg);
+  width:2px;height:98px;
+  background:linear-gradient(to top,var(--pink),rgba(255,45,120,.25));
+}
+.metro-pendulum::after{
+  content:'';position:absolute;top:-8px;left:-7px;
+  width:16px;height:16px;background:var(--pink);border-radius:50%;
+  box-shadow:0 0 12px rgba(255,45,120,.65);
+}
+.metro-weight{
+  position:absolute;width:22px;height:15px;background:var(--pink);
+  border-radius:3px;left:-10px;cursor:ns-resize;
+  box-shadow:0 2px 6px rgba(255,45,120,.4);
+}
+.metro-bpm-display{
+  font-family:'DM Mono',monospace;font-size:2.2rem;color:var(--pink);
+  font-weight:500;min-width:4.5rem;text-align:center;line-height:1;
+}
+.metro-label{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted2);text-align:center;margin-top:.1rem;letter-spacing:.1em;}
+.metro-btn{
+  font-family:'DM Mono',monospace;font-size:.76rem;padding:.48rem 1.1rem;
+  background:transparent;border:1px solid var(--border);color:var(--muted);
+  border-radius:8px;cursor:pointer;transition:all .2s;letter-spacing:.03em;
+}
+.metro-btn:hover{border-color:var(--pink);color:var(--pink);}
+.metro-btn.active{background:var(--pink);color:#fff;border-color:var(--pink);}
+.metro-tempo-slider{
+  -webkit-appearance:none;appearance:none;width:185px;height:3px;
+  background:rgba(255,255,255,0.1);border-radius:2px;outline:none;cursor:pointer;
+}
+.metro-tempo-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:14px;height:14px;background:var(--pink);
+  border-radius:50%;cursor:pointer;box-shadow:0 0 6px rgba(255,45,120,.5);
+}
+.beat-lights{display:flex;gap:8px;justify-content:center;}
+.beat-light{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.08);transition:background .05s,box-shadow .05s;}
+.beat-light.on{background:var(--pink);box-shadow:0 0 12px rgba(255,45,120,.7);}
+.beat-light.accent{border:2px solid rgba(255,45,120,.3);}
+.metro-note-select{
+  font-family:'DM Mono',monospace;font-size:.76rem;padding:.38rem .65rem;
+  background:var(--card);border:1px solid var(--border);color:var(--off-white);
+  border-radius:8px;outline:none;cursor:pointer;
+}
+.metro-note-select:focus{border-color:var(--pink);}
+
+/* ── CANVAS SECTIONS ── */
+#durationCanvas{width:100%;height:auto;display:block;border-radius:8px;border:1px solid var(--border);}
+#timeSigCanvas{border-radius:8px;border:1px solid var(--border);}
+#staffCanvas{width:100%;height:auto;display:block;border-radius:8px;border:1px solid var(--border);}
+#measureCanvas{width:100%;height:auto;border-radius:8px;display:block;}
+#keyStaffCanvas{width:100%;height:auto;display:block;border-radius:8px;border:1px solid var(--border);background:#0a0810;cursor:pointer;}
+
+/* ── STAFF SECTION LAYOUT ── */
+#staff-section .layout{display:grid;grid-template-columns:1fr 1fr;gap:2.5rem;align-items:start;}
+@media(max-width:700px){#staff-section .layout{grid-template-columns:1fr;}}
+.staff-legend{display:flex;flex-direction:column;gap:1rem;}
+.legend-clef{
+  padding:1.1rem 1.3rem;background:var(--card);border:1px solid var(--border);
+  border-radius:10px;border-left:3px solid var(--sky);
+}
+.legend-clef.bass{border-left-color:#FF2D78;}
+.clef-title{font-size:.92rem;font-weight:700;color:var(--white);margin-bottom:.25rem;}
+.clef-range{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--sky);margin-bottom:.35rem;}
+.legend-clef.bass .clef-range{color:var(--pink);}
+
+/* ── CORR TABLE ── */
+.corr-table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-size:.86rem;}
+.corr-table th{font-family:'DM Mono',monospace;font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);padding:.62rem 1rem;text-align:left;border-bottom:1px solid var(--border);background:var(--card);}
+.corr-table td{padding:.62rem 1rem;border-bottom:1px solid rgba(255,255,255,0.04);}
+.corr-table tr:hover td{background:var(--card2);}
+.corr-table tr.c4-row td{background:rgba(255,45,120,0.06);}
+.corr-table tr.c4-row td:first-child{color:var(--pink);font-weight:700;}
+.note-cell{font-family:'DM Mono',monospace;color:#A78BFA;font-weight:500;}
+.hz-cell{font-family:'DM Mono',monospace;color:var(--sky);font-size:.8rem;}
+
+/* ── TIME SIG ── */
+.time-sig-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:1rem;margin:1.5rem 0;}
+.ts-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1.2rem;display:flex;gap:1rem;align-items:flex-start;transition:border-color .2s;}
+.ts-card:hover{border-color:var(--pink);}
+.ts-number{font-family:'DM Mono',monospace;font-size:2rem;line-height:1;font-weight:500;color:var(--pink);min-width:2.5rem;text-align:center;}
+.ts-info-title{font-size:.9rem;font-weight:700;color:var(--white);margin-bottom:.25rem;}
+.ts-info-desc{font-size:.82rem;color:var(--muted);}
+
+/* ── TAKEAWAYS ── */
+.takeaways{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1rem;margin:1.5rem 0;}
+.takeaway{padding:1.2rem;background:var(--card);border:1px solid var(--border);border-radius:12px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s;}
+.takeaway:hover{border-color:var(--pink);transform:translateY(-2px);}
+.tk-num{font-family:'DM Mono',monospace;font-size:2.2rem;font-weight:500;color:rgba(255,45,120,0.08);position:absolute;top:.5rem;right:1rem;line-height:1;}
+.tk-title{font-size:.92rem;font-weight:700;color:var(--pink);margin-bottom:.35rem;}
+
+/* ── CALLOUT BOX ── */
+.callout{
+  padding:1rem 1.3rem;border-radius:10px;margin:1.2rem 0;
+  border-left:3px solid var(--pink);
+  background:var(--pink-dim);
+  font-size:.88rem;color:var(--muted);
+}
+.callout strong{color:var(--white);}
+.callout.sky{border-left-color:var(--sky);background:rgba(0,212,255,0.06);}
+.callout.green{border-left-color:var(--green);background:rgba(57,217,138,0.06);}
+
+/* ── 88 KEY-STAFF SECTION ── */
+.key-staff-panel{
+  display:grid;grid-template-columns:1fr 300px;gap:2rem;align-items:start;
+  margin:1.5rem 0;
+}
+@media(max-width:860px){.key-staff-panel{grid-template-columns:1fr;}}
+.key-info-card{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:1.4rem;position:sticky;top:80px;
+}
+.kip-note{font-family:'DM Mono',monospace;font-size:2.8rem;font-weight:500;color:var(--pink);line-height:1;margin-bottom:.2rem;}
+.kip-hz{font-family:'DM Mono',monospace;font-size:.78rem;color:var(--sky);margin-bottom:.7rem;}
+.kip-label{font-family:'DM Mono',monospace;font-size:.62rem;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.15rem;}
+.kip-value{font-size:.88rem;color:var(--off-white);margin-bottom:.8rem;}
+.kip-hint{font-size:.78rem;color:var(--muted2);font-style:italic;margin-top:1rem;line-height:1.5;}
+.oct-legend{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.8rem;}
+.oct-pill{
+  display:inline-flex;align-items:center;gap:.35rem;
+  font-family:'DM Mono',monospace;font-size:.67rem;
+  padding:.22rem .65rem;border-radius:100px;
+  border:1px solid var(--border);cursor:pointer;
+  transition:all .15s;background:var(--card2);color:var(--muted);
+}
+.oct-pill:hover{border-color:var(--pink);color:var(--pink);}
+.oct-dot{width:7px;height:7px;border-radius:50%;}
+.oct-pill.active-oct{border-color:var(--pink);color:var(--pink);}
+
+/* ── RHYTHM FORMULA ── */
+.rhythm-formula-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-top:1.5rem;}
+@media(max-width:600px){.rhythm-formula-grid{grid-template-columns:1fr;}}
+
+/* ── DIVIDER ── */
+.divider{height:1px;background:var(--border);margin:0 0 3rem;}
+
+/* ── NOW PLAYING ── */
+#nowPlaying{
+  position:fixed;bottom:1.5rem;right:1.5rem;z-index:200;
+  background:var(--pink);color:#fff;border-radius:12px;
+  padding:.8rem 1.2rem;display:flex;align-items:center;gap:1rem;
+  transform:translateY(80px);opacity:0;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;
+  box-shadow:0 8px 24px rgba(255,45,120,.45);min-width:190px;
+}
+#nowPlaying.show{transform:translateY(0);opacity:1;}
+.np-note{font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:500;}
+.np-detail{font-size:.72rem;opacity:.75;font-family:'DM Mono',monospace;}
+.np-wave{display:flex;align-items:flex-end;gap:2px;height:18px;}
+.np-bar{width:3px;background:rgba(255,255,255,.7);border-radius:2px;animation:wave .8s ease-in-out infinite alternate;}
+.np-bar:nth-child(2){animation-delay:.15s}.np-bar:nth-child(3){animation-delay:.3s}
+.np-bar:nth-child(4){animation-delay:.45s}.np-bar:nth-child(5){animation-delay:.6s}
+@keyframes wave{from{height:3px}to{height:14px}}
+
+/* ── VOLUME ── */
+#volumeControl{
+  position:fixed;bottom:1.5rem;left:1.5rem;z-index:200;
+  background:rgba(13,17,23,.92);backdrop-filter:blur(10px);
+  border:1px solid var(--border);border-radius:100px;
+  padding:.42rem .95rem;display:flex;align-items:center;gap:.55rem;
+}
+.volume-slider{
+  -webkit-appearance:none;appearance:none;width:85px;height:3px;
+  background:rgba(255,255,255,.12);border-radius:2px;outline:none;cursor:pointer;
+}
+.volume-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:12px;height:12px;background:var(--pink);
+  border-radius:50%;cursor:pointer;
+}
+
+/* ── FOOTER ── */
+footer{
+  background:var(--bg);border-top:1px solid var(--border);
+  padding:2.5rem 2rem;text-align:center;
+}
+.footer-logo{font-weight:800;font-size:1.1rem;color:var(--white);margin-bottom:.3rem;letter-spacing:-.02em;}
+.footer-sub{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted2);letter-spacing:.04em;}
+.footer-links{display:flex;justify-content:center;gap:2rem;margin-top:1.2rem;}
+.footer-links a{font-size:.78rem;color:var(--muted2);text-decoration:none;transition:color .2s;}
+.footer-links a:hover{color:var(--pink);}
+
+/* ── MISC ── */
+#note-popup{position:fixed;pointer-events:none;font-family:'DM Mono',monospace;font-size:2.2rem;font-weight:500;color:var(--pink);opacity:0;transition:opacity .1s;z-index:999;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{opacity:0;animation:fadeUp .6s ease forwards;}
+@media(max-width:680px){nav{padding:0 1rem;}.nav-links{display:none;}}
+</style>
+</head>
+<body>
+
+<div id="note-popup"></div>
+
+<!-- NOW PLAYING TOAST -->
+<div id="nowPlaying">
+  <div><div class="np-note" id="npNote">C4</div><div class="np-detail" id="npDetail">262 Hz</div></div>
+  <div class="np-wave">
+    <div class="np-bar" style="height:7px"></div><div class="np-bar" style="height:13px"></div>
+    <div class="np-bar" style="height:5px"></div><div class="np-bar" style="height:11px"></div>
+    <div class="np-bar" style="height:8px"></div>
+  </div>
+</div>
+
+<!-- VOLUME -->
+<div id="volumeControl">
+  <span id="volIcon" style="font-size:.9rem;cursor:pointer;user-select:none" onclick="toggleMute()">🔊</span>
+  <input class="volume-slider" id="globalVolume" type="range" min="0" max="1" step="0.05" value="0.75">
+  <span style="font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted2)">VOL</span>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Musicable</div>
+  <ul class="nav-links">
+    <li><a href="#intro">Octaves</a></li>
+    <li><a href="#keyboard-section">Keyboard</a></li>
+    <li><a href="#staff">Staff</a></li>
+    <li><a href="#key-staff">88 Keys</a></li>
+    <li><a href="#rhythm">Rhythm</a></li>
+    <li><a href="#metronome">Metronome</a></li>
+  </ul>
+  <a href="https://www.musicable.app/" class="nav-book">Book a Class</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">🎹 Piano Theory Guide</div>
+  <h1>Learn Piano<br><span class="pink">Smarter</span></h1>
+  <p class="hero-sub">A fully interactive guide to piano octaves, the musical staff, note durations, rhythm and the metronome — all in one page.</p>
+  <div class="hero-cta-row">
+    <a href="#intro" class="btn-pink">Start Learning</a>
+    <a href="https://www.musicable.app/" class="btn-outline">Book a Class</a>
+  </div>
+  <div class="hero-tags">
+    <span class="hero-tag">88 Keys Explained</span>
+    <span class="hero-tag">C0 → C7 Octaves</span>
+    <span class="hero-tag">Treble &amp; Bass Clef</span>
+    <span class="hero-tag">Interactive Metronome</span>
+    <span class="hero-tag">Beats &amp; Bars</span>
+  </div>
+</div>
+
+<div class="page">
+
+<!-- ══ S1: WHAT IS AN OCTAVE ══ -->
+<section id="intro">
+  <div class="section-label">01 — Fundamentals</div>
+  <h2 class="section-h2">What Is an <em>Octave?</em></h2>
+  <div class="prose">
+    <p>The word <strong>octave</strong> comes from Latin <em>octava</em> — "eighth." It describes the interval between a note and another with <strong>exactly double its frequency</strong>. On a piano it spans 8 white keys, from one C to the very next C.</p>
+  </div>
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-val">12</div><div class="stat-lbl">Semitones in every octave</div></div>
+    <div class="stat-card"><div class="stat-val">×2</div><div class="stat-lbl">Frequency multiplier per octave</div></div>
+    <div class="stat-card"><div class="stat-val">440 Hz</div><div class="stat-lbl">Concert A (A4) — tuning reference</div></div>
+    <div class="stat-card"><div class="stat-val">262 Hz</div><div class="stat-lbl">Middle C (C4) — universal anchor</div></div>
+  </div>
+  <div class="callout sky"><strong>Why does frequency double?</strong> The ear hears pitch logarithmically — two notes an octave apart sound like the "same" note in different registers. Double the vibrations per second = one octave up.</div>
+</section>
+
+<!-- ══ S2: C0–C7 OCTAVE TABLE ══ -->
+<section id="keyboard-section">
+  <div class="section-label">02 — The Keyboard</div>
+  <h2 class="section-h2">Why <em>C0 to C7?</em></h2>
+  <div class="prose">
+    <p><strong>Scientific Pitch Notation (SPN)</strong> assigns a number to each octave starting from 0. C starts each octave — it falls just after every pair of black keys. Click any card to highlight that octave on the keyboard below.</p>
+  </div>
+  <div class="octave-grid" id="octaveGrid"></div>
+
+  <div class="piano-wrap">
+    <div id="piano-outer"><canvas id="piano-canvas" width="1060" height="220"></canvas></div>
+    <div class="piano-info" id="pianoInfo">
+      <div class="info-note" id="infoNote">—</div>
+      <div class="info-details">
+        <div class="info-name" id="infoName">Click or hover any key to explore</div>
+        <div class="info-hz" id="infoHz"></div>
+        <div class="info-staff" id="infoStaff"></div>
+      </div>
+      <div class="viz-bars" id="vizBars">
+        <div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div>
+        <div class="viz-bar"></div><div class="viz-bar"></div><div class="viz-bar"></div>
+        <div class="viz-bar"></div><div class="viz-bar"></div>
+      </div>
+    </div>
+    <div class="piano-hint">🎹 Hover or click any key · Keyboard: A–L plays C4–D5</div>
+  </div>
+</section>
+
+<!-- ══ S3: GRAND STAFF ══ -->
+<section id="staff">
+  <div class="section-label">03 — Music Notation</div>
+  <h2 class="section-h2">Notes on the <em>Staff</em></h2>
+  <div id="staff-section">
+    <div class="layout">
+      <div><canvas id="staffCanvas" width="480" height="420"></canvas></div>
+      <div class="staff-legend">
+        <div class="legend-clef">
+          <div class="clef-title">Treble Clef (G Clef)</div>
+          <div class="clef-range">Range: C4 → G6</div>
+          <p style="font-size:.88rem;margin:0;color:var(--muted)">The curl wraps around the <strong style="color:var(--sky)">G4 line</strong>. Used for higher notes — right hand piano, violin, flute.</p>
+          <p style="font-size:.78rem;margin:.5rem 0 0;color:var(--muted2);font-style:italic">Lines (↑): E4 · G4 · B4 · D5 · F5<br>Spaces (↑): F4 · A4 · C5 · E5</p>
+        </div>
+        <div class="legend-clef bass">
+          <div class="clef-title">Bass Clef (F Clef)</div>
+          <div class="clef-range">Range: E2 → C4</div>
+          <p style="font-size:.88rem;margin:0;color:var(--muted)">The two dots flank the <strong style="color:var(--pink)">F3 line</strong>. Used for lower notes — left hand piano, cello, bass.</p>
+          <p style="font-size:.78rem;margin:.5rem 0 0;color:var(--muted2);font-style:italic">Lines (↑): G2 · B2 · D3 · F3 · A3<br>Spaces (↑): A2 · C3 · E3 · G3</p>
+        </div>
+        <div class="callout green" style="margin:0"><strong>★ Middle C (C4)</strong> sits on a ledger line between the two staves — below treble, above bass. It is the anchor of the grand staff.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S4: CORRELATION TABLE ══ -->
+<section id="correlation">
+  <div class="section-label">04 — Key → Staff Map</div>
+  <h2 class="section-h2">Staff ↔ Keyboard <em>Correlation</em></h2>
+  <div class="prose"><p>Every step up a line or space on the staff = the next white key to the right on the piano. Higher on the staff = further right on the keyboard.</p></div>
+  <table class="corr-table">
+    <thead><tr><th>Note</th><th>Octave</th><th>Staff Position</th><th>Frequency</th><th>Clef</th></tr></thead>
+    <tbody id="corrTableBody"></tbody>
+  </table>
+</section>
+
+<!-- ══ S5: 88 KEYS → STAFF ══ -->
+<section id="key-staff">
+  <div class="section-label">05 — Interactive · All 88 Keys</div>
+  <h2 class="section-h2">Every Key on the <em>Staff</em></h2>
+  <div class="prose"><p>Click any of the 88 keys below to see exactly where it sits on the grand staff — whether it's a ledger line below bass, inside treble, or far above in the upper octaves. The staff updates in real time.</p></div>
+
+  <div class="key-staff-panel">
+    <div>
+      <!-- Mini 88-key keyboard for selection -->
+      <div style="background:#0a0810;border-radius:8px 8px 0 0;padding:10px 10px 0;user-select:none;border:1px solid var(--border);border-bottom:none;">
+        <canvas id="miniPianoCanvas" width="1060" height="110"></canvas>
+      </div>
+      <!-- Grand staff display -->
+      <canvas id="keyStaffCanvas" width="1060" height="360" style="border-radius:0 0 8px 8px;border:1px solid var(--border);border-top:none;"></canvas>
+    </div>
+
+    <!-- Info panel -->
+    <div class="key-info-card">
+      <div class="kip-note" id="kipNote">—</div>
+      <div class="kip-hz" id="kipHz">Click a key to begin</div>
+
+      <div class="kip-label">Note Name</div>
+      <div class="kip-value" id="kipName">—</div>
+
+      <div class="kip-label">Octave</div>
+      <div class="kip-value" id="kipOctave">—</div>
+
+      <div class="kip-label">Staff Position</div>
+      <div class="kip-value" id="kipStaff">—</div>
+
+      <div class="kip-label">Clef</div>
+      <div class="kip-value" id="kipClef">—</div>
+
+      <div class="kip-label" style="margin-top:1rem">Highlight Octave</div>
+      <div class="oct-legend" id="octLegend"></div>
+
+      <div class="kip-hint">Try clicking the C keys to see Middle C sit between the two staves.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S6: RHYTHM ══ -->
+<section id="rhythm">
+  <div class="section-label">06 — Rhythm & Duration</div>
+  <h2 class="section-h2">Beat, Rhythm &amp; <em>Note Duration</em></h2>
+  <div class="prose">
+    <p><strong>Pitch</strong> tells you which key to press. <strong>Rhythm</strong> tells you how long to hold it. A <em>beat</em> is the steady pulse — like a heartbeat. A note's duration tells you how many beats to hold that note.</p>
+  </div>
+
+  <h3 class="sub-h3">The Four Basic Note Values <span style="color:var(--muted2);font-weight:400;font-size:.85rem">— in 4/4 time, one bar = 4 beats</span></h3>
+  <div class="note-cards" id="noteCards"></div>
+
+  <h3 class="sub-h3">How They Fill a Bar <span style="color:var(--muted2);font-weight:400;font-size:.85rem">— click a row to animate</span></h3>
+  <canvas id="durationCanvas" width="1000" height="280"></canvas>
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:.7rem;font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted2)">
+    <span style="color:#FF2D78">■</span> Whole &nbsp;
+    <span style="color:#00D4FF">■</span> Half &nbsp;
+    <span style="color:#39D98A">■</span> Quarter &nbsp;
+    <span style="color:#A78BFA">■</span> Quaver (8th)
+  </div>
+</section>
+
+<!-- ══ S7: METRONOME ══ -->
+<section id="metronome">
+  <div class="section-label">07 — Interactive · Metronome</div>
+  <h2 class="section-h2">The <em>Metronome</em></h2>
+  <div class="prose"><p>A metronome marks exact tempo in <strong>BPM (beats per minute)</strong>. At <em>60 BPM</em>, one beat = one second. At <em>120 BPM</em>, one beat = half a second. Each tick = one beat.</p></div>
+
+  <div class="metro-grid">
+    <div class="metro-wrap" style="width:260px">
+      <div class="metro-body">
+        <div class="metro-case"></div>
+        <div class="metro-pendulum" id="metroPendulum">
+          <div class="metro-weight" id="metroWeight" style="top:18px"></div>
+        </div>
+      </div>
+      <div class="beat-lights" id="beatLights"></div>
+      <div class="metro-bpm-display" id="bpmDisplay">60</div>
+      <div class="metro-label">BPM</div>
+      <input class="metro-tempo-slider" id="tempoSlider" type="range" min="40" max="208" value="60">
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center">
+        <button class="metro-btn" onclick="setTempo(60)">Largo 60</button>
+        <button class="metro-btn" onclick="setTempo(80)">Andante 80</button>
+        <button class="metro-btn" onclick="setTempo(120)">Allegro 120</button>
+        <button class="metro-btn" onclick="setTempo(160)">Presto 160</button>
+      </div>
+      <button class="metro-btn active" id="metroStartBtn" onclick="toggleMetronome()" style="width:100%;font-size:.85rem;padding:.65rem">▶ Start</button>
+    </div>
+
+    <div>
+      <h3 class="sub-h3">Hold Duration at Current Tempo</h3>
+      <table class="corr-table" id="durationTable">
+        <thead><tr><th>Note</th><th>Beats</th><th>Duration at <span id="tableTempoLabel">60</span> BPM</th><th>Relative Length</th></tr></thead>
+        <tbody>
+          <tr><td style="color:#FF2D78;font-weight:700">Whole 𝅝</td><td class="hz-cell">4 beats</td><td id="dur-whole" style="font-family:'DM Mono',monospace;color:var(--off-white)">4.00 s</td><td><div style="height:8px;background:#FF2D78;border-radius:2px;width:100%"></div></td></tr>
+          <tr><td style="color:#00D4FF;font-weight:700">Half 𝅗𝅥</td><td class="hz-cell">2 beats</td><td id="dur-half" style="font-family:'DM Mono',monospace;color:var(--off-white)">2.00 s</td><td><div style="height:8px;background:#00D4FF;border-radius:2px;width:50%"></div></td></tr>
+          <tr><td style="color:#39D98A;font-weight:700">Quarter ♩</td><td class="hz-cell">1 beat</td><td id="dur-quarter" style="font-family:'DM Mono',monospace;color:var(--off-white)">1.00 s</td><td><div style="height:8px;background:#39D98A;border-radius:2px;width:25%"></div></td></tr>
+          <tr><td style="color:#A78BFA;font-weight:700">Quaver ♪</td><td class="hz-cell">½ beat</td><td id="dur-eighth" style="font-family:'DM Mono',monospace;color:var(--off-white)">0.50 s</td><td><div style="height:8px;background:#A78BFA;border-radius:2px;width:12.5%"></div></td></tr>
+        </tbody>
+      </table>
+      <div class="callout" style="margin-top:1rem"><strong>Rule:</strong> Duration (s) = <strong>(beats ÷ BPM) × 60</strong>. At 60 BPM a quarter note = 1 s. At 120 BPM it's 0.5 s.</div>
+      <div style="margin-top:1.2rem;padding:1.1rem 1.3rem;background:var(--card);border:1px solid var(--border);border-radius:10px">
+        <div style="font-size:.82rem;font-weight:700;color:var(--sky);margin-bottom:.7rem">🎵 Play a note with the metronome</div>
+        <div style="display:flex;align-items:center;gap:.7rem;flex-wrap:wrap">
+          <label style="font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted2)">NOTE</label>
+          <select class="metro-note-select" id="metroNoteSelect">
+            <option value="262">C4 — Middle C</option><option value="294">D4</option>
+            <option value="330">E4</option><option value="349">F4</option>
+            <option value="392">G4</option><option value="440">A4 — Concert A</option>
+            <option value="494">B4</option><option value="523">C5</option>
+          </select>
+          <label style="font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted2)">DURATION</label>
+          <select class="metro-note-select" id="metroNoteDur">
+            <option value="4">Whole (4 beats)</option><option value="2">Half (2 beats)</option>
+            <option value="1" selected>Quarter (1 beat)</option><option value="0.5">Quaver (½ beat)</option>
+          </select>
+          <button class="metro-btn" id="metroNoteBtn" onclick="toggleMetroNote()" style="padding:.4rem .9rem">▶ Play on beat</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S8: BARS & TIME SIGNATURE ══ -->
+<section id="timesig">
+  <div class="section-label">08 — Bars &amp; Time</div>
+  <h2 class="section-h2">Bars, Measures &amp; <em>Time Signatures</em></h2>
+  <div class="prose"><p>Music is divided into equal chunks called <strong>bars</strong> (or measures). A <strong>time signature</strong> tells you how many beats per bar and which note value counts as one beat.</p></div>
+
+  <div style="display:flex;gap:2rem;align-items:center;margin:2rem 0;flex-wrap:wrap">
+    <canvas id="timeSigCanvas" width="260" height="200" style="flex-shrink:0"></canvas>
+    <div style="flex:1;min-width:240px">
+      <div style="font-size:1.05rem;font-weight:700;color:var(--white);margin-bottom:.7rem">Reading a Time Signature</div>
+      <div style="display:flex;align-items:stretch;gap:0;background:var(--card2);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1rem">
+        <div style="background:var(--pink);padding:.6rem 1rem;display:flex;align-items:center">
+          <span style="font-family:'DM Mono',monospace;font-size:1.8rem;color:#fff;font-weight:500;line-height:1.1">4<br>4</span>
+        </div>
+        <div style="padding:.7rem 1rem">
+          <div style="color:var(--white);font-weight:600;font-size:.9rem;margin-bottom:.2rem">Four-Four Time</div>
+          <div style="font-size:.82rem;color:var(--muted)"><strong style="color:var(--pink)">Top (4):</strong> 4 beats per bar<br><strong style="color:var(--pink)">Bottom (4):</strong> quarter note = 1 beat</div>
+        </div>
+      </div>
+      <p style="font-size:.88rem;color:var(--muted)">The <strong style="color:var(--white)">top number</strong> is your count. The <strong style="color:var(--white)">bottom number</strong> is the reference note — 4 = quarter note, 2 = half note, 8 = eighth note.</p>
+    </div>
+  </div>
+
+  <h3 class="sub-h3">Common Time Signatures</h3>
+  <div class="time-sig-grid">
+    <div class="ts-card"><div class="ts-number">4<br><span style="display:block;border-top:1px solid var(--pink);padding-top:2px">4</span></div><div><div class="ts-info-title">4/4 — Common Time</div><div class="ts-info-desc">4 quarter-note beats per bar. The most common time in pop, rock, and classical.</div></div></div>
+    <div class="ts-card"><div class="ts-number" style="color:var(--sky)">3<br><span style="display:block;border-top:1px solid var(--sky);padding-top:2px">4</span></div><div><div class="ts-info-title">3/4 — Waltz Time</div><div class="ts-info-desc">3 beats per bar. ONE-two-three. Used in waltzes and minuets.</div></div></div>
+    <div class="ts-card"><div class="ts-number" style="color:var(--green)">2<br><span style="display:block;border-top:1px solid var(--green);padding-top:2px">4</span></div><div><div class="ts-info-title">2/4 — March Time</div><div class="ts-info-desc">2 beats per bar. ONE-two. The strong marching left-right feel.</div></div></div>
+    <div class="ts-card"><div class="ts-number" style="color:#A78BFA">6<br><span style="display:block;border-top:1px solid #A78BFA;padding-top:2px">8</span></div><div><div class="ts-info-title">6/8 — Compound Duple</div><div class="ts-info-desc">6 eighth-note beats, felt in 2 pulses. Lilting flow — jigs, barcarolles.</div></div></div>
+  </div>
+
+  <h3 class="sub-h3">Counting Beats Inside a Bar — Interactive</h3>
+  <div class="prose" style="margin-bottom:1rem"><p>A 4/4 bar always contains <strong>exactly 4 beats</strong>. Choose a note pattern, press Play — the metronome ticks on each beat while the playhead shows exactly where you are.</p></div>
+
+  <div style="display:flex;gap:.55rem;flex-wrap:wrap;margin:1rem 0 .8rem" id="patternBtns">
+    <button class="pattern-btn active" data-pattern="0">4 Quarters<br><span style="font-size:.65rem;opacity:.7">♩ ♩ ♩ ♩</span></button>
+    <button class="pattern-btn" data-pattern="1">1 Whole<br><span style="font-size:.65rem;opacity:.7">𝅝</span></button>
+    <button class="pattern-btn" data-pattern="2">2 Halves<br><span style="font-size:.65rem;opacity:.7">𝅗𝅥 𝅗𝅥</span></button>
+    <button class="pattern-btn" data-pattern="3">8 Quavers<br><span style="font-size:.65rem;opacity:.7">♪♪♪♪♪♪♪♪</span></button>
+    <button class="pattern-btn" data-pattern="4">Mixed ♩𝅗𝅥♩<br><span style="font-size:.65rem;opacity:.7">1+2+3+4</span></button>
+  </div>
+
+  <canvas id="measureCanvas" width="1060" height="340" style="background:#0a0810;border-radius:8px;border:1px solid var(--border)"></canvas>
+
+  <div style="display:flex;align-items:center;gap:1rem;margin-top:.8rem;flex-wrap:wrap">
+    <button id="barPlayBtn" class="metro-btn active" style="min-width:110px;padding:.58rem 1.1rem" onclick="toggleBarPlay()">▶ Play Bar</button>
+    <div style="display:flex;align-items:center;gap:.55rem">
+      <span style="font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted2)">TEMPO</span>
+      <input class="metro-tempo-slider" id="barTempoSlider" type="range" min="40" max="160" value="72" style="width:120px">
+      <span id="barBpmLabel" style="font-family:'DM Mono',monospace;font-size:.82rem;color:var(--pink);min-width:3rem">72 BPM</span>
+    </div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <span style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted2)">COUNT</span>
+      <div id="barBeatLights" style="display:flex;gap:5px"></div>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:2rem;font-weight:500;color:var(--pink);min-width:2rem;text-align:center;line-height:1" id="liveCountDisplay">—</div>
+  </div>
+
+  <!-- 4-beat explainer -->
+  <div style="margin:1.5rem 0;padding:1.2rem 1.4rem;background:var(--card);border:1px solid var(--border);border-radius:10px;border-left:3px solid var(--pink)">
+    <div style="font-size:.9rem;font-weight:700;color:var(--pink);margin-bottom:.7rem">Why 4 Beats? The Rule of the Bar</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem">
+      <div style="background:rgba(255,45,120,0.1);border:1px solid rgba(255,45,120,0.25);border-radius:8px;padding:.6rem;text-align:center">
+        <div style="font-family:'DM Mono',monospace;font-size:1.4rem;color:var(--pink);font-weight:500">1</div>
+        <div style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--pink);letter-spacing:.06em">STRONG</div>
+        <div style="font-size:.75rem;color:var(--muted2);margin-top:.15rem">Downbeat</div>
+      </div>
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:.6rem;text-align:center">
+        <div style="font-family:'DM Mono',monospace;font-size:1.4rem;color:var(--muted2);font-weight:500">2</div>
+        <div style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted2);letter-spacing:.06em">weak</div>
+        <div style="font-size:.75rem;color:var(--muted2);margin-top:.15rem">Unaccented</div>
+      </div>
+      <div style="background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.18);border-radius:8px;padding:.6rem;text-align:center">
+        <div style="font-family:'DM Mono',monospace;font-size:1.4rem;color:var(--sky);font-weight:500">3</div>
+        <div style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--sky);letter-spacing:.06em">medium</div>
+        <div style="font-size:.75rem;color:var(--muted2);margin-top:.15rem">Secondary</div>
+      </div>
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:.6rem;text-align:center">
+        <div style="font-family:'DM Mono',monospace;font-size:1.4rem;color:var(--muted2);font-weight:500">4</div>
+        <div style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted2);letter-spacing:.06em">weak</div>
+        <div style="font-size:.75rem;color:var(--muted2);margin-top:.15rem">→ leads to 1</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rhythm-formula-grid">
+    <div style="padding:1.2rem;background:var(--card);border:1px solid var(--border);border-radius:10px;border-left:3px solid var(--pink)">
+      <div style="font-weight:700;color:var(--pink);margin-bottom:.4rem;font-size:.9rem">Rhythm = Duration Pattern</div>
+      <p style="font-size:.85rem;margin:0;color:var(--muted)">Fill a 4/4 bar with any combination totalling 4 beats: <span style="font-family:'DM Mono',monospace;color:var(--sky)">♩ + 𝅗𝅥 + ♩ = 4</span></p>
+    </div>
+    <div style="padding:1.2rem;background:var(--card);border:1px solid var(--border);border-radius:10px;border-left:3px solid var(--sky)">
+      <div style="font-weight:700;color:var(--sky);margin-bottom:.4rem;font-size:.9rem">Beat = Steady Pulse</div>
+      <p style="font-size:.85rem;margin:0;color:var(--muted)">The metronome keeps the beat constant. Notes land on or between beats — the pulse never stops.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ S9: TAKEAWAYS ══ -->
+<section id="takeaways">
+  <div class="section-label">Summary</div>
+  <h2 class="section-h2">Key <em>Takeaways</em></h2>
+  <div class="takeaways">
+    <div class="takeaway"><div class="tk-num">1</div><div class="tk-title">Octaves double frequency</div><p style="font-size:.85rem;margin:0;color:var(--muted)">A4 = 440 Hz → A5 = 880 Hz → A3 = 220 Hz. The relationship is perfectly logarithmic.</p></div>
+    <div class="takeaway"><div class="tk-num">2</div><div class="tk-title">C0–C7 is Scientific Pitch Notation</div><p style="font-size:.85rem;margin:0;color:var(--muted)">The number tells you which octave. C starts each octave — after every pair of black keys.</p></div>
+    <div class="takeaway"><div class="tk-num">3</div><div class="tk-title">C4 is the universal anchor</div><p style="font-size:.85rem;margin:0;color:var(--muted)">Middle C (~262 Hz) sits at the centre of the piano and on a ledger line between the two staves.</p></div>
+    <div class="takeaway"><div class="tk-num">4</div><div class="tk-title">Staff position = pitch height</div><p style="font-size:.85rem;margin:0;color:var(--muted)">Higher on the staff = higher pitch = further right on the keyboard. All three are equivalent.</p></div>
+    <div class="takeaway"><div class="tk-num">5</div><div class="tk-title">Two clefs cover the full range</div><p style="font-size:.85rem;margin:0;color:var(--muted)">Treble covers C4–G6, Bass covers E2–C4. Together they form the Grand Staff used for piano.</p></div>
+    <div class="takeaway"><div class="tk-num">6</div><div class="tk-title">Notes have duration, not just pitch</div><p style="font-size:.85rem;margin:0;color:var(--muted)">Whole = 4 beats · Half = 2 · Quarter = 1 · Quaver = ½. Rhythm is how these combine in time.</p></div>
+    <div class="takeaway"><div class="tk-num">7</div><div class="tk-title">A bar = 4 beats in 4/4 time</div><p style="font-size:.85rem;margin:0;color:var(--muted)">Barlines divide music into equal chunks. In 4/4: STRONG · weak · medium · weak.</p></div>
+    <div class="takeaway" style="border-left:3px solid var(--pink)"><div class="tk-num">🎹</div><div class="tk-title">Pitch + Rhythm = Music</div><p style="font-size:.85rem;margin:0;color:var(--muted)">Which key, how long, when, and how fast — the four dimensions of music.</p></div>
+  </div>
+
+  <div style="margin-top:3rem;padding:2rem;background:linear-gradient(135deg,rgba(255,45,120,0.12),rgba(0,212,255,0.06));border:1px solid rgba(255,45,120,0.2);border-radius:16px;text-align:center">
+    <div style="font-size:1.3rem;font-weight:800;color:var(--white);margin-bottom:.5rem">Ready to play?</div>
+    <p style="font-size:.9rem;color:var(--muted);max-width:400px;margin:0 auto .8rem">Musicable's lessons take you from theory to performance with a 100% guaranteed Trinity exam pass.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+      <a href="https://www.musicable.app/" class="btn-pink" style="display:inline-block">Book a Class</a>
+      <a href="https://www.musicable.app/#blogs" class="btn-outline" style="display:inline-block">More Articles</a>
+    </div>
+  </div>
+</section>
+
+</div><!-- end .page -->
+
+<footer>
+  <div class="footer-logo">Musicable</div>
+  <div class="footer-sub">Piano Theory Guide · Interactive Learning · musicable.app</div>
+  <div class="footer-links">
+    <a href="https://www.musicable.app/">Home</a>
+    <a href="https://www.musicable.app/#blogs">Blog</a>
+    <a href="https://www.musicable.app/">Book a Class</a>
+  </div>
+</footer>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// ROUND-RECT POLYFILL
+// ══════════════════════════════════════════════════════════
+if(!CanvasRenderingContext2D.prototype.roundRect){
+  CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){
+    r=Math.min(r,w/2,h/2);
+    this.moveTo(x+r,y);this.lineTo(x+w-r,y);
+    this.arcTo(x+w,y,x+w,y+r,r);this.lineTo(x+w,y+h-r);
+    this.arcTo(x+w,y+h,x+w-r,y+h,r);this.lineTo(x+r,y+h);
+    this.arcTo(x,y+h,x,y+h-r,r);this.lineTo(x,y+r);
+    this.arcTo(x,y,x+r,y,r);this.closePath();return this;
+  };
+}
+
+// ══════════════════════════════════════════════════════════
+// MASTER VOLUME
+// ══════════════════════════════════════════════════════════
+let masterVolume=0.75,isMuted=false,prevVolume=0.75;
+document.getElementById('globalVolume').addEventListener('input',function(){
+  masterVolume=parseFloat(this.value);isMuted=masterVolume===0;
+  document.getElementById('volIcon').textContent=masterVolume===0?'🔇':masterVolume<0.4?'🔉':'🔊';
+});
+function toggleMute(){
+  if(isMuted){masterVolume=prevVolume||0.75;isMuted=false;document.getElementById('globalVolume').value=masterVolume;document.getElementById('volIcon').textContent='🔊';}
+  else{prevVolume=masterVolume;masterVolume=0;isMuted=true;document.getElementById('globalVolume').value=0;document.getElementById('volIcon').textContent='🔇';}
+}
+
+// ══════════════════════════════════════════════════════════
+// NOW PLAYING TOAST
+// ══════════════════════════════════════════════════════════
+let npTimeout=null;
+function showNowPlaying(noteName,hz,detail){
+  const el=document.getElementById('nowPlaying');
+  document.getElementById('npNote').textContent=noteName;
+  document.getElementById('npDetail').textContent=detail||`${hz} Hz`;
+  el.classList.add('show');clearTimeout(npTimeout);
+  npTimeout=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+// ══════════════════════════════════════════════════════════
+// SHARED AUDIO ENGINE
+// ══════════════════════════════════════════════════════════
+let _ac=null;
+function getAC(){
+  if(!_ac){
+    _ac=new(window.AudioContext||window.webkitAudioContext)();
+    const c=_ac.createDynamicsCompressor();
+    c.threshold.value=-16;c.ratio.value=4;c.attack.value=0.003;c.release.value=0.25;
+    c.connect(_ac.destination);_ac._out=c;
+  }
+  if(_ac.state==='suspended')_ac.resume();
+  return _ac;
+}
+
+function synthPiano(hz,when,dur,vol){
+  try{
+    vol=(vol||1)*masterVolume;if(vol<=0)return;
+    const ac=getAC(),out=ac._out;
+    const w=when||ac.currentTime,d=Math.max(0.1,dur||1.2);
+    const decay=Math.min(d*0.9,Math.max(0.5,2.6-hz/650));
+    [[1,0.5],[2,0.18],[3,0.10],[4,0.05],[5,0.025],[6,0.012]].forEach(([m,g])=>{
+      const osc=ac.createOscillator(),gn=ac.createGain();
+      osc.connect(gn);gn.connect(out);osc.type='sine';osc.frequency.value=hz*m;
+      osc.detune.value=(Math.random()-0.5)*4+m*1.5;
+      gn.gain.setValueAtTime(0,w);gn.gain.linearRampToValueAtTime(g*vol*0.9,w+0.006);
+      gn.gain.exponentialRampToValueAtTime(g*vol*0.001,w+decay);
+      osc.start(w);osc.stop(w+decay+0.05);
+    });
+    const t=ac.createOscillator(),tg=ac.createGain();
+    t.connect(tg);tg.connect(out);t.type='sine';
+    t.frequency.setValueAtTime(hz*0.5,w);t.frequency.exponentialRampToValueAtTime(hz*0.1,w+0.04);
+    tg.gain.setValueAtTime(0.15*vol,w);tg.gain.exponentialRampToValueAtTime(0.001,w+0.05);
+    t.start(w);t.stop(w+0.06);
+  }catch(e){}
+}
+
+function synthClick(isAccent,when){
+  try{
+    const vol=masterVolume;if(vol<=0)return;
+    const ac=getAC(),out=ac._out;
+    const w=when!=null?when:ac.currentTime;
+    const bufSz=Math.floor(ac.sampleRate*0.05);
+    const buf=ac.createBuffer(1,bufSz,ac.sampleRate);
+    const data=buf.getChannelData(0);
+    for(let i=0;i<bufSz;i++)data[i]=Math.random()*2-1;
+    const noise=ac.createBufferSource();noise.buffer=buf;
+    const hpf=ac.createBiquadFilter();hpf.type='highpass';hpf.frequency.value=isAccent?1800:2400;hpf.Q.value=0.8;
+    const bpf=ac.createBiquadFilter();bpf.type='bandpass';bpf.frequency.value=isAccent?900:1200;bpf.Q.value=3;
+    const ng=ac.createGain();
+    ng.gain.setValueAtTime((isAccent?0.6:0.35)*vol,w);ng.gain.exponentialRampToValueAtTime(0.001,w+0.04);
+    noise.connect(hpf);hpf.connect(bpf);bpf.connect(ng);ng.connect(out);
+    noise.start(w);noise.stop(w+0.06);
+    const body=ac.createOscillator(),bg=ac.createGain();
+    body.connect(bg);bg.connect(out);body.type='sine';
+    body.frequency.setValueAtTime(isAccent?560:400,w);body.frequency.exponentialRampToValueAtTime(isAccent?200:150,w+0.06);
+    bg.gain.setValueAtTime((isAccent?0.35:0.22)*vol,w);bg.gain.exponentialRampToValueAtTime(0.001,w+0.07);
+    body.start(w);body.stop(w+0.08);
+  }catch(e){}
+}
+
+// ══════════════════════════════════════════════════════════
+// DATA
+// ══════════════════════════════════════════════════════════
+const octaveData=[
+  {name:'C0',range:'C0–B0',desc:'Sub-bass. Felt more than heard.',hz:'16 Hz',color:'#c4b5fd',pastel:'rgba(196,181,253,0.45)'},
+  {name:'C1',range:'C1–B1',desc:'Deep bass. Double bass, pipe organ.',hz:'33 Hz',color:'#93c5fd',pastel:'rgba(147,197,253,0.45)'},
+  {name:'C2',range:'C2–B2',desc:'Bass. Cello, bass voice.',hz:'65 Hz',color:'#67e8f9',pastel:'rgba(103,232,249,0.40)'},
+  {name:'C3',range:'C3–B3',desc:'Warm low-mid. Viola, tenor.',hz:'131 Hz',color:'#6ee7b7',pastel:'rgba(110,231,183,0.42)'},
+  {name:'C4',range:'C4–B4',desc:'Middle octave — the universal reference.',hz:'262 Hz',color:'#86efac',pastel:'rgba(134,239,172,0.45)',middle:true},
+  {name:'C5',range:'C5–B5',desc:'Bright upper-mid. Flute, soprano.',hz:'523 Hz',color:'#fde68a',pastel:'rgba(253,230,138,0.45)'},
+  {name:'C6',range:'C6–B6',desc:'High, piercing. Piccolo, whistle.',hz:'1047 Hz',color:'#fca5a5',pastel:'rgba(252,165,165,0.45)'},
+  {name:'C7',range:'C7–B7',desc:'Extreme high.',hz:'2093 Hz',color:'#f0abfc',pastel:'rgba(240,171,252,0.45)'},
+];
+
+const noteInfo={
+  'C4':{hz:262,staff:'Ledger line between staves',clef:'Bridge'},
+  'D4':{hz:294,staff:'Space below treble staff',clef:'Treble'},
+  'E4':{hz:330,staff:'Line 1 (bottom of treble)',clef:'Treble'},
+  'F4':{hz:349,staff:'Space 1',clef:'Treble'},
+  'G4':{hz:392,staff:'Line 2 (G line)',clef:'Treble'},
+  'A4':{hz:440,staff:'Space 2',clef:'Treble'},
+  'B4':{hz:494,staff:'Line 3 / middle',clef:'Treble'},
+  'C5':{hz:523,staff:'Space 3',clef:'Treble'},
+  'D5':{hz:587,staff:'Line 4',clef:'Treble'},
+  'E5':{hz:659,staff:'Space 4 / top',clef:'Treble'},
+  'F5':{hz:698,staff:'Line 5 / top',clef:'Treble'},
+  'G2':{hz:98,staff:'Line 1 (bottom of bass)',clef:'Bass'},
+  'A2':{hz:110,staff:'Space 1',clef:'Bass'},
+  'B2':{hz:123,staff:'Line 2',clef:'Bass'},
+  'C3':{hz:131,staff:'Space 2',clef:'Bass'},
+  'D3':{hz:147,staff:'Line 3 / middle',clef:'Bass'},
+  'E3':{hz:165,staff:'Space 3',clef:'Bass'},
+  'F3':{hz:175,staff:'Line 4 (F line)',clef:'Bass'},
+  'G3':{hz:196,staff:'Space 4 / top',clef:'Bass'},
+  'A3':{hz:220,staff:'Line 5 / top',clef:'Bass'},
+};
+
+const corrData=[
+  {note:'G2',oct:'2nd',pos:'Line 1 — bottom of bass',hz:'98 Hz',clef:'Bass'},
+  {note:'B2',oct:'2nd',pos:'Line 2 — bass clef',hz:'123 Hz',clef:'Bass'},
+  {note:'D3',oct:'3rd',pos:'Line 3 — middle of bass',hz:'147 Hz',clef:'Bass'},
+  {note:'F3',oct:'3rd',pos:'Line 4 — bass (F line)',hz:'175 Hz',clef:'Bass'},
+  {note:'A3',oct:'3rd',pos:'Line 5 — top of bass',hz:'220 Hz',clef:'Bass'},
+  {note:'C4',oct:'4th',pos:'★ Ledger line between staves',hz:'262 Hz',clef:'Bridge',isC4:true},
+  {note:'E4',oct:'4th',pos:'Line 1 — bottom of treble',hz:'330 Hz',clef:'Treble'},
+  {note:'G4',oct:'4th',pos:'Line 2 — treble (G line)',hz:'392 Hz',clef:'Treble'},
+  {note:'B4',oct:'4th',pos:'Line 3 — middle of treble',hz:'494 Hz',clef:'Treble'},
+  {note:'D5',oct:'5th',pos:'Line 4 — treble',hz:'587 Hz',clef:'Treble'},
+  {note:'F5',oct:'5th',pos:'Line 5 — top of treble',hz:'698 Hz',clef:'Treble'},
+];
+
+// ══════════════════════════════════════════════════════════
+// OCTAVE GRID
+// ══════════════════════════════════════════════════════════
+const grid=document.getElementById('octaveGrid');
+octaveData.forEach((oc,i)=>{
+  const card=document.createElement('div');
+  card.className='octave-card'+(oc.middle?' middle':'');
+  card.style.setProperty('--card-accent',oc.color);
+  card.innerHTML=`<div class="oc-name" style="color:${oc.color}">${oc.name}</div>
+    <div class="oc-range">${oc.range}</div><div class="oc-desc">${oc.desc}</div>
+    <div class="oc-hz">C = ${oc.hz}</div>`;
+  card.addEventListener('click',()=>highlightOctave(i));
+  grid.appendChild(card);
+});
+
+// ══════════════════════════════════════════════════════════
+// CANVAS PIANO (7 octaves C1–C7 + C8)
+// ══════════════════════════════════════════════════════════
+function noteHz(note,octave){
+  const s={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+  return Math.round(440*Math.pow(2,((octave-4)*12+s[note]-9)/12));
+}
+
+const pianoCanvas=document.getElementById('piano-canvas');
+const pc=pianoCanvas.getContext('2d');
+const CW=1060,CH=220;
+const NUM_OCTAVES=7,WPO=7,TOTAL_WHITE=NUM_OCTAVES*WPO+1;
+const WKW=CW/TOTAL_WHITE,WKH=CH,BKW=WKW*0.62,BKH=CH*0.625;
+const BLACK_OFFSETS=[1,2,4,5,6];
+
+const pianoKeys=[];
+for(let oct=1;oct<=NUM_OCTAVES;oct++){
+  ['C','D','E','F','G','A','B'].forEach((note,i)=>{
+    pianoKeys.push({type:'white',note,octave:oct,fullNote:note+oct,
+      x:(((oct-1)*WPO)+i)*WKW,y:0,w:WKW,h:WKH,isC:note==='C',
+      hz:noteHz(note,oct),label:note==='C'?`C${oct}`:note});
+  });
+  BLACK_OFFSETS.forEach((wIdx,bIdx)=>{
+    const bNotes=['C','D','F','G','A'];
+    const bx=(((oct-1)*WPO)+wIdx)*WKW-BKW/2;
+    const sharpHz=Math.round(noteHz(bNotes[bIdx],oct)*Math.pow(2,1/12));
+    pianoKeys.push({type:'black',note:bNotes[bIdx]+'#',octave:oct,
+      fullNote:bNotes[bIdx]+'♯'+oct,x:bx,y:0,w:BKW,h:BKH,hz:sharpHz,label:bNotes[bIdx]+'♯'});
+  });
+}
+pianoKeys.push({type:'white',note:'C',octave:8,fullNote:'C8',
+  x:NUM_OCTAVES*WPO*WKW,y:0,w:WKW,h:WKH,isC:true,hz:noteHz('C',8),label:'C8'});
+
+const whiteKeys2=pianoKeys.filter(k=>k.type==='white');
+const blackKeys2=pianoKeys.filter(k=>k.type==='black');
+let hoveredKey=null,activeKey=null,highlightOctaveNum=null,highlightTimer=null;
+
+function drawPiano(){
+  pc.clearRect(0,0,CW,CH);
+  whiteKeys2.forEach(k=>{
+    const isHov=hoveredKey===k,isAct=activeKey===k,isHL=highlightOctaveNum===k.octave;
+    if(isAct){const g=pc.createLinearGradient(k.x,0,k.x,k.h);g.addColorStop(0,'#FF2D78');g.addColorStop(1,'#AA1D52');pc.fillStyle=g;}
+    else if(isHL){const oc=octaveData[k.octave-1];pc.fillStyle=oc?oc.pastel:'rgba(255,255,255,0.15)';}
+    else if(isHov){pc.fillStyle=k.isC?'#f0e0cc':'#e8e4dc';}
+    else{const g=pc.createLinearGradient(k.x,0,k.x+k.w,k.h);if(k.isC){g.addColorStop(0,'#f0edd8');g.addColorStop(1,'#d8d4b0');}else{g.addColorStop(0,'#f8f5ef');g.addColorStop(1,'#e0ddd4');}pc.fillStyle=g;}
+    const r=5;pc.beginPath();
+    pc.moveTo(k.x+1,0);pc.lineTo(k.x+k.w-1,0);pc.lineTo(k.x+k.w-1,k.h-r);
+    pc.arcTo(k.x+k.w-1,k.h,k.x+k.w-1-r,k.h,r);pc.lineTo(k.x+1+r,k.h);
+    pc.arcTo(k.x+1,k.h,k.x+1,k.h-r,r);pc.lineTo(k.x+1,0);pc.closePath();pc.fill();
+    pc.strokeStyle=isAct?'#882244':'#b0a898';pc.lineWidth=0.8;pc.stroke();
+    if(!isAct){const sh=pc.createLinearGradient(k.x+2,0,k.x+2,30);sh.addColorStop(0,'rgba(255,255,255,0.55)');sh.addColorStop(1,'rgba(255,255,255,0)');pc.fillStyle=sh;pc.fillRect(k.x+2,0,k.w-4,30);}
+    pc.fillStyle=isAct?'#fff':k.isC?'#8a5520':'#888880';
+    pc.font=`bold ${k.isC?9:8}px "DM Mono",monospace`;pc.textAlign='center';pc.fillText(k.label,k.x+k.w/2,k.h-6);
+  });
+  blackKeys2.forEach(k=>{
+    const isHov=hoveredKey===k,isAct=activeKey===k,isHL=highlightOctaveNum===k.octave;
+    let tc,bc;
+    if(isAct){tc='#FF2D78';bc='#AA1D52';}
+    else if(isHL){const oc=octaveData[k.octave-1];tc=oc?oc.color:'#bbb';bc='#888';}
+    else if(isHov){tc='#3a3050';bc='#1a1020';}
+    else{tc='#1a1428';bc='#0a0810';}
+    const g=pc.createLinearGradient(k.x,0,k.x+k.w,k.h);
+    g.addColorStop(0,tc);g.addColorStop(0.15,isAct?'#cc2265':isHov?'#2a2038':'#201830');g.addColorStop(1,bc);
+    pc.fillStyle=g;
+    const r=3;pc.beginPath();pc.moveTo(k.x,0);pc.lineTo(k.x+k.w,0);pc.lineTo(k.x+k.w,k.h-r);
+    pc.arcTo(k.x+k.w,k.h,k.x+k.w-r,k.h,r);pc.lineTo(k.x+r,k.h);pc.arcTo(k.x,k.h,k.x,k.h-r,r);pc.lineTo(k.x,0);pc.closePath();pc.fill();
+    if(!isAct){const sh=pc.createLinearGradient(k.x,0,k.x+4,0);sh.addColorStop(0,'rgba(255,255,255,0.15)');sh.addColorStop(1,'rgba(255,255,255,0)');pc.fillStyle=sh;pc.fillRect(k.x,0,4,k.h);}
+    pc.strokeStyle='rgba(0,0,0,0.7)';pc.lineWidth=0.8;pc.stroke();
+  });
+  pc.strokeStyle='rgba(255,45,120,0.15)';pc.lineWidth=1;
+  for(let o=1;o<=NUM_OCTAVES+1;o++){const x=(o-1)*WPO*WKW;pc.beginPath();pc.moveTo(x,0);pc.lineTo(x,CH);pc.stroke();}
+}
+drawPiano();
+
+function getKeyAt(cx,cy){
+  for(const k of blackKeys2)if(cx>=k.x&&cx<=k.x+k.w&&cy>=k.y&&cy<=k.y+k.h)return k;
+  for(const k of whiteKeys2)if(cx>=k.x&&cx<=k.x+k.w&&cy>=k.y&&cy<=k.y+k.h)return k;
+  return null;
+}
+function getCanvasPos(e,canvas){
+  const rect=canvas.getBoundingClientRect();const sx=(canvas.width||CW)/rect.width,sy=(canvas.height||CH)/rect.height;
+  const cx=e.touches?e.touches[0].clientX:e.clientX;const cy=e.touches?e.touches[0].clientY:e.clientY;
+  return{x:(cx-rect.left)*sx,y:(cy-rect.top)*sy};
+}
+
+const infoNote=document.getElementById('infoNote');
+const infoName=document.getElementById('infoName');
+const infoHz=document.getElementById('infoHz');
+const infoStaff=document.getElementById('infoStaff');
+const pianoInfoEl=document.getElementById('pianoInfo');
+const vizBarsEl=document.getElementById('vizBars').querySelectorAll('.viz-bar');
+let vizInt=null;
+
+function showNoteInfo(note,hz){
+  infoNote.textContent=note;infoNote.classList.add('pop');setTimeout(()=>infoNote.classList.remove('pop'),150);
+  infoHz.textContent=`${hz} Hz`;pianoInfoEl.classList.add('lit');
+  const key=note.replace('♯','');const info=noteInfo[key]||noteInfo[key.slice(0,-1)+note.slice(-1)];
+  if(note==='C4'){infoName.textContent='★ Middle C — the universal anchor';infoStaff.textContent='Ledger line between staves · Bridge';}
+  else if(info){infoName.textContent=`Note: ${note}`;infoStaff.textContent=`${info.staff} · ${info.clef} clef`;}
+  else{infoName.textContent=`Note: ${note}`;infoStaff.textContent='';}
+  clearInterval(vizInt);vizInt=setInterval(()=>vizBarsEl.forEach(b=>b.style.height=(4+Math.random()*22)+'px'),80);
+}
+function clearNoteInfo(){
+  infoNote.textContent='—';infoHz.textContent='';infoStaff.textContent='';
+  infoName.textContent='Click or hover any key to explore';pianoInfoEl.classList.remove('lit');
+  clearInterval(vizInt);vizBarsEl.forEach(b=>b.style.height='4px');
+}
+function playKey(k){
+  activeKey=k;drawPiano();
+  synthPiano(k.hz,null,1.4,1);
+  showNoteInfo(k.fullNote,k.hz);showNowPlaying(k.fullNote,k.hz,`${k.hz} Hz · piano key`);
+  setTimeout(()=>{activeKey=null;drawPiano();},200);
+}
+
+pianoCanvas.addEventListener('mousemove',e=>{
+  const{x,y}=getCanvasPos(e,pianoCanvas);const k=getKeyAt(x,y);
+  if(k!==hoveredKey){hoveredKey=k;drawPiano();if(k)showNoteInfo(k.fullNote,k.hz);else clearNoteInfo();}
+});
+pianoCanvas.addEventListener('mouseleave',()=>{hoveredKey=null;drawPiano();clearNoteInfo();});
+pianoCanvas.addEventListener('mousedown',e=>{const{x,y}=getCanvasPos(e,pianoCanvas);const k=getKeyAt(x,y);if(k)playKey(k);});
+pianoCanvas.addEventListener('touchstart',e=>{e.preventDefault();const{x,y}=getCanvasPos(e,pianoCanvas);const k=getKeyAt(x,y);if(k)playKey(k);},{passive:false});
+
+function highlightOctave(idx){
+  const oct=idx+1;clearTimeout(highlightTimer);highlightOctaveNum=oct;drawPiano();
+  highlightTimer=setTimeout(()=>{highlightOctaveNum=null;drawPiano();},1600);
+  document.getElementById('piano-outer').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+const kbMap={a:'C4',s:'D4',d:'E4',f:'F4',g:'G4',h:'A4',j:'B4',k:'C5',l:'D5'};
+document.addEventListener('keydown',e=>{
+  if(e.repeat)return;const nstr=kbMap[e.key.toLowerCase()];if(!nstr)return;
+  const letter=nstr.slice(0,-1),oct=parseInt(nstr.slice(-1));
+  const k=whiteKeys2.find(k=>k.note===letter&&k.octave===oct);
+  if(k)playKey(k);
+});
+
+// ══════════════════════════════════════════════════════════
+// NOTE DURATION CARDS
+// ══════════════════════════════════════════════════════════
+const noteTypes=[
+  {name:'Whole Note',symbol:'whole',beats:4,fraction:'1 whole bar',desc:'Hold for 4 full beats.',color:'#FF2D78'},
+  {name:'Half Note',symbol:'half',beats:2,fraction:'½ of a bar',desc:'Hold for 2 beats.',color:'#00D4FF'},
+  {name:'Quarter Note',symbol:'quarter',beats:1,fraction:'¼ of a bar',desc:'Hold for 1 beat.',color:'#39D98A'},
+  {name:'Quaver (8th)',symbol:'eighth',beats:0.5,fraction:'⅛ of a bar',desc:'Hold for half a beat.',color:'#A78BFA'},
+];
+
+function drawNoteSymbol(canvas,type,color){
+  const ctx=canvas.getContext('2d');const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);const cx=W/2,cy=H/2+8;
+  ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2.5;
+  if(type==='whole'){ctx.beginPath();ctx.ellipse(cx,cy,17,12,-0.2,0,Math.PI*2);ctx.stroke();ctx.fillStyle='rgba(10,8,20,0.9)';ctx.beginPath();ctx.ellipse(cx+2,cy,6,5.5,-0.4,0,Math.PI*2);ctx.fill();}
+  else if(type==='half'){ctx.beginPath();ctx.ellipse(cx,cy,13,9,-0.2,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(cx+12,cy);ctx.lineTo(cx+12,cy-44);ctx.stroke();}
+  else if(type==='quarter'){ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(cx,cy,13,9,-0.2,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(cx+12,cy);ctx.lineTo(cx+12,cy-44);ctx.stroke();}
+  else if(type==='eighth'){ctx.fillStyle=color;ctx.beginPath();ctx.ellipse(cx,cy,13,9,-0.2,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.moveTo(cx+12,cy);ctx.lineTo(cx+12,cy-44);ctx.stroke();ctx.beginPath();ctx.moveTo(cx+12,cy-44);ctx.bezierCurveTo(cx+26,cy-34,ctx.canvas&&cx+28,cy-20,cx+17,cy-14);ctx.stroke();}
+}
+
+const noteCardsEl=document.getElementById('noteCards');
+noteTypes.forEach(nt=>{
+  const card=document.createElement('div');card.className='note-card';
+  const symCanvas=document.createElement('canvas');symCanvas.width=76;symCanvas.height=78;symCanvas.style.cssText='display:block;margin:0 auto';
+  const totalSegs=8,filledSegs=Math.round(nt.beats*2);
+  let segsHTML='<div class="beat-bar-wrap">';
+  for(let i=0;i<totalSegs;i++)segsHTML+=`<div class="beat-seg ${i<filledSegs?nt.symbol:''}"></div>`;
+  segsHTML+='</div>';
+  card.innerHTML=`<div class="note-symbol-wrap"></div>
+    <div class="note-card-title">${nt.name}</div>
+    <div class="note-card-beats" style="color:${nt.color}">${nt.beats} beat${nt.beats!==1?'s':''} · ${nt.fraction}</div>
+    <div class="note-card-desc">${nt.desc}</div>${segsHTML}
+    <button class="note-play-btn" data-hz="330" data-beats="${nt.beats}" data-color="${nt.color}" data-name="${nt.name}">▶ Hear at 60 BPM</button>
+    <div class="play-progress" style="background:${nt.color}"></div>`;
+  card.querySelector('.note-symbol-wrap').appendChild(symCanvas);
+  noteCardsEl.appendChild(card);drawNoteSymbol(symCanvas,nt.symbol,nt.color);
+});
+
+let cardPlayTimers=[];
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('.note-play-btn');if(!btn)return;
+  cardPlayTimers.forEach(t=>cancelAnimationFrame(t));cardPlayTimers=[];
+  document.querySelectorAll('.note-play-btn').forEach(b=>{b.classList.remove('playing');b.textContent='▶ Hear at 60 BPM';const bar=b.nextElementSibling;if(bar)bar.style.width='0%';});
+  const hz=parseFloat(btn.dataset.hz);const beats=parseFloat(btn.dataset.beats);
+  const name=btn.dataset.name;const durationMs=beats*1000;
+  btn.classList.add('playing');btn.textContent='♪ Playing…';
+  const progressBar=btn.nextElementSibling;
+  synthPiano(hz,null,durationMs/1000,1);
+  showNowPlaying(name,hz,`${beats} beat${beats!==1?'s':''} · ${(durationMs/1000).toFixed(1)}s at 60 BPM`);
+  let start=null;
+  function animProg(ts){if(!start)start=ts;const pct=Math.min(100,((ts-start)/durationMs)*100);if(progressBar)progressBar.style.width=pct+'%';if(pct<100){cardPlayTimers.push(requestAnimationFrame(animProg));}else{btn.classList.remove('playing');btn.textContent='▶ Hear at 60 BPM';if(progressBar)setTimeout(()=>progressBar.style.width='0%',300);}}
+  cardPlayTimers.push(requestAnimationFrame(animProg));
+});
+
+// ══════════════════════════════════════════════════════════
+// DURATION CANVAS
+// ══════════════════════════════════════════════════════════
+const durCanvas=document.getElementById('durationCanvas');
+const dctx=durCanvas.getContext('2d');
+const DW=1000,DH=280;
+const durColors={whole:'#FF2D78',half:'#00D4FF',quarter:'#39D98A',eighth:'#A78BFA'};
+let animFrame2=null;
+
+function drawDurationBars(highlightRow,progress){
+  dctx.clearRect(0,0,DW,DH);
+  const rows=[{label:'Whole note (1 per bar)',type:'whole',count:1},{label:'Half notes (2 per bar)',type:'half',count:2},{label:'Quarter notes (4 per bar)',type:'quarter',count:4},{label:'Quavers / 8th (8 per bar)',type:'eighth',count:8}];
+  const rowH=DH/rows.length,barStart=230,barEnd=DW-20,barW=barEnd-barStart;
+  rows.forEach((row,ri)=>{
+    const y=ri*rowH,color=durColors[row.type],isHL=highlightRow===ri;
+    dctx.fillStyle=isHL?'rgba(255,255,255,0.03)':'transparent';dctx.fillRect(0,y,DW,rowH);
+    dctx.fillStyle=isHL?color:'#4a5568';dctx.font=`${isHL?'bold ':''}12px "DM Mono",monospace`;
+    dctx.textAlign='left';dctx.textBaseline='middle';dctx.fillText(row.label,10,y+rowH/2);
+    dctx.strokeStyle='rgba(255,255,255,0.1)';dctx.lineWidth=1.5;
+    dctx.beginPath();dctx.moveTo(barStart,y+8);dctx.lineTo(barStart,y+rowH-8);dctx.stroke();
+    const segW=barW/row.count;
+    for(let i=0;i<row.count;i++){
+      const sx=barStart+i*segW;let fp=1;
+      if(isHL&&progress!==undefined){const np=progress*row.count;if(i<Math.floor(np))fp=1;else if(i===Math.floor(np))fp=np-Math.floor(np);else fp=0;}
+      const pad=3,bh=rowH*0.55,by=y+(rowH-bh)/2;
+      dctx.fillStyle='rgba(255,255,255,0.04)';dctx.beginPath();dctx.roundRect(sx+pad,by,segW-pad*2,bh,4);dctx.fill();
+      if(fp>0){const r=parseInt(color.slice(1,3),16),g2=parseInt(color.slice(3,5),16),b2=parseInt(color.slice(5,7),16);dctx.fillStyle=`rgba(${r},${g2},${b2},${isHL?1:0.55})`;dctx.beginPath();dctx.roundRect(sx+pad,by,(segW-pad*2)*fp,bh,4);dctx.fill();}
+      if(fp>0.5){dctx.fillStyle=isHL?'#0a0810':'rgba(10,8,20,0.8)';dctx.font=`bold ${Math.min(15,segW*0.4)}px serif`;dctx.textAlign='center';dctx.textBaseline='middle';dctx.fillText({whole:'𝅝',half:'𝅗𝅥',quarter:'♩',eighth:'♪'}[row.type],sx+segW/2,y+rowH/2);}
+      dctx.fillStyle='#2d3748';dctx.font='9px "DM Mono",monospace';dctx.textAlign='center';dctx.textBaseline='top';dctx.fillText(i+1,sx+segW/2,y+rowH-13);
+    }
+    dctx.strokeStyle='rgba(255,255,255,0.1)';dctx.lineWidth=1.5;dctx.beginPath();dctx.moveTo(barEnd,y+8);dctx.lineTo(barEnd,y+rowH-8);dctx.stroke();
+  });
+}
+drawDurationBars(null);
+durCanvas.addEventListener('click',e=>{
+  const rect=durCanvas.getBoundingClientRect();const cy2=(e.clientY-rect.top)*(DH/rect.height);const row=Math.floor(cy2/(DH/4));
+  if(row>=0&&row<4){cancelAnimationFrame(animFrame2);const dur=2000,start=performance.now();function step(now){const p=Math.min((now-start)/dur,1);drawDurationBars(row,p);if(p<1)animFrame2=requestAnimationFrame(step);}animFrame2=requestAnimationFrame(step);}
+});
+
+// ══════════════════════════════════════════════════════════
+// METRONOME
+// ══════════════════════════════════════════════════════════
+let metroBPM=60,metroRunning=false,metroInterval=null,metroBeats=4;
+const SWING_ANGLE=28;let pendulumAnim=null;
+const beatLightsEl=document.getElementById('beatLights');
+for(let i=0;i<metroBeats;i++){const l=document.createElement('div');l.className='beat-light'+(i===0?' accent':'');beatLightsEl.appendChild(l);}
+const pendulumEl=document.getElementById('metroPendulum');
+const tempoSlider=document.getElementById('tempoSlider');
+const bpmDisplay=document.getElementById('bpmDisplay');
+function setTempo(bpm){
+  metroBPM=bpm;tempoSlider.value=bpm;bpmDisplay.textContent=bpm;updateDurationTable();
+  if(metroRunning){stopMetronome();startMetronome();}
+}
+tempoSlider.addEventListener('input',()=>setTempo(parseInt(tempoSlider.value)));
+function updateDurationTable(){
+  const bps=metroBPM/60;const el=document.getElementById('tableTempoLabel');if(el)el.textContent=metroBPM;
+  ['whole','half','quarter','eighth'].forEach((n,i)=>{const beats=[4,2,1,0.5][i];const el2=document.getElementById('dur-'+n);if(el2)el2.textContent=(beats/bps).toFixed(2)+' s';});
+}
+updateDurationTable();
+function flashBeat(idx){beatLightsEl.querySelectorAll('.beat-light').forEach((l,i)=>l.classList.toggle('on',i===idx));}
+function animatePendulum(){
+  const halfMs=(60000/metroBPM)/2;
+  function swing(from,to,startT,now){
+    const t=Math.min((now-startT)/halfMs,1);const ease=t<0.5?2*t*t:-1+(4-2*t)*t;
+    pendulumEl.style.transform=`translateX(-50%) rotate(${from+(to-from)*ease}deg)`;
+    if(t<1)pendulumAnim=requestAnimationFrame(n=>swing(from,to,startT,n));
+    else pendulumAnim=requestAnimationFrame(n=>swing(to,from,n,n));
+  }
+  pendulumAnim=requestAnimationFrame(n=>swing(-SWING_ANGLE,SWING_ANGLE,n,n));
+}
+function startMetronome(){
+  metroRunning=true;document.getElementById('metroStartBtn').textContent='⏹ Stop';
+  const ac=getAC(),beatSec=60/metroBPM;let nextBeat=ac.currentTime,beatIdx=0;
+  function schedule(){
+    if(!metroRunning)return;
+    while(nextBeat<ac.currentTime+0.2){
+      synthClick(beatIdx===0,nextBeat);
+      const delay=(nextBeat-ac.currentTime)*1000;const bi=beatIdx;
+      setTimeout(()=>{if(metroRunning)flashBeat(bi);},Math.max(0,delay));
+      beatIdx=(beatIdx+1)%metroBeats;nextBeat+=beatSec;
+    }
+    metroInterval=setTimeout(schedule,25);
+  }
+  schedule();animatePendulum();
+}
+function stopMetronome(){
+  metroRunning=false;clearTimeout(metroInterval);cancelAnimationFrame(pendulumAnim);
+  pendulumEl.style.transform='translateX(-50%) rotate(0deg)';
+  beatLightsEl.querySelectorAll('.beat-light').forEach(l=>l.classList.remove('on'));
+  document.getElementById('metroStartBtn').textContent='▶ Start';
+  metroNoteRunning=false;clearTimeout(metroNoteScheduleId);
+  const nb=document.getElementById('metroNoteBtn');if(nb){nb.textContent='▶ Play on beat';nb.classList.remove('active');}
+}
+function toggleMetronome(){if(metroRunning)stopMetronome();else startMetronome();}
+let metroNoteRunning=false,metroNoteScheduleId=null;
+function toggleMetroNote(){
+  const btn=document.getElementById('metroNoteBtn');
+  if(metroNoteRunning){metroNoteRunning=false;clearTimeout(metroNoteScheduleId);btn.textContent='▶ Play on beat';btn.classList.remove('active');return;}
+  if(!metroRunning)startMetronome();
+  metroNoteRunning=true;btn.textContent='⏹ Stop';btn.classList.add('active');
+  const ac=getAC();
+  function schedNotes(){
+    if(!metroNoteRunning)return;
+    const hz=parseFloat(document.getElementById('metroNoteSelect').value);
+    const dur=parseFloat(document.getElementById('metroNoteDur').value);
+    const beatSec=60/metroBPM;
+    const name=document.getElementById('metroNoteSelect').selectedOptions[0].text.split(' ')[0];
+    synthPiano(hz,ac.currentTime+0.01,dur*beatSec,1);
+    showNowPlaying(name,hz,`${document.getElementById('metroNoteDur').selectedOptions[0].text} · ${metroBPM} BPM`);
+    metroNoteScheduleId=setTimeout(schedNotes,dur*beatSec*1000);
+  }
+  schedNotes();
+}
+
+// ══════════════════════════════════════════════════════════
+// TIME SIGNATURE CANVAS
+// ══════════════════════════════════════════════════════════
+const tsCanvas=document.getElementById('timeSigCanvas');
+const tsCtx=tsCanvas.getContext('2d');
+function drawTimeSig(){
+  const W=260,H=200;tsCtx.clearRect(0,0,W,H);tsCtx.fillStyle='#0a0810';tsCtx.fillRect(0,0,W,H);
+  const lc='#1e2a3a',lg=16,st=50,sl=30,sw=200;
+  tsCtx.strokeStyle=lc;tsCtx.lineWidth=1.5;
+  for(let i=0;i<5;i++){tsCtx.beginPath();tsCtx.moveTo(sl,st+i*lg);tsCtx.lineTo(sl+sw,st+i*lg);tsCtx.stroke();}
+  tsCtx.font='68px serif';tsCtx.fillStyle='#00D4FF';tsCtx.fillText('𝄞',sl-18,st+4*lg+6);
+  tsCtx.font='bold 38px "DM Mono",monospace';tsCtx.fillStyle='#FF2D78';tsCtx.textAlign='center';
+  tsCtx.fillText('4',sl+68,st+2*lg-2);tsCtx.fillText('4',sl+68,st+4*lg+2);
+  tsCtx.font='10px "DM Mono",monospace';tsCtx.fillStyle='#FF2D78';
+  tsCtx.fillText('beats/bar',sl+68,st-10);tsCtx.fillText('note value',sl+68,st+4.8*lg+14);
+  tsCtx.fillStyle='#8892A4';tsCtx.fillText('4 × ♩ per bar',W/2,H-12);
+}
+drawTimeSig();
+
+// ══════════════════════════════════════════════════════════
+// INTERACTIVE BAR VISUALIZER
+// ══════════════════════════════════════════════════════════
+const measCanvas=document.getElementById('measureCanvas');
+const mCtx=measCanvas.getContext('2d');
+const MW=1060,MH=340;
+
+const barPatterns=[
+  [{beats:1,type:'quarter',color:'#FF2D78',name:'Quarter'},{beats:1,type:'quarter',color:'#00D4FF',name:'Quarter'},{beats:1,type:'quarter',color:'#39D98A',name:'Quarter'},{beats:1,type:'quarter',color:'#A78BFA',name:'Quarter'}],
+  [{beats:4,type:'whole',color:'#FF2D78',name:'Whole'}],
+  [{beats:2,type:'half',color:'#00D4FF',name:'Half'},{beats:2,type:'half',color:'#A78BFA',name:'Half'}],
+  [{beats:0.5,type:'eighth',color:'#A78BFA',name:'Quaver'},{beats:0.5,type:'eighth',color:'#00D4FF',name:'Quaver'},{beats:0.5,type:'eighth',color:'#A78BFA',name:'Quaver'},{beats:0.5,type:'eighth',color:'#00D4FF',name:'Quaver'},{beats:0.5,type:'eighth',color:'#A78BFA',name:'Quaver'},{beats:0.5,type:'eighth',color:'#00D4FF',name:'Quaver'},{beats:0.5,type:'eighth',color:'#A78BFA',name:'Quaver'},{beats:0.5,type:'eighth',color:'#00D4FF',name:'Quaver'}],
+  [{beats:1,type:'quarter',color:'#FF2D78',name:'Quarter'},{beats:2,type:'half',color:'#00D4FF',name:'Half'},{beats:1,type:'quarter',color:'#39D98A',name:'Quarter'}],
+];
+const patternPitches=[[262,294,330,349],[262],[330,294],[392,349,330,294,262,247,220,196],[262,330,294]];
+let barPatternIdx=0,barBPM=72,barPlaying=false,barAnimFrame=null,barIntervalId=null,barStartAudioTime=null;
+
+const barBeatLightsEl=document.getElementById('barBeatLights');
+for(let i=0;i<4;i++){const l=document.createElement('div');l.className='beat-light'+(i===0?' accent':'');l.style.cssText='width:22px;height:22px';barBeatLightsEl.appendChild(l);}
+
+document.getElementById('barTempoSlider').addEventListener('input',function(){
+  barBPM=parseInt(this.value);document.getElementById('barBpmLabel').textContent=barBPM+' BPM';
+  if(barPlaying){stopBarPlay();startBarPlay();}else drawBar(barPatternIdx,null);
+});
+document.querySelectorAll('.pattern-btn').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    document.querySelectorAll('.pattern-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active');
+    barPatternIdx=parseInt(this.dataset.pattern);if(barPlaying){stopBarPlay();startBarPlay();}else drawBar(barPatternIdx,null);
+    document.getElementById('liveCountDisplay').textContent='—';
+  });
+});
+
+function flashBarBeat(idx){
+  barBeatLightsEl.querySelectorAll('.beat-light').forEach((l,i)=>l.classList.toggle('on',i===idx));
+  const el=document.getElementById('liveCountDisplay');el.textContent=idx+1;
+  el.style.color=idx===0?'#FF2D78':idx===2?'#00D4FF':'#8892A4';
+}
+
+function drawBar(patternIdx,playheadProgress){
+  mCtx.clearRect(0,0,MW,MH);const pattern=barPatterns[patternIdx];
+  const PAD_L=70,PAD_R=24,stTop=28,lg=18,STAFF_BOT=stTop+4*lg;
+  const barL=PAD_L,barW=MW-PAD_L-PAD_R,barR=barL+barW,beatW=barW/4;
+  const beatColors=['#FF2D78','#4a5568','#00D4FF','#4a5568'];
+  const beatLabels=['STRONG (1)','weak (2)','medium (3)','weak (4)'];
+  const phBeat=(playheadProgress!==null&&playheadProgress!==undefined)?playheadProgress*4:null;
+  const curBeatIdx=phBeat!==null?Math.min(3,Math.floor(phBeat)):-1;
+
+  mCtx.fillStyle='#0a0810';mCtx.fillRect(0,0,MW,MH);
+  for(let b=0;b<4;b++){
+    mCtx.fillStyle=b===curBeatIdx?'rgba(255,45,120,0.08)':b%2===0?'rgba(255,255,255,0.015)':'transparent';
+    mCtx.fillRect(barL+b*beatW,0,beatW,MH);
+  }
+  for(let b=0;b<4;b++){
+    mCtx.font=b===curBeatIdx?'bold 11px "DM Mono",monospace':'bold 10px "DM Mono",monospace';
+    mCtx.fillStyle=b===curBeatIdx?'#fff':beatColors[b];mCtx.textAlign='center';
+    mCtx.fillText(beatLabels[b],barL+b*beatW+beatW/2,14);
+    if(b===curBeatIdx){mCtx.strokeStyle='#FF2D78';mCtx.lineWidth=2;mCtx.beginPath();mCtx.moveTo(barL+b*beatW+beatW*.1,18);mCtx.lineTo(barL+b*beatW+beatW*.9,18);mCtx.stroke();}
+    if(b>0){mCtx.strokeStyle='rgba(255,255,255,0.06)';mCtx.lineWidth=1;mCtx.setLineDash([3,4]);mCtx.beginPath();mCtx.moveTo(barL+b*beatW,22);mCtx.lineTo(barL+b*beatW,MH-10);mCtx.stroke();mCtx.setLineDash([]);}
+  }
+  mCtx.strokeStyle='#1e2a3a';mCtx.lineWidth=1.3;
+  for(let i=0;i<5;i++){mCtx.beginPath();mCtx.moveTo(barL,stTop+i*lg);mCtx.lineTo(barR,stTop+i*lg);mCtx.stroke();}
+  mCtx.font='68px serif';mCtx.fillStyle='#00D4FF';mCtx.textAlign='left';mCtx.fillText('𝄞',2,stTop+4*lg+4);
+  mCtx.font='bold 30px "DM Mono",monospace';mCtx.fillStyle='#FF2D78';mCtx.textAlign='center';
+  mCtx.fillText('4',PAD_L-18,stTop+lg*1.6);mCtx.fillText('4',PAD_L-18,stTop+lg*3.6);
+  mCtx.strokeStyle='#8892A4';mCtx.lineWidth=2.5;mCtx.beginPath();mCtx.moveTo(barL,stTop-2);mCtx.lineTo(barL,STAFF_BOT+2);mCtx.stroke();
+
+  let cursor=0;const noteY=stTop+3.2*lg;
+  pattern.forEach((note)=>{
+    const nsB=cursor,neB=cursor+note.beats;
+    const nsX=barL+(cursor/4)*barW,nSpW=(note.beats/4)*barW,nCX=nsX+nSpW/2;
+    const isActive=phBeat!==null&&phBeat>=nsB&&phBeat<neB;
+    const noteProg=isActive?(phBeat-nsB)/note.beats:0;
+    const blockY=stTop+lg*4.6,blockH=30,pad=5;
+
+    mCtx.fillStyle=isActive?`${note.color}35`:` ${note.color}12`;mCtx.beginPath();mCtx.roundRect(nsX+pad,blockY,nSpW-pad*2,blockH,4);mCtx.fill();
+    if(isActive&&noteProg>0){mCtx.fillStyle=`${note.color}80`;mCtx.beginPath();mCtx.roundRect(nsX+pad,blockY,(nSpW-pad*2)*noteProg,blockH,4);mCtx.fill();}
+    mCtx.strokeStyle=isActive?note.color:`${note.color}33`;mCtx.lineWidth=isActive?2:1;mCtx.beginPath();mCtx.roundRect(nsX+pad,blockY,nSpW-pad*2,blockH,4);mCtx.stroke();
+    mCtx.font=`${Math.min(11,nSpW*.12)}px "DM Mono",monospace`;mCtx.fillStyle=isActive?note.color:`${note.color}77`;mCtx.textAlign='center';
+    mCtx.fillText(`${note.beats} beat${note.beats!==1?'s':''}`,nCX,blockY+blockH*.65);
+
+    const nr={whole:[13,9],half:[11,8],quarter:[11,8],eighth:[11,8]}[note.type];
+    if(isActive){mCtx.shadowColor=note.color;mCtx.shadowBlur=20;}
+    mCtx.strokeStyle=isActive?note.color:`${note.color}99`;mCtx.lineWidth=isActive?3:2.5;mCtx.fillStyle=isActive?note.color:`${note.color}99`;
+    if(note.type==='whole'){mCtx.beginPath();mCtx.ellipse(nCX,noteY,nr[0],nr[1],-.18,0,Math.PI*2);mCtx.stroke();mCtx.fillStyle=isActive?'rgba(10,8,20,.6)':'rgba(10,8,20,.9)';mCtx.beginPath();mCtx.ellipse(nCX+2,noteY,nr[0]*.42,nr[1]*.5,-.4,0,Math.PI*2);mCtx.fill();}
+    else if(note.type==='half'){mCtx.beginPath();mCtx.ellipse(nCX,noteY,nr[0],nr[1],-.18,0,Math.PI*2);mCtx.stroke();mCtx.beginPath();mCtx.moveTo(nCX+nr[0],noteY);mCtx.lineTo(nCX+nr[0],noteY-44);mCtx.stroke();}
+    else if(note.type==='quarter'){mCtx.fillStyle=isActive?note.color:`${note.color}99`;mCtx.beginPath();mCtx.ellipse(nCX,noteY,nr[0],nr[1],-.18,0,Math.PI*2);mCtx.fill();mCtx.beginPath();mCtx.moveTo(nCX+nr[0],noteY);mCtx.lineTo(nCX+nr[0],noteY-44);mCtx.stroke();}
+    else if(note.type==='eighth'){mCtx.fillStyle=isActive?note.color:`${note.color}99`;mCtx.beginPath();mCtx.ellipse(nCX,noteY,nr[0],nr[1],-.18,0,Math.PI*2);mCtx.fill();mCtx.beginPath();mCtx.moveTo(nCX+nr[0],noteY);mCtx.lineTo(nCX+nr[0],noteY-44);mCtx.stroke();mCtx.beginPath();mCtx.moveTo(nCX+nr[0],noteY-44);mCtx.bezierCurveTo(nCX+nr[0]+17,noteY-32,nCX+nr[0]+19,noteY-20,nCX+nr[0]+7,noteY-14);mCtx.lineWidth=2;mCtx.stroke();}
+    mCtx.shadowBlur=0;
+    if(isActive){mCtx.strokeStyle=note.color;mCtx.lineWidth=1.5;mCtx.globalAlpha=0.45;mCtx.beginPath();mCtx.ellipse(nCX,noteY,nr[0]+6,nr[1]+5,-.18,0,Math.PI*2);mCtx.stroke();mCtx.globalAlpha=1;}
+    mCtx.font=isActive?'bold 12px "DM Mono",monospace':'10px "DM Mono",monospace';mCtx.fillStyle=isActive?note.color:`${note.color}55`;mCtx.textAlign='center';mCtx.fillText(note.name,nCX,stTop-8);
+    const bn=Math.floor(cursor)+1,bf=cursor%1;
+    mCtx.font=isActive?'bold 9px "DM Mono",monospace':'8px "DM Mono",monospace';mCtx.fillStyle=isActive?note.color:'#2d3748';
+    mCtx.fillText(bf===0?`Beat ${bn}`:`Beat ${bn}+½`,nsX+nSpW/2,blockY+blockH+12);
+    cursor+=note.beats;
+  });
+
+  mCtx.strokeStyle='#8892A4';mCtx.lineWidth=2;mCtx.beginPath();mCtx.moveTo(barR-5,stTop-2);mCtx.lineTo(barR-5,STAFF_BOT+2);mCtx.stroke();
+  mCtx.lineWidth=5;mCtx.beginPath();mCtx.moveTo(barR,stTop-2);mCtx.lineTo(barR,STAFF_BOT+2);mCtx.stroke();
+
+  if(phBeat!==null){
+    const phX=barL+Math.min(phBeat/4,1)*barW;
+    const grad=mCtx.createLinearGradient(phX-14,0,phX+14,0);
+    grad.addColorStop(0,'rgba(255,45,120,0)');grad.addColorStop(.5,'rgba(255,45,120,0.22)');grad.addColorStop(1,'rgba(255,45,120,0)');
+    mCtx.fillStyle=grad;mCtx.fillRect(phX-14,0,28,MH);
+    mCtx.strokeStyle='#FF2D78';mCtx.lineWidth=2;mCtx.shadowColor='#FF2D78';mCtx.shadowBlur=10;
+    mCtx.beginPath();mCtx.moveTo(phX,stTop-8);mCtx.lineTo(phX,MH-24);mCtx.stroke();mCtx.shadowBlur=0;
+    mCtx.fillStyle='#FF2D78';mCtx.beginPath();mCtx.moveTo(phX-8,stTop-18);mCtx.lineTo(phX+8,stTop-18);mCtx.lineTo(phX,stTop-6);mCtx.closePath();mCtx.fill();
+    mCtx.font='bold 11px "DM Mono",monospace';mCtx.fillStyle='#FF2D78';mCtx.textAlign='center';
+    mCtx.fillText(`beat ${Math.min(4,Math.floor(phBeat)+1)}`,phX,MH-10);
+  }
+
+  for(let b=0;b<4;b++){
+    const bx=barL+b*beatW,isAB=b===curBeatIdx;
+    mCtx.strokeStyle=isAB?'#fff':beatColors[b];mCtx.lineWidth=isAB?2.5:b===0?2:1;
+    mCtx.beginPath();mCtx.moveTo(bx,MH-22);mCtx.lineTo(bx,MH-12);mCtx.stroke();
+    mCtx.font=isAB?'bold 15px "DM Mono",monospace':b===0?'bold 13px "DM Mono",monospace':'13px "DM Mono",monospace';
+    mCtx.fillStyle=isAB?'#fff':beatColors[b];mCtx.textAlign='center';mCtx.fillText(b+1,bx+beatW/2,MH-10);
+    if(isAB){mCtx.strokeStyle='#FF2D78';mCtx.lineWidth=1.5;mCtx.beginPath();mCtx.arc(bx+beatW/2,MH-17,11,0,Math.PI*2);mCtx.stroke();}
+  }
+  mCtx.strokeStyle='#8892A4';mCtx.lineWidth=2;mCtx.beginPath();mCtx.moveTo(barR,MH-22);mCtx.lineTo(barR,MH-12);mCtx.stroke();
+}
+
+function startBarPlay(){
+  barPlaying=true;document.getElementById('barPlayBtn').textContent='⏹ Stop';
+  const ac=getAC();barStartAudioTime=ac.currentTime;
+  const beatSec=60/barBPM,barSec=beatSec*4;
+  const pattern=barPatterns[barPatternIdx],pitches=patternPitches[barPatternIdx];
+  let nextBarStart=barStartAudioTime;
+  function scheduleBar(t0){
+    for(let b=0;b<4;b++){const when=t0+b*beatSec;synthClick(b===0,when);const delay=(when-ac.currentTime)*1000;const bi=b;setTimeout(()=>{if(barPlaying)flashBarBeat(bi);},Math.max(0,delay));}
+    let cursor=0;pattern.forEach((note,ni)=>{const when=t0+cursor*beatSec;synthPiano(pitches[ni%pitches.length]||262,when,note.beats*beatSec,0.8);cursor+=note.beats;});
+  }
+  scheduleBar(nextBarStart);nextBarStart+=barSec;
+  barIntervalId=setInterval(()=>{if(!barPlaying)return;while(nextBarStart<ac.currentTime+barSec+0.15){scheduleBar(nextBarStart);nextBarStart+=barSec;}},50);
+  function animate(){if(!barPlaying)return;const elapsed=ac.currentTime-barStartAudioTime;drawBar(barPatternIdx,(elapsed%barSec)/barSec);barAnimFrame=requestAnimationFrame(animate);}
+  barAnimFrame=requestAnimationFrame(animate);
+}
+function stopBarPlay(){
+  barPlaying=false;clearInterval(barIntervalId);cancelAnimationFrame(barAnimFrame);
+  document.getElementById('barPlayBtn').textContent='▶ Play Bar';
+  document.getElementById('liveCountDisplay').textContent='—';
+  barBeatLightsEl.querySelectorAll('.beat-light').forEach(l=>l.classList.remove('on'));
+  drawBar(barPatternIdx,null);
+}
+function toggleBarPlay(){if(barPlaying)stopBarPlay();else startBarPlay();}
+drawBar(0,null);
+
+// ══════════════════════════════════════════════════════════
+// GRAND STAFF CANVAS
+// ══════════════════════════════════════════════════════════
+const staffCanvas=document.getElementById('staffCanvas');
+const ctx2=staffCanvas.getContext('2d');
+function drawStaff(){
+  const W=480,H=420;ctx2.clearRect(0,0,W,H);ctx2.fillStyle='#0a0810';ctx2.fillRect(0,0,W,H);
+  const lc='#1e2a3a',ng='#FF2D78',ns='#00D4FF',nc='#39D98A',tc='#4a5568';
+  const sx=60,tt=60,lg=22,bst=230,sw2=380;
+  ctx2.strokeStyle=lc;ctx2.lineWidth=1.5;
+  for(let i=0;i<5;i++){ctx2.beginPath();ctx2.moveTo(sx,tt+i*lg);ctx2.lineTo(sx+sw2,tt+i*lg);ctx2.stroke();}
+  for(let i=0;i<5;i++){ctx2.beginPath();ctx2.moveTo(sx,bst+i*lg);ctx2.lineTo(sx+sw2,bst+i*lg);ctx2.stroke();}
+  ctx2.strokeStyle=lc;ctx2.lineWidth=2;ctx2.beginPath();ctx2.moveTo(sx,tt);ctx2.lineTo(sx,bst+4*lg);ctx2.stroke();
+  ctx2.font='72px serif';ctx2.fillStyle=ns;ctx2.fillText('𝄞',sx-52,tt+4*lg+6);
+  ctx2.fillStyle=ng;ctx2.fillText('𝄢',sx-48,bst+2*lg+6);
+  ctx2.font='11px "DM Mono",monospace';ctx2.fillStyle=ns;ctx2.textAlign='left';ctx2.fillText('TREBLE CLEF',sx,tt-14);
+  ctx2.fillStyle=ng;ctx2.fillText('BASS CLEF',sx,bst-14);
+  function dn(x,y,color,label,ledger){
+    if(ledger){ctx2.strokeStyle=lc;ctx2.lineWidth=1.5;ctx2.beginPath();ctx2.moveTo(x-14,y);ctx2.lineTo(x+14,y);ctx2.stroke();}
+    ctx2.fillStyle=color;ctx2.beginPath();ctx2.ellipse(x,y,10,7,-.2,0,Math.PI*2);ctx2.fill();
+    ctx2.strokeStyle=color;ctx2.lineWidth=1.5;ctx2.beginPath();ctx2.moveTo(x+10,y);ctx2.lineTo(x+10,y-35);ctx2.stroke();
+    if(label){ctx2.fillStyle=tc;ctx2.font='9px "DM Mono",monospace';ctx2.textAlign='center';ctx2.fillText(label,x,y+17);}
+  }
+  const tNotes=[{y:tt+4*lg,l:'E4'},{y:tt+3*lg,l:'G4'},{y:tt+2*lg,l:'B4'},{y:tt+lg,l:'D5'},{y:tt,l:'F5'}];
+  const tSpaces=[{y:tt+3.5*lg,l:'F4'},{y:tt+2.5*lg,l:'A4'},{y:tt+1.5*lg,l:'C5'},{y:tt+.5*lg,l:'E5'}];
+  const allT=[...tNotes.map(n=>({...n,c:ng})),...tSpaces.map(n=>({...n,c:ns}))].sort((a,b)=>b.y-a.y);
+  allT.forEach((n,i)=>dn(sx+80+i*32,n.y,n.c,n.l));
+  const mcY=tt+5*lg+6;dn(sx+80,mcY,nc,'C4',true);
+  ctx2.fillStyle=nc;ctx2.font='bold 9px "DM Mono",monospace';ctx2.textAlign='center';ctx2.fillText('★ Middle C',sx+80,mcY+29);
+  const bNotes=[{y:bst+4*lg,l:'G2'},{y:bst+3*lg,l:'B2'},{y:bst+2*lg,l:'D3'},{y:bst+lg,l:'F3'},{y:bst,l:'A3'}];
+  const bSpaces=[{y:bst+3.5*lg,l:'A2'},{y:bst+2.5*lg,l:'C3'},{y:bst+1.5*lg,l:'E3'},{y:bst+.5*lg,l:'G3'}];
+  const allB=[...bNotes.map(n=>({...n,c:ng})),...bSpaces.map(n=>({...n,c:ns}))].sort((a,b)=>b.y-a.y);
+  allB.forEach((n,i)=>dn(sx+80+i*32,n.y,n.c,n.l));
+  ctx2.font='9px "DM Mono",monospace';ctx2.textAlign='left';
+  [[ng,'Line notes',0],[ns,'Space notes',95],[nc,'Middle C',195]].forEach(([c,label,ox])=>{
+    ctx2.fillStyle=c;ctx2.fillRect(sx+ox,H-26,10,10);ctx2.fillStyle=tc;ctx2.fillText(label,sx+ox+14,H-17);
+  });
+}
+drawStaff();
+
+// ══════════════════════════════════════════════════════════
+// CORRELATION TABLE
+// ══════════════════════════════════════════════════════════
+const tbody=document.getElementById('corrTableBody');
+corrData.forEach(row=>{
+  const tr=document.createElement('tr');if(row.isC4)tr.className='c4-row';
+  tr.innerHTML=`<td class="note-cell">${row.note}</td><td>${row.oct}</td>
+    <td style="color:var(--off-white)">${row.pos}</td><td class="hz-cell">${row.hz}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:.78rem;color:${row.clef==='Treble'?'#00D4FF':row.clef==='Bass'?'#FF2D78':'#39D98A'}">${row.clef}</td>`;
+  tbody.appendChild(tr);
+});
+
+// ══════════════════════════════════════════════════════════
+// 88-KEY TO STAFF — INTERACTIVE
+// ══════════════════════════════════════════════════════════
+const miniCanvas=document.getElementById('miniPianoCanvas');
+const mpc=miniCanvas.getContext('2d');
+const KSC=document.getElementById('keyStaffCanvas');
+const ksc=KSC.getContext('2d');
+
+// Build complete 88-key list: A0 to C8
+// A0=idx0, B0=idx1, C1=idx2 ... C8=idx88
+const ALL88=[];
+(function(){
+  // A0, B0
+  ALL88.push({note:'A',octave:0,isSharp:false,hz:noteHz('A',0),fullNote:'A0'});
+  ALL88.push({note:'B',octave:0,isSharp:false,hz:noteHz('B',0),fullNote:'B0'});
+  // C1 to C8 complete chromatic
+  const noteOrder=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  for(let oct=1;oct<=8;oct++){
+    for(let ni=0;ni<noteOrder.length;ni++){
+      const n=noteOrder[ni];const isSharp=n.includes('#');
+      const hz=Math.round(440*Math.pow(2,((oct-4)*12+[0,1,2,3,4,5,6,7,8,9,10,11][ni]-9)/12));
+      ALL88.push({note:n,octave:oct,isSharp,hz,fullNote:n.replace('#','♯')+oct});
+      if(oct===8&&n==='C')break;
+    }
+  }
+})();
+
+// Only white keys for layout
+const whiteAll=ALL88.filter(k=>!k.isSharp);
+const blackAll=ALL88.filter(k=>k.isSharp);
+
+const MPW=1060,MPH=110;
+const totalW=whiteAll.length;
+const wkw=MPW/totalW,wkh=MPH,bkw=wkw*0.62,bkh=MPH*0.62;
+
+// Map white key to x position
+const whiteXMap=new Map();
+whiteAll.forEach((k,i)=>whiteXMap.set(k.fullNote,i*wkw));
+
+// Map black key to x (sits between two white keys)
+const blackXMap=new Map();
+(function(){
+  // For each black key find its left white key
+  ALL88.forEach((k,idx)=>{
+    if(!k.isSharp)return;
+    // find previous white key in ALL88
+    let prevWhite=null;
+    for(let i=idx-1;i>=0;i--){if(!ALL88[i].isSharp){prevWhite=ALL88[i];break;}}
+    if(!prevWhite)return;
+    const px=whiteXMap.get(prevWhite.fullNote);
+    if(px===undefined)return;
+    blackXMap.set(k.fullNote,px+wkw-bkw/2);
+  });
+})();
+
+let selectedKey88=null,highlightOct88=null;
+
+const octColors88=['#c4b5fd','#93c5fd','#67e8f9','#6ee7b7','#86efac','#fde68a','#fca5a5','#f0abfc','#a5b4fc'];
+
+function drawMiniPiano(){
+  mpc.clearRect(0,0,MPW,MPH);
+  mpc.fillStyle='#0a0810';mpc.fillRect(0,0,MPW,MPH);
+  // white keys
+  whiteAll.forEach((k,i)=>{
+    const x=i*wkw;const isSel=selectedKey88&&selectedKey88.fullNote===k.fullNote;
+    const isHL=highlightOct88!==null&&k.octave===highlightOct88;
+    const octIdx=Math.min(k.octave,8);
+    if(isSel){mpc.fillStyle='#FF2D78';}
+    else if(isHL){mpc.fillStyle=octColors88[octIdx]||'#ffffff';}
+    else{mpc.fillStyle=k.note==='C'?'#f0edd8':'#f5f2eb';}
+    const r=3;mpc.beginPath();
+    mpc.moveTo(x+.5,0);mpc.lineTo(x+wkw-.5,0);mpc.lineTo(x+wkw-.5,wkh-r);
+    mpc.arcTo(x+wkw-.5,wkh,x+wkw-.5-r,wkh,r);mpc.lineTo(x+.5+r,wkh);
+    mpc.arcTo(x+.5,wkh,x+.5,wkh-r,r);mpc.lineTo(x+.5,0);mpc.closePath();mpc.fill();
+    mpc.strokeStyle='#333';mpc.lineWidth=0.5;mpc.stroke();
+    // C labels
+    if(k.note==='C'){
+      mpc.fillStyle=isSel?'#fff':'#8a5520';mpc.font=`bold ${Math.max(7,wkw*0.5)}px "DM Mono",monospace`;
+      mpc.textAlign='center';mpc.fillText(`C${k.octave}`,x+wkw/2,wkh-4);
+    }
+  });
+  // black keys
+  blackAll.forEach(k=>{
+    const x=blackXMap.get(k.fullNote);if(x===undefined)return;
+    const isSel=selectedKey88&&selectedKey88.fullNote===k.fullNote;
+    const isHL=highlightOct88!==null&&k.octave===highlightOct88;
+    const octIdx=Math.min(k.octave,8);
+    if(isSel){mpc.fillStyle='#FF2D78';}
+    else if(isHL){mpc.fillStyle=octColors88[octIdx]||'#555';}
+    else{mpc.fillStyle='#1a1428';}
+    const r=2;mpc.beginPath();mpc.moveTo(x,0);mpc.lineTo(x+bkw,0);mpc.lineTo(x+bkw,bkh-r);
+    mpc.arcTo(x+bkw,bkh,x+bkw-r,bkh,r);mpc.lineTo(x+r,bkh);mpc.arcTo(x,bkh,x,bkh-r,r);mpc.lineTo(x,0);mpc.closePath();mpc.fill();
+    mpc.strokeStyle='rgba(0,0,0,.6)';mpc.lineWidth=0.5;mpc.stroke();
+  });
+  // Highlight bar for selected key
+  if(selectedKey88){
+    const k=selectedKey88;const isBlack=k.isSharp;
+    const x=isBlack?blackXMap.get(k.fullNote):whiteXMap.get(k.fullNote);
+    const w=isBlack?bkw:wkw;const h=isBlack?bkh:wkh;
+    if(x!==undefined){
+      mpc.strokeStyle='#FF2D78';mpc.lineWidth=2;mpc.shadowColor='#FF2D78';mpc.shadowBlur=8;
+      mpc.strokeRect(x+1,1,w-2,h-2);mpc.shadowBlur=0;
+    }
+  }
+}
+drawMiniPiano();
+
+// ── Grand Staff for 88-key section ──
+// Map each note to a staff position
+// stLine: 0 = middle of treble bottom, positive = up, negative = down
+// We express position as halfSteps from middle C on the staff
+
+function getNoteStaffInfo(note,octave){
+  const noteNames=['C','D','E','F','G','A','B'];
+  const noteBase=note.replace('#','').replace('♯','');
+  const noteIdx=noteNames.indexOf(noteBase);
+  const octaveFromMiddleC=(octave-4)*7+noteIdx;
+
+  // Build description
+  const isSharp=note.includes('#')||note.includes('♯');
+  const displayNote=(isSharp?noteBase+'♯':noteBase)+octave;
+  const hz=Math.round(440*Math.pow(2,((octave-4)*12+[0,0,2,2,4,5,5,7,7,9,9,11][['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'].indexOf(note.replace('♯','#'))||0]-9)/12));
+
+  // Determine clef and position label
+  let clef,staffPos;
+  const pos=octaveFromMiddleC; // staff steps from C4 (positive = up)
+
+  if(pos>=0){
+    // Treble or above
+    if(pos===0)clef='Bridge (ledger)';
+    else if(pos>=1&&pos<=8)clef='Treble';
+    else if(pos>8&&pos<=14)clef='Treble (upper)';
+    else clef='Above treble (ledger lines)';
+  } else {
+    if(pos>=-7)clef='Bass';
+    else if(pos>=-14)clef='Bass (lower)';
+    else clef='Below bass (ledger lines)';
+  }
+
+  const staffLabels=['C','D','E','F','G','A','B'];
+  const noteName=staffLabels[((noteIdx%7)+7)%7]+octave+(isSharp?'♯':'');
+
+  return{pos,clef,noteName,displayNote,isSharp,noteIdx,octave};
+}
+
+function drawKeyStaff(selectedKey){
+  const W=1060,H=360;ksc.clearRect(0,0,W,H);ksc.fillStyle='#0a0810';ksc.fillRect(0,0,W,H);
+
+  const cx=W/2;
+  const trebleTop=40,bassTop=180,lineGap=20,staffW=W-120;
+  const staffLeft=60,staffRight=staffLeft+staffW;
+
+  // Draw 5 treble lines
+  ksc.strokeStyle='#1e2a3a';ksc.lineWidth=1.5;
+  for(let i=0;i<5;i++){ksc.beginPath();ksc.moveTo(staffLeft,trebleTop+i*lineGap);ksc.lineTo(staffRight,trebleTop+i*lineGap);ksc.stroke();}
+  for(let i=0;i<5;i++){ksc.beginPath();ksc.moveTo(staffLeft,bassTop+i*lineGap);ksc.lineTo(staffRight,bassTop+i*lineGap);ksc.stroke();}
+
+  // Connecting bar
+  ksc.strokeStyle='#1e2a3a';ksc.lineWidth=2;ksc.beginPath();ksc.moveTo(staffLeft,trebleTop);ksc.lineTo(staffLeft,bassTop+4*lineGap);ksc.stroke();
+  ksc.strokeStyle='#1e2a3a';ksc.lineWidth=2;ksc.beginPath();ksc.moveTo(staffRight,trebleTop);ksc.lineTo(staffRight,bassTop+4*lineGap);ksc.stroke();
+
+  // Clef symbols
+  ksc.font='90px serif';ksc.fillStyle='#00D4FF';ksc.textAlign='left';ksc.fillText('𝄞',staffLeft-8,trebleTop+4*lineGap+8);
+  ksc.font='86px serif';ksc.fillStyle='#FF2D78';ksc.fillText('𝄢',staffLeft-8,bassTop+2*lineGap+8);
+
+  // Clef labels
+  ksc.font='10px "DM Mono",monospace';ksc.fillStyle='#00D4FF';ksc.textAlign='left';ksc.fillText('TREBLE',staffLeft+5,trebleTop-12);
+  ksc.fillStyle='#FF2D78';ksc.fillText('BASS',staffLeft+5,bassTop-12);
+
+  // Middle C ledger line position
+  // treble bottom line = E4, each line gap = 1 diatonic step
+  // middle C = one ledger line below treble = trebleTop + 5*lineGap
+  const middleCY=trebleTop+5*lineGap;
+
+  // Position labels for reference
+  const staffRefLabels=[
+    {y:bassTop+4*lineGap,label:'G2',color:'#FF2D78'},{y:bassTop+3*lineGap,label:'B2',color:'#FF2D78'},
+    {y:bassTop+2*lineGap,label:'D3',color:'#FF2D78'},{y:bassTop+lineGap,label:'F3',color:'#FF2D78'},
+    {y:bassTop,label:'A3',color:'#FF2D78'},{y:middleCY,label:'C4',color:'#39D98A'},
+    {y:trebleTop+4*lineGap,label:'E4',color:'#00D4FF'},{y:trebleTop+3*lineGap,label:'G4',color:'#00D4FF'},
+    {y:trebleTop+2*lineGap,label:'B4',color:'#00D4FF'},{y:trebleTop+lineGap,label:'D5',color:'#00D4FF'},
+    {y:trebleTop,label:'F5',color:'#00D4FF'},
+  ];
+  ksc.font='9px "DM Mono",monospace';ksc.textAlign='left';
+  staffRefLabels.forEach(ref=>{ksc.fillStyle=ref.color+'88';ksc.fillText(ref.label,staffRight+6,ref.y+3);});
+
+  if(!selectedKey){
+    ksc.font='500 15px "DM Mono",monospace';ksc.fillStyle='#4a5568';ksc.textAlign='center';
+    ksc.fillText('← Click any key on the keyboard above to see it on the staff →',cx,H/2);
+    return;
+  }
+
+  const info=getNoteStaffInfo(selectedKey.note,selectedKey.octave);
+
+  // Convert staff steps to Y position
+  // C4 = middleCY, each diatonic step = lineGap/2
+  const stepSize=lineGap/2;
+  const noteY=middleCY - info.pos*stepSize;
+
+  // Draw ledger lines if needed
+  ksc.strokeStyle='#2a3a4a';ksc.lineWidth=1.5;
+  // Below bass
+  if(noteY>bassTop+4*lineGap+stepSize){
+    for(let ly=bassTop+5*lineGap;ly<=noteY+stepSize;ly+=lineGap){
+      ksc.beginPath();ksc.moveTo(cx-20,ly);ksc.lineTo(cx+20,ly);ksc.stroke();
+    }
+  }
+  // Middle C ledger line
+  if(info.pos===0){
+    ksc.beginPath();ksc.moveTo(cx-20,middleCY);ksc.lineTo(cx+20,middleCY);ksc.stroke();
+  }
+  // Above treble
+  if(noteY<trebleTop-stepSize){
+    for(let ly=trebleTop-lineGap;ly>=noteY-stepSize;ly-=lineGap){
+      ksc.beginPath();ksc.moveTo(cx-20,ly);ksc.lineTo(cx+20,ly);ksc.stroke();
+    }
+  }
+
+  // Note glow
+  ksc.shadowColor='#FF2D78';ksc.shadowBlur=24;
+
+  // Note head
+  const isSharp=selectedKey.isSharp;
+  if(isSharp||info.note&&info.note.includes('♯')){
+    // Sharp — filled note with accidental
+    ksc.fillStyle='#FF2D78';ksc.beginPath();ksc.ellipse(cx,noteY,14,10,-0.18,0,Math.PI*2);ksc.fill();
+    // Accidental ♯
+    ksc.fillStyle='#FF2D78';ksc.font='bold 20px serif';ksc.textAlign='right';ksc.fillText('♯',cx-16,noteY+7);
+  } else {
+    ksc.fillStyle='#FF2D78';ksc.beginPath();ksc.ellipse(cx,noteY,14,10,-0.18,0,Math.PI*2);ksc.fill();
+  }
+  // Stem
+  ksc.strokeStyle='#FF2D78';ksc.lineWidth=2;ksc.shadowBlur=0;
+  const stemUp=info.pos<0||noteY>H/2-20;
+  if(stemUp){ksc.beginPath();ksc.moveTo(cx-13,noteY);ksc.lineTo(cx-13,noteY-52);ksc.stroke();}
+  else{ksc.beginPath();ksc.moveTo(cx+13,noteY);ksc.lineTo(cx+13,noteY+52);ksc.stroke();}
+
+  // Outer glow ring
+  ksc.strokeStyle='#FF2D78';ksc.lineWidth=1.5;ksc.globalAlpha=0.35;
+  ksc.beginPath();ksc.ellipse(cx,noteY,22,17,-0.18,0,Math.PI*2);ksc.stroke();ksc.globalAlpha=1;
+
+  // Note label above/below
+  ksc.font='bold 22px "DM Mono",monospace';ksc.fillStyle='#FF2D78';ksc.textAlign='center';
+  ksc.fillText(selectedKey.fullNote,cx,noteY<40?noteY+H-H/3:noteY>H-60?noteY-20:noteY-30);
+
+  // Hz label
+  ksc.font='14px "DM Mono",monospace';ksc.fillStyle='#00D4FF';
+  ksc.fillText(`${selectedKey.hz} Hz`,cx,noteY<40?noteY+H-H/3+22:noteY>H-60?noteY-38:noteY-52);
+
+  // Position arrows showing where on staff
+  ksc.font='11px "DM Mono",monospace';ksc.fillStyle='#8892A4';ksc.textAlign='right';
+  ksc.fillText(info.clef,staffRight-10,noteY+4);
+  ksc.strokeStyle='rgba(255,45,120,0.3)';ksc.lineWidth=1;ksc.setLineDash([4,4]);
+  ksc.beginPath();ksc.moveTo(cx+20,noteY);ksc.lineTo(staffRight-2,noteY);ksc.stroke();ksc.setLineDash([]);
+}
+drawKeyStaff(null);
+
+// Click handlers for mini piano
+function getMiniKeyAt(x,y){
+  // Check black first
+  for(const k of blackAll){const kx=blackXMap.get(k.fullNote);if(kx===undefined)continue;if(x>=kx&&x<=kx+bkw&&y>=0&&y<=bkh)return k;}
+  for(const k of whiteAll){const kx=whiteXMap.get(k.fullNote);if(kx===undefined)continue;if(x>=kx&&x<=kx+wkw&&y>=0&&y<=wkh)return k;}
+  return null;
+}
+
+miniCanvas.addEventListener('click',e=>{
+  const rect=miniCanvas.getBoundingClientRect();
+  const sx2=MPW/rect.width,sy2=MPH/rect.height;
+  const x=(e.clientX-rect.left)*sx2,y=(e.clientY-rect.top)*sy2;
+  const k=getMiniKeyAt(x,y);
+  if(!k)return;
+  selectedKey88=k;
+  synthPiano(k.hz,null,1.2,1);
+  showNowPlaying(k.fullNote,k.hz,`${k.hz} Hz · ${getNoteStaffInfo(k.note,k.octave).clef}`);
+  drawMiniPiano();drawKeyStaff(k);
+  updateKeyInfoPanel(k);
+});
+
+miniCanvas.addEventListener('mousemove',e=>{
+  miniCanvas.style.cursor='pointer';
+});
+
+function updateKeyInfoPanel(k){
+  const info=getNoteStaffInfo(k.note,k.octave);
+  document.getElementById('kipNote').textContent=k.fullNote;
+  document.getElementById('kipHz').textContent=`${k.hz} Hz`;
+  document.getElementById('kipName').textContent=k.fullNote;
+  document.getElementById('kipOctave').textContent=`Octave ${k.octave} (${octaveData[Math.min(k.octave,7)]?.name||'C'+k.octave} region)`;
+  document.getElementById('kipStaff').textContent=info.clef;
+  document.getElementById('kipClef').textContent=info.clef.includes('Bass')?'Bass Clef':info.clef.includes('Treble')?'Treble Clef':info.clef.includes('ledger')||info.pos===0?'Between staves (ledger line)':'Extended range';
+}
+
+// Octave legend
+const octLegendEl=document.getElementById('octLegend');
+for(let o=0;o<=8;o++){
+  const pill=document.createElement('div');pill.className='oct-pill';
+  pill.innerHTML=`<span class="oct-dot" style="background:${octColors88[o]}"></span>C${o}`;
+  pill.addEventListener('click',()=>{
+    document.querySelectorAll('.oct-pill').forEach(p=>p.classList.remove('active-oct'));
+    pill.classList.add('active-oct');
+    highlightOct88=o;drawMiniPiano();
+    setTimeout(()=>{highlightOct88=null;drawMiniPiano();document.querySelectorAll('.oct-pill').forEach(p=>p.classList.remove('active-oct'));},2000);
+  });
+  octLegendEl.appendChild(pill);
+}
+
+// ══════════════════════════════════════════════════════════
+// FADE-IN OBSERVER
+// ══════════════════════════════════════════════════════════
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.style.opacity='1';e.target.style.transform='translateY(0)';}});
+},{threshold:0.08});
+document.querySelectorAll('section').forEach(s=>{
+  s.style.opacity='0';s.style.transform='translateY(14px)';
+  s.style.transition='opacity .6s ease,transform .6s ease';observer.observe(s);
+});
+</script>
+</body>
+</html>
