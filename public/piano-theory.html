@@ -86,17 +86,17 @@ nav{
   text-align:center;
   padding:5rem 2rem 4rem;
   position:relative;overflow:hidden;
-  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(255,45,120,0.12) 0%,transparent 65%),
+  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(230,49,122,0.12) 0%,transparent 65%),
              radial-gradient(ellipse 50% 40% at 80% 80%,rgba(0,212,255,0.06) 0%,transparent 55%),
              var(--bg);
 }
 .hero::after{
   content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(255,45,120,0.4),transparent);
+  background:linear-gradient(90deg,transparent,rgba(230,49,122,0.4),transparent);
 }
 .hero-eyebrow{
   display:inline-flex;align-items:center;gap:0.4rem;
-  background:var(--pink-dim);border:1px solid rgba(255,45,120,0.3);
+  background:var(--pink-dim);border:1px solid rgba(230,49,122,0.3);
   color:var(--pink);font-size:0.72rem;font-weight:700;
   padding:0.35rem 1rem;border-radius:100px;
   letter-spacing:0.1em;text-transform:uppercase;
@@ -244,7 +244,7 @@ h3.sub-h3{
 .note-card-desc{font-size:0.8rem;color:var(--muted);line-height:1.4;}
 .beat-bar-wrap{display:flex;gap:3px;margin-top:.5rem;height:7px;justify-content:center;}
 .beat-seg{height:7px;border-radius:2px;background:rgba(255,255,255,0.08);flex:1;max-width:22px;transition:background .3s;}
-.beat-seg.whole{background:#FF2D78;}
+.beat-seg.whole{background:#e6317a;}
 .beat-seg.half{background:#00D4FF;}
 .beat-seg.quarter{background:#39D98A;}
 .beat-seg.eighth{background:#A78BFA;}
@@ -283,23 +283,23 @@ h3.sub-h3{
   width:80px;height:116px;
   background:linear-gradient(to bottom,#141a30,#0b1120);
   clip-path:polygon(10% 0%,90% 0%,100% 100%,0% 100%);
-  border:1px solid rgba(255,45,120,0.2);
+  border:1px solid rgba(230,49,122,0.2);
 }
 .metro-pendulum{
   position:absolute;bottom:58px;left:50%;
   transform-origin:bottom center;transform:translateX(-50%) rotate(0deg);
   width:2px;height:98px;
-  background:linear-gradient(to top,var(--pink),rgba(255,45,120,.25));
+  background:linear-gradient(to top,var(--pink),rgba(230,49,122,.25));
 }
 .metro-pendulum::after{
   content:'';position:absolute;top:-8px;left:-7px;
   width:16px;height:16px;background:var(--pink);border-radius:50%;
-  box-shadow:0 0 12px rgba(255,45,120,.65);
+  box-shadow:0 0 12px rgba(230,49,122,.65);
 }
 .metro-weight{
   position:absolute;width:22px;height:15px;background:var(--pink);
   border-radius:3px;left:-10px;cursor:ns-resize;
-  box-shadow:0 2px 6px rgba(255,45,120,.4);
+  box-shadow:0 2px 6px rgba(230,49,122,.4);
 }
 .metro-bpm-display{
   font-family:'DM Mono',monospace;font-size:2.2rem;color:var(--pink);
@@ -319,12 +319,12 @@ h3.sub-h3{
 }
 .metro-tempo-slider::-webkit-slider-thumb{
   -webkit-appearance:none;width:14px;height:14px;background:var(--pink);
-  border-radius:50%;cursor:pointer;box-shadow:0 0 6px rgba(255,45,120,.5);
+  border-radius:50%;cursor:pointer;box-shadow:0 0 6px rgba(230,49,122,.5);
 }
 .beat-lights{display:flex;gap:8px;justify-content:center;}
 .beat-light{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.08);transition:background .05s,box-shadow .05s;}
-.beat-light.on{background:var(--pink);box-shadow:0 0 12px rgba(255,45,120,.7);}
-.beat-light.accent{border:2px solid rgba(255,45,120,.3);}
+.beat-light.on{background:var(--pink);box-shadow:0 0 12px rgba(230,49,122,.7);}
+.beat-light.accent{border:2px solid rgba(230,49,122,.3);}
 .metro-note-select{
   font-family:'DM Mono',monospace;font-size:.76rem;padding:.38rem .65rem;
   background:var(--card);border:1px solid var(--border);color:var(--off-white);
@@ -347,7 +347,7 @@ h3.sub-h3{
   padding:1.1rem 1.3rem;background:var(--card);border:1px solid var(--border);
   border-radius:10px;border-left:3px solid var(--sky);
 }
-.legend-clef.bass{border-left-color:#FF2D78;}
+.legend-clef.bass{border-left-color:#e6317a;}
 .clef-title{font-size:.92rem;font-weight:700;color:var(--white);margin-bottom:.25rem;}
 .clef-range{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--sky);margin-bottom:.35rem;}
 .legend-clef.bass .clef-range{color:var(--pink);}
@@ -357,7 +357,7 @@ h3.sub-h3{
 .corr-table th{font-family:'DM Mono',monospace;font-size:.63rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);padding:.62rem 1rem;text-align:left;border-bottom:1px solid var(--border);background:var(--card);}
 .corr-table td{padding:.62rem 1rem;border-bottom:1px solid rgba(255,255,255,0.04);}
 .corr-table tr:hover td{background:var(--card2);}
-.corr-table tr.c4-row td{background:rgba(255,45,120,0.06);}
+.corr-table tr.c4-row td{background:rgba(230,49,122,0.06);}
 .corr-table tr.c4-row td:first-child{color:var(--pink);font-weight:700;}
 .note-cell{font-family:'DM Mono',monospace;color:#A78BFA;font-weight:500;}
 .hz-cell{font-family:'DM Mono',monospace;color:var(--sky);font-size:.8rem;}
@@ -374,7 +374,7 @@ h3.sub-h3{
 .takeaways{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1rem;margin:1.5rem 0;}
 .takeaway{padding:1.2rem;background:var(--card);border:1px solid var(--border);border-radius:12px;position:relative;overflow:hidden;transition:border-color .2s,transform .2s;}
 .takeaway:hover{border-color:var(--pink);transform:translateY(-2px);}
-.tk-num{font-family:'DM Mono',monospace;font-size:2.2rem;font-weight:500;color:rgba(255,45,120,0.08);position:absolute;top:.5rem;right:1rem;line-height:1;}
+.tk-num{font-family:'DM Mono',monospace;font-size:2.2rem;font-weight:500;color:rgba(230,49,122,0.08);position:absolute;top:.5rem;right:1rem;line-height:1;}
 .tk-title{font-size:.92rem;font-weight:700;color:var(--pink);margin-bottom:.35rem;}
 
 /* ── CALLOUT BOX ── */
@@ -429,7 +429,7 @@ h3.sub-h3{
   padding:.8rem 1.2rem;display:flex;align-items:center;gap:1rem;
   transform:translateY(80px);opacity:0;
   transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .3s;
-  box-shadow:0 8px 24px rgba(255,45,120,.45);min-width:190px;
+  box-shadow:0 8px 24px rgba(230,49,122,.45);min-width:190px;
 }
 #nowPlaying.show{transform:translateY(0);opacity:1;}
 .np-note{font-family:'DM Mono',monospace;font-size:1.3rem;font-weight:500;}
@@ -665,7 +665,7 @@ footer{
   <h3 class="sub-h3">How They Fill a Bar <span style="color:var(--muted2);font-weight:400;font-size:.85rem">— click a row to animate</span></h3>
   <canvas id="durationCanvas" width="1000" height="280"></canvas>
   <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:.7rem;font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted2)">
-    <span style="color:#FF2D78">■</span> Whole &nbsp;
+    <span style="color:#e6317a">■</span> Whole &nbsp;
     <span style="color:#00D4FF">■</span> Half &nbsp;
     <span style="color:#39D98A">■</span> Quarter &nbsp;
     <span style="color:#A78BFA">■</span> Quaver (8th)
@@ -704,7 +704,7 @@ footer{
       <table class="corr-table" id="durationTable">
         <thead><tr><th>Note</th><th>Beats</th><th>Duration at <span id="tableTempoLabel">60</span> BPM</th><th>Relative Length</th></tr></thead>
         <tbody>
-          <tr><td style="color:#FF2D78;font-weight:700">Whole 𝅝</td><td class="hz-cell">4 beats</td><td id="dur-whole" style="font-family:'DM Mono',monospace;color:var(--off-white)">4.00 s</td><td><div style="height:8px;background:#FF2D78;border-radius:2px;width:100%"></div></td></tr>
+          <tr><td style="color:#e6317a;font-weight:700">Whole 𝅝</td><td class="hz-cell">4 beats</td><td id="dur-whole" style="font-family:'DM Mono',monospace;color:var(--off-white)">4.00 s</td><td><div style="height:8px;background:#e6317a;border-radius:2px;width:100%"></div></td></tr>
           <tr><td style="color:#00D4FF;font-weight:700">Half 𝅗𝅥</td><td class="hz-cell">2 beats</td><td id="dur-half" style="font-family:'DM Mono',monospace;color:var(--off-white)">2.00 s</td><td><div style="height:8px;background:#00D4FF;border-radius:2px;width:50%"></div></td></tr>
           <tr><td style="color:#39D98A;font-weight:700">Quarter ♩</td><td class="hz-cell">1 beat</td><td id="dur-quarter" style="font-family:'DM Mono',monospace;color:var(--off-white)">1.00 s</td><td><div style="height:8px;background:#39D98A;border-radius:2px;width:25%"></div></td></tr>
           <tr><td style="color:#A78BFA;font-weight:700">Quaver ♪</td><td class="hz-cell">½ beat</td><td id="dur-eighth" style="font-family:'DM Mono',monospace;color:var(--off-white)">0.50 s</td><td><div style="height:8px;background:#A78BFA;border-radius:2px;width:12.5%"></div></td></tr>
@@ -795,7 +795,7 @@ footer{
   <div style="margin:1.5rem 0;padding:1.2rem 1.4rem;background:var(--card);border:1px solid var(--border);border-radius:10px;border-left:3px solid var(--pink)">
     <div style="font-size:.9rem;font-weight:700;color:var(--pink);margin-bottom:.7rem">Why 4 Beats? The Rule of the Bar</div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem">
-      <div style="background:rgba(255,45,120,0.1);border:1px solid rgba(255,45,120,0.25);border-radius:8px;padding:.6rem;text-align:center">
+      <div style="background:rgba(230,49,122,0.1);border:1px solid rgba(230,49,122,0.25);border-radius:8px;padding:.6rem;text-align:center">
         <div style="font-family:'DM Mono',monospace;font-size:1.4rem;color:var(--pink);font-weight:500">1</div>
         <div style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--pink);letter-spacing:.06em">STRONG</div>
         <div style="font-size:.75rem;color:var(--muted2);margin-top:.15rem">Downbeat</div>
@@ -845,7 +845,7 @@ footer{
     <div class="takeaway" style="border-left:3px solid var(--pink)"><div class="tk-num">🎹</div><div class="tk-title">Pitch + Rhythm = Music</div><p style="font-size:.85rem;margin:0;color:var(--muted)">Which key, how long, when, and how fast — the four dimensions of music.</p></div>
   </div>
 
-  <div style="margin-top:3rem;padding:2rem;background:linear-gradient(135deg,rgba(255,45,120,0.12),rgba(0,212,255,0.06));border:1px solid rgba(255,45,120,0.2);border-radius:16px;text-align:center">
+  <div style="margin-top:3rem;padding:2rem;background:linear-gradient(135deg,rgba(230,49,122,0.12),rgba(0,212,255,0.06));border:1px solid rgba(230,49,122,0.2);border-radius:16px;text-align:center">
     <div style="font-size:1.3rem;font-weight:800;color:var(--white);margin-bottom:.5rem">Ready to play?</div>
     <p style="font-size:.9rem;color:var(--muted);max-width:400px;margin:0 auto .8rem">Musicable's lessons take you from theory to performance with a 100% guaranteed Trinity exam pass.</p>
     <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
@@ -1107,7 +1107,7 @@ function drawPiano(){
     if(!isAct){const sh=pc.createLinearGradient(k.x,0,k.x+4,0);sh.addColorStop(0,'rgba(255,255,255,0.15)');sh.addColorStop(1,'rgba(255,255,255,0)');pc.fillStyle=sh;pc.fillRect(k.x,0,4,k.h);}
     pc.strokeStyle='rgba(0,0,0,0.7)';pc.lineWidth=0.8;pc.stroke();
   });
-  pc.strokeStyle='rgba(255,45,120,0.15)';pc.lineWidth=1;
+  pc.strokeStyle='rgba(230,49,122,0.15)';pc.lineWidth=1;
   for(let o=1;o<=NUM_OCTAVES+1;o++){const x=(o-1)*WPO*WKW;pc.beginPath();pc.moveTo(x,0);pc.lineTo(x,CH);pc.stroke();}
 }
 drawPiano();
@@ -1178,7 +1178,7 @@ document.addEventListener('keydown',e=>{
 // NOTE DURATION CARDS
 // ══════════════════════════════════════════════════════════
 const noteTypes=[
-  {name:'Whole Note',symbol:'whole',beats:4,fraction:'1 whole bar',desc:'Hold for 4 full beats.',color:'#FF2D78'},
+  {name:'Whole Note',symbol:'whole',beats:4,fraction:'1 whole bar',desc:'Hold for 4 full beats.',color:'#e6317a'},
   {name:'Half Note',symbol:'half',beats:2,fraction:'½ of a bar',desc:'Hold for 2 beats.',color:'#00D4FF'},
   {name:'Quarter Note',symbol:'quarter',beats:1,fraction:'¼ of a bar',desc:'Hold for 1 beat.',color:'#39D98A'},
   {name:'Quaver (8th)',symbol:'eighth',beats:0.5,fraction:'⅛ of a bar',desc:'Hold for half a beat.',color:'#A78BFA'},
@@ -1234,7 +1234,7 @@ document.addEventListener('click',e=>{
 const durCanvas=document.getElementById('durationCanvas');
 const dctx=durCanvas.getContext('2d');
 const DW=1000,DH=280;
-const durColors={whole:'#FF2D78',half:'#00D4FF',quarter:'#39D98A',eighth:'#A78BFA'};
+const durColors={whole:'#e6317a',half:'#00D4FF',quarter:'#39D98A',eighth:'#A78BFA'};
 let animFrame2=null;
 
 function drawDurationBars(highlightRow,progress){
@@ -1353,9 +1353,9 @@ function drawTimeSig(){
   tsCtx.strokeStyle=lc;tsCtx.lineWidth=1.5;
   for(let i=0;i<5;i++){tsCtx.beginPath();tsCtx.moveTo(sl,st+i*lg);tsCtx.lineTo(sl+sw,st+i*lg);tsCtx.stroke();}
   tsCtx.font='68px serif';tsCtx.fillStyle='#00D4FF';tsCtx.fillText('𝄞',sl-18,st+4*lg+6);
-  tsCtx.font='bold 38px "DM Mono",monospace';tsCtx.fillStyle='#FF2D78';tsCtx.textAlign='center';
+  tsCtx.font='bold 38px "DM Mono",monospace';tsCtx.fillStyle='#e6317a';tsCtx.textAlign='center';
   tsCtx.fillText('4',sl+68,st+2*lg-2);tsCtx.fillText('4',sl+68,st+4*lg+2);
-  tsCtx.font='10px "DM Mono",monospace';tsCtx.fillStyle='#FF2D78';
+  tsCtx.font='10px "DM Mono",monospace';tsCtx.fillStyle='#e6317a';
   tsCtx.fillText('beats/bar',sl+68,st-10);tsCtx.fillText('note value',sl+68,st+4.8*lg+14);
   tsCtx.fillStyle='#8892A4';tsCtx.fillText('4 × ♩ per bar',W/2,H-12);
 }
@@ -1369,11 +1369,11 @@ const mCtx=measCanvas.getContext('2d');
 const MW=1060,MH=340;
 
 const barPatterns=[
-  [{beats:1,type:'quarter',color:'#FF2D78',name:'Quarter'},{beats:1,type:'quarter',color:'#00D4FF',name:'Quarter'},{beats:1,type:'quarter',color:'#39D98A',name:'Quarter'},{beats:1,type:'quarter',color:'#A78BFA',name:'Quarter'}],
-  [{beats:4,type:'whole',color:'#FF2D78',name:'Whole'}],
+  [{beats:1,type:'quarter',color:'#e6317a',name:'Quarter'},{beats:1,type:'quarter',color:'#00D4FF',name:'Quarter'},{beats:1,type:'quarter',color:'#39D98A',name:'Quarter'},{beats:1,type:'quarter',color:'#A78BFA',name:'Quarter'}],
+  [{beats:4,type:'whole',color:'#e6317a',name:'Whole'}],
   [{beats:2,type:'half',color:'#00D4FF',name:'Half'},{beats:2,type:'half',color:'#A78BFA',name:'Half'}],
   [{beats:0.5,type:'eighth',color:'#A78BFA',name:'Quaver'},{beats:0.5,type:'eighth',color:'#00D4FF',name:'Quaver'},{beats:0.5,type:'eighth',color:'#A78BFA',name:'Quaver'},{beats:0.5,type:'eighth',color:'#00D4FF',name:'Quaver'},{beats:0.5,type:'eighth',color:'#A78BFA',name:'Quaver'},{beats:0.5,type:'eighth',color:'#00D4FF',name:'Quaver'},{beats:0.5,type:'eighth',color:'#A78BFA',name:'Quaver'},{beats:0.5,type:'eighth',color:'#00D4FF',name:'Quaver'}],
-  [{beats:1,type:'quarter',color:'#FF2D78',name:'Quarter'},{beats:2,type:'half',color:'#00D4FF',name:'Half'},{beats:1,type:'quarter',color:'#39D98A',name:'Quarter'}],
+  [{beats:1,type:'quarter',color:'#e6317a',name:'Quarter'},{beats:2,type:'half',color:'#00D4FF',name:'Half'},{beats:1,type:'quarter',color:'#39D98A',name:'Quarter'}],
 ];
 const patternPitches=[[262,294,330,349],[262],[330,294],[392,349,330,294,262,247,220,196],[262,330,294]];
 let barPatternIdx=0,barBPM=72,barPlaying=false,barAnimFrame=null,barIntervalId=null,barStartAudioTime=null;
@@ -1396,34 +1396,34 @@ document.querySelectorAll('.pattern-btn').forEach(btn=>{
 function flashBarBeat(idx){
   barBeatLightsEl.querySelectorAll('.beat-light').forEach((l,i)=>l.classList.toggle('on',i===idx));
   const el=document.getElementById('liveCountDisplay');el.textContent=idx+1;
-  el.style.color=idx===0?'#FF2D78':idx===2?'#00D4FF':'#8892A4';
+  el.style.color=idx===0?'#e6317a':idx===2?'#00D4FF':'#8892A4';
 }
 
 function drawBar(patternIdx,playheadProgress){
   mCtx.clearRect(0,0,MW,MH);const pattern=barPatterns[patternIdx];
   const PAD_L=70,PAD_R=24,stTop=28,lg=18,STAFF_BOT=stTop+4*lg;
   const barL=PAD_L,barW=MW-PAD_L-PAD_R,barR=barL+barW,beatW=barW/4;
-  const beatColors=['#FF2D78','#4a5568','#00D4FF','#4a5568'];
+  const beatColors=['#e6317a','#4a5568','#00D4FF','#4a5568'];
   const beatLabels=['STRONG (1)','weak (2)','medium (3)','weak (4)'];
   const phBeat=(playheadProgress!==null&&playheadProgress!==undefined)?playheadProgress*4:null;
   const curBeatIdx=phBeat!==null?Math.min(3,Math.floor(phBeat)):-1;
 
   mCtx.fillStyle='#0b1120';mCtx.fillRect(0,0,MW,MH);
   for(let b=0;b<4;b++){
-    mCtx.fillStyle=b===curBeatIdx?'rgba(255,45,120,0.08)':b%2===0?'rgba(255,255,255,0.015)':'transparent';
+    mCtx.fillStyle=b===curBeatIdx?'rgba(230,49,122,0.08)':b%2===0?'rgba(255,255,255,0.015)':'transparent';
     mCtx.fillRect(barL+b*beatW,0,beatW,MH);
   }
   for(let b=0;b<4;b++){
     mCtx.font=b===curBeatIdx?'bold 11px "DM Mono",monospace':'bold 10px "DM Mono",monospace';
     mCtx.fillStyle=b===curBeatIdx?'#fff':beatColors[b];mCtx.textAlign='center';
     mCtx.fillText(beatLabels[b],barL+b*beatW+beatW/2,14);
-    if(b===curBeatIdx){mCtx.strokeStyle='#FF2D78';mCtx.lineWidth=2;mCtx.beginPath();mCtx.moveTo(barL+b*beatW+beatW*.1,18);mCtx.lineTo(barL+b*beatW+beatW*.9,18);mCtx.stroke();}
+    if(b===curBeatIdx){mCtx.strokeStyle='#e6317a';mCtx.lineWidth=2;mCtx.beginPath();mCtx.moveTo(barL+b*beatW+beatW*.1,18);mCtx.lineTo(barL+b*beatW+beatW*.9,18);mCtx.stroke();}
     if(b>0){mCtx.strokeStyle='rgba(255,255,255,0.06)';mCtx.lineWidth=1;mCtx.setLineDash([3,4]);mCtx.beginPath();mCtx.moveTo(barL+b*beatW,22);mCtx.lineTo(barL+b*beatW,MH-10);mCtx.stroke();mCtx.setLineDash([]);}
   }
   mCtx.strokeStyle='#1e2a3a';mCtx.lineWidth=1.3;
   for(let i=0;i<5;i++){mCtx.beginPath();mCtx.moveTo(barL,stTop+i*lg);mCtx.lineTo(barR,stTop+i*lg);mCtx.stroke();}
   mCtx.font='68px serif';mCtx.fillStyle='#00D4FF';mCtx.textAlign='left';mCtx.fillText('𝄞',2,stTop+4*lg+4);
-  mCtx.font='bold 30px "DM Mono",monospace';mCtx.fillStyle='#FF2D78';mCtx.textAlign='center';
+  mCtx.font='bold 30px "DM Mono",monospace';mCtx.fillStyle='#e6317a';mCtx.textAlign='center';
   mCtx.fillText('4',PAD_L-18,stTop+lg*1.6);mCtx.fillText('4',PAD_L-18,stTop+lg*3.6);
   mCtx.strokeStyle='#8892A4';mCtx.lineWidth=2.5;mCtx.beginPath();mCtx.moveTo(barL,stTop-2);mCtx.lineTo(barL,STAFF_BOT+2);mCtx.stroke();
 
@@ -1468,12 +1468,12 @@ function drawBar(patternIdx,playheadProgress){
   if(phBeat!==null){
     const phX=barL+Math.min(phBeat/4,1)*barW;
     const grad=mCtx.createLinearGradient(phX-14,0,phX+14,0);
-    grad.addColorStop(0,'rgba(255,45,120,0)');grad.addColorStop(.5,'rgba(255,45,120,0.28)');grad.addColorStop(1,'rgba(255,45,120,0)');
+    grad.addColorStop(0,'rgba(230,49,122,0)');grad.addColorStop(.5,'rgba(230,49,122,0.28)');grad.addColorStop(1,'rgba(230,49,122,0)');
     mCtx.fillStyle=grad;mCtx.fillRect(phX-14,0,28,MH);
-    mCtx.strokeStyle='#FF2D78';mCtx.lineWidth=2.5;mCtx.shadowColor='#FF2D78';mCtx.shadowBlur=14;
+    mCtx.strokeStyle='#e6317a';mCtx.lineWidth=2.5;mCtx.shadowColor='#e6317a';mCtx.shadowBlur=14;
     mCtx.beginPath();mCtx.moveTo(phX,stTop-8);mCtx.lineTo(phX,MH-24);mCtx.stroke();mCtx.shadowBlur=0;
-    mCtx.fillStyle='#FF2D78';mCtx.beginPath();mCtx.moveTo(phX-8,stTop-18);mCtx.lineTo(phX+8,stTop-18);mCtx.lineTo(phX,stTop-6);mCtx.closePath();mCtx.fill();
-    mCtx.font='bold 12px "DM Mono",monospace';mCtx.fillStyle='#FF2D78';mCtx.textAlign='center';
+    mCtx.fillStyle='#e6317a';mCtx.beginPath();mCtx.moveTo(phX-8,stTop-18);mCtx.lineTo(phX+8,stTop-18);mCtx.lineTo(phX,stTop-6);mCtx.closePath();mCtx.fill();
+    mCtx.font='bold 12px "DM Mono",monospace';mCtx.fillStyle='#e6317a';mCtx.textAlign='center';
     mCtx.fillText(`beat ${Math.min(4,Math.floor(phBeat)+1)}`,phX,MH-10);
   }
 
@@ -1483,7 +1483,7 @@ function drawBar(patternIdx,playheadProgress){
     mCtx.beginPath();mCtx.moveTo(bx,MH-22);mCtx.lineTo(bx,MH-12);mCtx.stroke();
     mCtx.font=isAB?'bold 15px "DM Mono",monospace':b===0?'bold 13px "DM Mono",monospace':'13px "DM Mono",monospace';
     mCtx.fillStyle=isAB?'#fff':beatColors[b];mCtx.textAlign='center';mCtx.fillText(b+1,bx+beatW/2,MH-10);
-    if(isAB){mCtx.strokeStyle='#FF2D78';mCtx.lineWidth=1.5;mCtx.beginPath();mCtx.arc(bx+beatW/2,MH-17,11,0,Math.PI*2);mCtx.stroke();}
+    if(isAB){mCtx.strokeStyle='#e6317a';mCtx.lineWidth=1.5;mCtx.beginPath();mCtx.arc(bx+beatW/2,MH-17,11,0,Math.PI*2);mCtx.stroke();}
   }
   mCtx.strokeStyle='#8892A4';mCtx.lineWidth=2;mCtx.beginPath();mCtx.moveTo(barR,MH-22);mCtx.lineTo(barR,MH-12);mCtx.stroke();
 }
@@ -1536,7 +1536,7 @@ const staffCanvas=document.getElementById('staffCanvas');
 const ctx2=staffCanvas.getContext('2d');
 function drawStaff(){
   const W=480,H=500;staffCanvas.height=H;ctx2.clearRect(0,0,W,H);ctx2.fillStyle='#0b1120';ctx2.fillRect(0,0,W,H);
-  const lc='rgba(255,255,255,0.35)',ng='#FF2D78',ns='#00D4FF',nc='#39D98A',tc='#4a5568';
+  const lc='rgba(255,255,255,0.35)',ng='#e6317a',ns='#00D4FF',nc='#39D98A',tc='#4a5568';
   const sx=60,tt=100,lg=22,bst=300,sw2=380;
   ctx2.strokeStyle=lc;ctx2.lineWidth=1;
   for(let i=0;i<5;i++){ctx2.beginPath();ctx2.moveTo(sx,tt+i*lg);ctx2.lineTo(sx+sw2,tt+i*lg);ctx2.stroke();}
@@ -1576,7 +1576,7 @@ corrData.forEach(row=>{
   const tr=document.createElement('tr');if(row.isC4)tr.className='c4-row';
   tr.innerHTML=`<td class="note-cell">${row.note}</td><td>${row.oct}</td>
     <td style="color:var(--off-white)">${row.pos}</td><td class="hz-cell">${row.hz}</td>
-    <td style="font-family:'DM Mono',monospace;font-size:.78rem;color:${row.clef==='Treble'?'#00D4FF':row.clef==='Bass'?'#FF2D78':'#39D98A'}">${row.clef}</td>`;
+    <td style="font-family:'DM Mono',monospace;font-size:.78rem;color:${row.clef==='Treble'?'#00D4FF':row.clef==='Bass'?'#e6317a':'#39D98A'}">${row.clef}</td>`;
   tbody.appendChild(tr);
 });
 
@@ -1647,7 +1647,7 @@ function drawMiniPiano(){
     const x=i*wkw;const isSel=selectedKey88&&selectedKey88.fullNote===k.fullNote;
     const isHL=highlightOct88!==null&&k.octave===highlightOct88;
     const octIdx=Math.min(k.octave,8);
-    if(isSel){mpc.fillStyle='#FF2D78';}
+    if(isSel){mpc.fillStyle='#e6317a';}
     else if(isHL){mpc.fillStyle=octColors88[octIdx]||'#ffffff';}
     else{mpc.fillStyle=k.note==='C'?'#f0edd8':'#f5f2eb';}
     const r=3;mpc.beginPath();
@@ -1667,7 +1667,7 @@ function drawMiniPiano(){
     const isSel=selectedKey88&&selectedKey88.fullNote===k.fullNote;
     const isHL=highlightOct88!==null&&k.octave===highlightOct88;
     const octIdx=Math.min(k.octave,8);
-    if(isSel){mpc.fillStyle='#FF2D78';}
+    if(isSel){mpc.fillStyle='#e6317a';}
     else if(isHL){mpc.fillStyle=octColors88[octIdx]||'#555';}
     else{mpc.fillStyle='#141a30';}
     const r=2;mpc.beginPath();mpc.moveTo(x,0);mpc.lineTo(x+bkw,0);mpc.lineTo(x+bkw,bkh-r);
@@ -1680,7 +1680,7 @@ function drawMiniPiano(){
     const x=isBlack?blackXMap.get(k.fullNote):whiteXMap.get(k.fullNote);
     const w=isBlack?bkw:wkw;const h=isBlack?bkh:wkh;
     if(x!==undefined){
-      mpc.strokeStyle='#FF2D78';mpc.lineWidth=2;mpc.shadowColor='#FF2D78';mpc.shadowBlur=8;
+      mpc.strokeStyle='#e6317a';mpc.lineWidth=2;mpc.shadowColor='#e6317a';mpc.shadowBlur=8;
       mpc.strokeRect(x+1,1,w-2,h-2);mpc.shadowBlur=0;
     }
   }
@@ -1743,11 +1743,11 @@ function drawKeyStaff(selectedKey){
 
   // Clef symbols
   ksc.font='90px serif';ksc.fillStyle='#00D4FF';ksc.textAlign='left';ksc.fillText('𝄞',staffLeft-8,trebleTop+4*lineGap+8);
-  ksc.font='86px serif';ksc.fillStyle='#FF2D78';ksc.fillText('𝄢',staffLeft-8,bassTop+2*lineGap+8);
+  ksc.font='86px serif';ksc.fillStyle='#e6317a';ksc.fillText('𝄢',staffLeft-8,bassTop+2*lineGap+8);
 
   // Clef labels
   ksc.font='10px "DM Mono",monospace';ksc.fillStyle='#00D4FF';ksc.textAlign='left';ksc.fillText('TREBLE',staffLeft+5,trebleTop-12);
-  ksc.fillStyle='#FF2D78';ksc.fillText('BASS',staffLeft+5,bassTop-12);
+  ksc.fillStyle='#e6317a';ksc.fillText('BASS',staffLeft+5,bassTop-12);
 
   // Middle C ledger line position
   // treble bottom line = E4, each line gap = 1 diatonic step
@@ -1756,9 +1756,9 @@ function drawKeyStaff(selectedKey){
 
   // Position labels for reference
   const staffRefLabels=[
-    {y:bassTop+4*lineGap,label:'G2',color:'#FF2D78'},{y:bassTop+3*lineGap,label:'B2',color:'#FF2D78'},
-    {y:bassTop+2*lineGap,label:'D3',color:'#FF2D78'},{y:bassTop+lineGap,label:'F3',color:'#FF2D78'},
-    {y:bassTop,label:'A3',color:'#FF2D78'},{y:middleCY,label:'C4',color:'#39D98A'},
+    {y:bassTop+4*lineGap,label:'G2',color:'#e6317a'},{y:bassTop+3*lineGap,label:'B2',color:'#e6317a'},
+    {y:bassTop+2*lineGap,label:'D3',color:'#e6317a'},{y:bassTop+lineGap,label:'F3',color:'#e6317a'},
+    {y:bassTop,label:'A3',color:'#e6317a'},{y:middleCY,label:'C4',color:'#39D98A'},
     {y:trebleTop+4*lineGap,label:'E4',color:'#00D4FF'},{y:trebleTop+3*lineGap,label:'G4',color:'#00D4FF'},
     {y:trebleTop+2*lineGap,label:'B4',color:'#00D4FF'},{y:trebleTop+lineGap,label:'D5',color:'#00D4FF'},
     {y:trebleTop,label:'F5',color:'#00D4FF'},
@@ -1799,30 +1799,30 @@ function drawKeyStaff(selectedKey){
   }
 
   // Note glow
-  ksc.shadowColor='#FF2D78';ksc.shadowBlur=24;
+  ksc.shadowColor='#e6317a';ksc.shadowBlur=24;
 
   // Note head
   const isSharp=selectedKey.isSharp;
   if(isSharp||info.note&&info.note.includes('♯')){
     // Sharp — filled note with accidental
-    ksc.fillStyle='#FF2D78';ksc.beginPath();ksc.ellipse(cx,noteY,14,10,-0.18,0,Math.PI*2);ksc.fill();
+    ksc.fillStyle='#e6317a';ksc.beginPath();ksc.ellipse(cx,noteY,14,10,-0.18,0,Math.PI*2);ksc.fill();
     // Accidental ♯
-    ksc.fillStyle='#FF2D78';ksc.font='bold 20px serif';ksc.textAlign='right';ksc.fillText('♯',cx-16,noteY+7);
+    ksc.fillStyle='#e6317a';ksc.font='bold 20px serif';ksc.textAlign='right';ksc.fillText('♯',cx-16,noteY+7);
   } else {
-    ksc.fillStyle='#FF2D78';ksc.beginPath();ksc.ellipse(cx,noteY,14,10,-0.18,0,Math.PI*2);ksc.fill();
+    ksc.fillStyle='#e6317a';ksc.beginPath();ksc.ellipse(cx,noteY,14,10,-0.18,0,Math.PI*2);ksc.fill();
   }
   // Stem
-  ksc.strokeStyle='#FF2D78';ksc.lineWidth=2;ksc.shadowBlur=0;
+  ksc.strokeStyle='#e6317a';ksc.lineWidth=2;ksc.shadowBlur=0;
   const stemUp=info.pos<0||noteY>H/2-20;
   if(stemUp){ksc.beginPath();ksc.moveTo(cx-13,noteY);ksc.lineTo(cx-13,noteY-52);ksc.stroke();}
   else{ksc.beginPath();ksc.moveTo(cx+13,noteY);ksc.lineTo(cx+13,noteY+52);ksc.stroke();}
 
   // Outer glow ring
-  ksc.strokeStyle='#FF2D78';ksc.lineWidth=1.5;ksc.globalAlpha=0.35;
+  ksc.strokeStyle='#e6317a';ksc.lineWidth=1.5;ksc.globalAlpha=0.35;
   ksc.beginPath();ksc.ellipse(cx,noteY,22,17,-0.18,0,Math.PI*2);ksc.stroke();ksc.globalAlpha=1;
 
   // Note label above/below
-  ksc.font='bold 22px "DM Mono",monospace';ksc.fillStyle='#FF2D78';ksc.textAlign='center';
+  ksc.font='bold 22px "DM Mono",monospace';ksc.fillStyle='#e6317a';ksc.textAlign='center';
   ksc.fillText(selectedKey.fullNote,cx,noteY<40?noteY+H-H/3:noteY>H-60?noteY-20:noteY-30);
 
   // Hz label
@@ -1832,7 +1832,7 @@ function drawKeyStaff(selectedKey){
   // Position arrows showing where on staff
   ksc.font='11px "DM Mono",monospace';ksc.fillStyle='#8892A4';ksc.textAlign='right';
   ksc.fillText(info.clef,staffRight-10,noteY+4);
-  ksc.strokeStyle='rgba(255,45,120,0.3)';ksc.lineWidth=1;ksc.setLineDash([4,4]);
+  ksc.strokeStyle='rgba(230,49,122,0.3)';ksc.lineWidth=1;ksc.setLineDash([4,4]);
   ksc.beginPath();ksc.moveTo(cx+20,noteY);ksc.lineTo(staffRight-2,noteY);ksc.stroke();ksc.setLineDash([]);
 }
 drawKeyStaff(null);
