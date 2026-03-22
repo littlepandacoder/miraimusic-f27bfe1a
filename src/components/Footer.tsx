@@ -1,5 +1,6 @@
+import { forwardRef } from "react";
 import { Mail, Phone, MapPin, Instagram, Facebook, Youtube } from "lucide-react";
-const Footer = () => {
+const Footer = forwardRef<HTMLElement>((_, ref) => {
   return <footer id="contact" className="py-16 bg-navy-dark border-t border-border/30">
       <div className="container mx-auto px-4">
         <div className="grid md:grid-cols-4 gap-8 mb-12">
