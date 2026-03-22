@@ -1079,7 +1079,7 @@ function drawPiano(){
   pc.clearRect(0,0,CW,CH);
   whiteKeys2.forEach(k=>{
     const isHov=hoveredKey===k,isAct=activeKey===k,isHL=highlightOctaveNum===k.octave;
-    if(isAct){const g=pc.createLinearGradient(k.x,0,k.x,k.h);g.addColorStop(0,'#FF2D78');g.addColorStop(1,'#AA1D52');pc.fillStyle=g;}
+    if(isAct){const g=pc.createLinearGradient(k.x,0,k.x,k.h);g.addColorStop(0,'#e6317a');g.addColorStop(1,'#a11d52');pc.fillStyle=g;}
     else if(isHL){const oc=octaveData[k.octave-1];pc.fillStyle=oc?oc.pastel:'rgba(255,255,255,0.15)';}
     else if(isHov){pc.fillStyle=k.isC?'#f0e0cc':'#e8e4dc';}
     else{const g=pc.createLinearGradient(k.x,0,k.x+k.w,k.h);if(k.isC){g.addColorStop(0,'#f0edd8');g.addColorStop(1,'#d8d4b0');}else{g.addColorStop(0,'#f8f5ef');g.addColorStop(1,'#e0ddd4');}pc.fillStyle=g;}
