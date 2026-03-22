@@ -1095,7 +1095,7 @@ function drawPiano(){
   blackKeys2.forEach(k=>{
     const isHov=hoveredKey===k,isAct=activeKey===k,isHL=highlightOctaveNum===k.octave;
     let tc,bc;
-    if(isAct){tc='#FF2D78';bc='#AA1D52';}
+    if(isAct){tc='#e6317a';bc='#a11d52';}
     else if(isHL){const oc=octaveData[k.octave-1];tc=oc?oc.color:'#bbb';bc='#888';}
     else if(isHov){tc='#3a3050';bc='#1a1020';}
     else{tc='#141a30';bc='#0b1120';}
