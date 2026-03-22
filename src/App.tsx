@@ -11,6 +11,7 @@ import Login from "./pages/Login";
 import AuthDebug from "./pages/AuthDebug";
 import Pricing from "./pages/Pricing";
 import PianoTheory from "./pages/PianoTheory";
+import SightReading from "./pages/SightReading";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 
