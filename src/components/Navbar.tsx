@@ -30,7 +30,10 @@ const Navbar = () => {
               Pricing
             </Link>
             <Link to="/blog/piano-theory" className="nav-link font-semibold">
-              Blog
+              Piano Theory
+            </Link>
+            <Link to="/blog/sight-reading" className="nav-link font-semibold">
+              Sight Reading
             </Link>
             <Link 
               to="/login" 
