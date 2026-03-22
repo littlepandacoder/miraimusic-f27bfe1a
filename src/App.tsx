@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,15 +6,16 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
-import BookClass from "./pages/BookClass";
-import BookingSuccess from "./pages/BookingSuccess";
-import Login from "./pages/Login";
-import AuthDebug from "./pages/AuthDebug";
-import Pricing from "./pages/Pricing";
-import PianoTheory from "./pages/PianoTheory";
-import SightReading from "./pages/SightReading";
-import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
+
+const BookClass = lazy(() => import("./pages/BookClass"));
+const BookingSuccess = lazy(() => import("./pages/BookingSuccess"));
+const Login = lazy(() => import("./pages/Login"));
+const AuthDebug = lazy(() => import("./pages/AuthDebug"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const PianoTheory = lazy(() => import("./pages/PianoTheory"));
+const SightReading = lazy(() => import("./pages/SightReading"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 
 const queryClient = new QueryClient();
 
