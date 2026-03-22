@@ -26,20 +26,20 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/pricing" element={<Pricing />} />
-            <Route path="/blog/piano-theory" element={<PianoTheory />} />
-            <Route path="/blog/sight-reading" element={<SightReading />} />
-            <Route path="/book-class" element={<BookClass />} />
-            <Route path="/booking-success" element={<BookingSuccess />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/dashboard/*" element={<Dashboard />} />
-            {/* Temporary debug route for auth troubleshooting (remove before production) */}
-            <Route path="/auth-debug" element={<AuthDebug />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Suspense fallback={<div className="min-h-screen bg-background" />}>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/pricing" element={<Pricing />} />
+              <Route path="/blog/piano-theory" element={<PianoTheory />} />
+              <Route path="/blog/sight-reading" element={<SightReading />} />
+              <Route path="/book-class" element={<BookClass />} />
+              <Route path="/booking-success" element={<BookingSuccess />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/dashboard/*" element={<Dashboard />} />
+              <Route path="/auth-debug" element={<AuthDebug />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
