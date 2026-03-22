@@ -78,7 +78,14 @@ const Navbar = () => {
               className="nav-link py-2 font-semibold"
               onClick={() => setIsOpen(false)}
             >
-              Blog
+              Piano Theory
+            </Link>
+            <Link
+              to="/blog/sight-reading"
+              className="nav-link py-2 font-semibold"
+              onClick={() => setIsOpen(false)}
+            >
+              Sight Reading
             </Link>
             <Link
               to="/login"
