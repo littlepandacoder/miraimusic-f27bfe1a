@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sight Reading — Musicable</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+<style>
+:root {
+  --bg:       #0D1117;
+  --bg2:      #131920;
+  --card:     #161C25;
+  --card2:    #1C2430;
+  --border:   rgba(255,255,255,0.08);
+  --pink:     #FF2D78;
+  --pink-dim: rgba(255,45,120,0.15);
+  --sky:      #00D4FF;
+  --green:    #39D98A;
+  --purple:   #A78BFA;
+  --amber:    #F59E0B;
+  --red:      #EF4444;
+  --white:    #FFFFFF;
+  --off-white:#E8ECF0;
+  --muted:    #8892A4;
+  --muted2:   #4A5568;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--off-white);font-family:'Inter',system-ui,sans-serif;font-size:16px;line-height:1.6;overflow-x:hidden;min-height:100vh}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:60px;background:rgba(13,17,23,0.95);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.nav-logo{font-weight:800;font-size:1.15rem;color:var(--white);letter-spacing:-.03em;text-decoration:none}
+.nav-right{display:flex;align-items:center;gap:.8rem}
+.nav-pill{background:var(--pink);color:#fff;font-weight:700;font-size:.75rem;padding:.4rem 1rem;border-radius:100px;text-decoration:none;letter-spacing:.04em;text-transform:uppercase;transition:opacity .2s}
+.nav-pill:hover{opacity:.85}
+.nav-link{color:var(--muted);font-size:.82rem;text-decoration:none;transition:color .2s}
+.nav-link:hover{color:var(--white)}
+.midi-status{display:flex;align-items:center;gap:.4rem;font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted2);padding:.3rem .8rem;border:1px solid var(--border);border-radius:100px}
+.midi-dot{width:7px;height:7px;border-radius:50%;background:var(--muted2);transition:background .3s}
+.midi-dot.connected{background:var(--green);box-shadow:0 0 6px rgba(57,217,138,.6)}
+
+/* ── PAGE ── */
+.page{max-width:1100px;margin:0 auto;padding:80px 2rem 4rem}
+
+/* ── HERO ── */
+.hero-strip{background:linear-gradient(135deg,rgba(255,45,120,.12) 0%,rgba(0,212,255,.06) 100%);border:1px solid var(--border-pink,rgba(255,45,120,.2));border-radius:16px;padding:2rem 2.5rem;margin-bottom:2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.hero-title{font-size:clamp(1.6rem,3vw,2.2rem);font-weight:900;color:var(--white);letter-spacing:-.03em;line-height:1.1}
+.hero-title span{color:var(--pink)}
+.hero-sub{font-size:.9rem;color:var(--muted);margin-top:.35rem}
+.hero-badges{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.8rem}
+.badge{background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--muted);font-size:.72rem;padding:.25rem .75rem;border-radius:100px;font-family:'DM Mono',monospace}
+.badge.pink{background:var(--pink-dim);border-color:rgba(255,45,120,.3);color:var(--pink)}
+.badge.green{background:rgba(57,217,138,.1);border-color:rgba(57,217,138,.3);color:var(--green)}
+
+/* ── LAYOUT ── */
+.main-grid{display:grid;grid-template-columns:1fr 320px;gap:1.5rem;align-items:start}
+@media(max-width:900px){.main-grid{grid-template-columns:1fr}}
+
+/* ── CARD ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.4rem}
+.card-title{font-size:.68rem;font-weight:700;color:var(--pink);letter-spacing:.12em;text-transform:uppercase;font-family:'DM Mono',monospace;margin-bottom:1rem;display:flex;align-items:center;gap:.4rem}
+.card-title::before{content:'';width:14px;height:1px;background:var(--pink)}
+
+/* ── SETTINGS ── */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1rem}
+.setting-group label{display:block;font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.4rem}
+.seg-control{display:flex;gap:1px;background:var(--bg2);border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.seg-btn{flex:1;padding:.45rem .5rem;font-family:'DM Mono',monospace;font-size:.72rem;font-weight:500;color:var(--muted);background:transparent;border:none;cursor:pointer;transition:all .15s;text-align:center}
+.seg-btn.active{background:var(--pink);color:#fff}
+.seg-btn:hover:not(.active){background:rgba(255,255,255,.05);color:var(--off-white)}
+.range-row{display:flex;align-items:center;gap:.6rem}
+.range-select{flex:1;background:var(--card2);border:1px solid var(--border);color:var(--off-white);padding:.45rem .7rem;border-radius:8px;font-family:'DM Mono',monospace;font-size:.75rem;outline:none;cursor:pointer}
+.range-select:focus{border-color:var(--pink)}
+.start-btn{width:100%;padding:.8rem;background:var(--pink);color:#fff;font-weight:800;font-size:.9rem;border:none;border-radius:10px;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;transition:opacity .2s,transform .2s;margin-top:.5rem}
+.start-btn:hover{opacity:.88;transform:scale(1.02)}
+.start-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+
+/* ── STAFF DISPLAY ── */
+.staff-area{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:1.2rem;margin-bottom:1.2rem;position:relative;min-height:200px;display:flex;align-items:center;justify-content:center}
+#staffCanvas{width:100%;height:auto;display:block;border-radius:6px}
+
+/* ── ANSWER KEYBOARD ── */
+.answer-section{margin-bottom:1.2rem}
+.answer-label{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.7rem}
+.note-btns{display:grid;grid-template-columns:repeat(7,1fr);gap:.4rem}
+.note-btn{padding:.6rem .3rem;background:var(--card2);border:1px solid var(--border);color:var(--off-white);font-weight:700;font-size:.85rem;border-radius:8px;cursor:pointer;transition:all .15s;text-align:center;font-family:'Inter',sans-serif}
+.note-btn:hover{border-color:var(--pink);color:var(--pink);background:var(--pink-dim)}
+.note-btn.correct{background:rgba(57,217,138,.2);border-color:var(--green);color:var(--green) !important;animation:pulse-green .4s ease}
+.note-btn.wrong{background:rgba(239,68,68,.15);border-color:var(--red);color:var(--red) !important;animation:shake .3s ease}
+.note-btn:disabled{opacity:.35;cursor:not-allowed}
+@keyframes pulse-green{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+/* ── FEEDBACK BANNER ── */
+.feedback-banner{border-radius:10px;padding:.9rem 1.2rem;margin-bottom:1rem;display:flex;align-items:center;gap:.8rem;font-weight:600;font-size:.9rem;min-height:52px;transition:all .3s;opacity:0;transform:translateY(-6px)}
+.feedback-banner.show{opacity:1;transform:translateY(0)}
+.feedback-banner.correct{background:rgba(57,217,138,.12);border:1px solid rgba(57,217,138,.3);color:var(--green)}
+.feedback-banner.wrong{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:var(--red)}
+.feedback-banner.slow{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.25);color:var(--amber)}
+.feedback-icon{font-size:1.2rem;flex-shrink:0}
+
+/* ── TIMER RING ── */
+.timer-wrap{display:flex;flex-direction:column;align-items:center;gap:.4rem;margin-bottom:1rem}
+.timer-ring-svg{transform:rotate(-90deg)}
+.timer-ring-bg{fill:none;stroke:rgba(255,255,255,.06);stroke-width:5}
+.timer-ring-fill{fill:none;stroke-width:5;stroke-linecap:round;stroke-dasharray:220;stroke-dashoffset:220;transition:stroke-dashoffset .1s linear,stroke .5s}
+.timer-text{font-family:'DM Mono',monospace;font-size:1.4rem;font-weight:500;color:var(--white);text-align:center;line-height:1}
+.timer-sublabel{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted2);letter-spacing:.1em;text-align:center}
+
+/* ── STATS ── */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;margin-bottom:.8rem}
+.stat-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:.8rem;text-align:center}
+.stat-val{font-family:'DM Mono',monospace;font-size:1.4rem;font-weight:500;color:var(--pink);line-height:1;margin-bottom:.2rem}
+.stat-lbl{font-size:.7rem;color:var(--muted2);letter-spacing:.04em}
+.accuracy-bar-wrap{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;margin-top:.3rem}
+.accuracy-bar{height:100%;background:var(--green);border-radius:3px;transition:width .5s ease;width:0%}
+
+/* ── SESSION LOG ── */
+.session-log{max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:.4rem}
+.session-log::-webkit-scrollbar{width:4px}
+.session-log::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.log-row{display:flex;align-items:center;justify-content:space-between;padding:.4rem .6rem;background:var(--bg2);border-radius:6px;font-size:.78rem}
+.log-note{font-family:'DM Mono',monospace;font-weight:500;color:var(--off-white)}
+.log-time{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted2)}
+.log-result{font-size:.72rem;font-weight:600}
+.log-result.ok{color:var(--green)}.log-result.no{color:var(--red)}.log-result.slow{color:var(--amber)}
+.log-empty{text-align:center;color:var(--muted2);font-size:.82rem;padding:1.5rem 0;font-style:italic}
+
+/* ── AI ANALYSIS PANEL ── */
+.ai-panel{background:linear-gradient(135deg,rgba(167,139,250,.08),rgba(0,212,255,.05));border:1px solid rgba(167,139,250,.2);border-radius:14px;padding:1.4rem;margin-top:1rem}
+.ai-header{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem}
+.ai-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--purple),var(--sky));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.ai-title{font-weight:700;font-size:.88rem;color:var(--white)}
+.ai-subtitle{font-size:.72rem;color:var(--muted);font-family:'DM Mono',monospace}
+.ai-body{font-size:.85rem;color:var(--muted);line-height:1.65}
+.ai-body p{margin-bottom:.6rem}
+.ai-body p:last-child{margin-bottom:0}
+.ai-body strong{color:var(--off-white)}
+.ai-loading{display:flex;align-items:center;gap:.6rem;color:var(--muted);font-size:.82rem}
+.ai-spinner{width:16px;height:16px;border:2px solid rgba(167,139,250,.2);border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ai-chips{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.8rem}
+.ai-chip{background:rgba(167,139,250,.1);border:1px solid rgba(167,139,250,.25);color:var(--purple);font-family:'DM Mono',monospace;font-size:.68rem;padding:.2rem .6rem;border-radius:100px}
+.ai-chip.good{background:rgba(57,217,138,.08);border-color:rgba(57,217,138,.2);color:var(--green)}
+.ai-chip.warn{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2);color:var(--amber)}
+.analyse-btn{display:flex;align-items:center;gap:.5rem;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);color:var(--purple);font-family:'DM Mono',monospace;font-size:.75rem;font-weight:500;padding:.5rem 1rem;border-radius:8px;cursor:pointer;transition:all .2s;margin-top:.8rem}
+.analyse-btn:hover{background:rgba(167,139,250,.2)}
+.analyse-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── MIDI KEYBOARD VISUAL ── */
+.midi-kb-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:.8rem;margin-bottom:.8rem;overflow:hidden}
+#midiKbCanvas{width:100%;height:auto;display:block;border-radius:4px;cursor:pointer}
+.midi-hint{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted2);text-align:center;margin-top:.4rem}
+
+/* ── PROGRESS BAR ── */
+.progress-track{height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-bottom:1rem;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--pink),var(--purple));border-radius:2px;transition:width .4s ease;width:0%}
+
+/* ── STREAK ── */
+.streak-display{display:flex;align-items:center;gap:.5rem;padding:.5rem .9rem;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;margin-bottom:.8rem}
+.streak-icon{font-size:1rem}
+.streak-text{font-family:'DM Mono',monospace;font-size:.75rem;color:var(--amber);font-weight:500}
+
+/* ── IDLE OVERLAY ── */
+.idle-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6rem;border-radius:12px;background:rgba(13,17,23,.7)}
+.idle-icon{font-size:2.5rem}
+.idle-text{font-size:.88rem;color:var(--muted);font-family:'DM Mono',monospace;text-align:center}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--pink);color:#fff;border-radius:10px;padding:.7rem 1.4rem;font-size:.85rem;font-weight:600;opacity:0;transition:all .35s cubic-bezier(.34,1.56,.64,1);z-index:999;pointer-events:none;white-space:nowrap}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:680px){.note-btns{grid-template-columns:repeat(4,1fr)}.settings-grid{grid-template-columns:1fr}nav{padding:0 1rem}}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="https://www.musicable.app/" class="nav-logo">Musicable</a>
+  <div class="nav-right">
+    <div class="midi-status" id="midiStatus">
+      <div class="midi-dot" id="midiDot"></div>
+      <span id="midiLabel">MIDI: off</span>
+    </div>
+    <a href="https://www.musicable.app/#blogs" class="nav-link">← Theory Guide</a>
+    <a href="https://www.musicable.app/" class="nav-pill">Book a Class</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero-strip">
+    <div>
+      <div class="hero-title">Sight Reading <span>Trainer</span></div>
+      <div class="hero-sub">Identify notes on the staff as fast as you can. AI analyses your session.</div>
+      <div class="hero-badges">
+        <span class="badge pink">AI Analysis</span>
+        <span class="badge green">MIDI Ready</span>
+        <span class="badge">Treble &amp; Bass Clef</span>
+        <span class="badge">Response Timer</span>
+        <span class="badge">Accuracy Tracking</span>
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted2);margin-bottom:.3rem">SESSION</div>
+      <div id="sessionCounter" style="font-family:'DM Mono',monospace;font-size:2rem;font-weight:500;color:var(--white);line-height:1">0 / 0</div>
+      <div style="font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted2);margin-top:.2rem">correct / total</div>
+    </div>
+  </div>
+
+  <div class="main-grid">
+
+    <!-- LEFT: Staff + Answer -->
+    <div>
+
+      <!-- Staff display -->
+      <div class="staff-area">
+        <canvas id="staffCanvas" width="700" height="200"></canvas>
+        <div class="idle-overlay" id="idleOverlay">
+          <div class="idle-icon">🎼</div>
+          <div class="idle-text">Configure settings and press<br/><strong style="color:var(--pink)">Start Session</strong></div>
+        </div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="feedback-banner" id="feedbackBanner">
+        <span class="feedback-icon" id="feedbackIcon"></span>
+        <div>
+          <div id="feedbackMain"></div>
+          <div id="feedbackSub" style="font-size:.78rem;opacity:.75;margin-top:.1rem"></div>
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+      <!-- MIDI mini keyboard -->
+      <div class="midi-kb-wrap">
+        <div class="card-title" style="margin-bottom:.6rem">🎹 Play on keyboard · click or use MIDI</div>
+        <canvas id="midiKbCanvas" width="700" height="80"></canvas>
+        <div class="midi-hint">Click a key or press your MIDI keyboard · White keys only shown for note names</div>
+      </div>
+
+      <!-- Clickable note name buttons -->
+      <div class="answer-section">
+        <div class="answer-label">Or click the note name →</div>
+        <div class="note-btns" id="noteBtns">
+          <button class="note-btn" data-note="C">C</button>
+          <button class="note-btn" data-note="D">D</button>
+          <button class="note-btn" data-note="E">E</button>
+          <button class="note-btn" data-note="F">F</button>
+          <button class="note-btn" data-note="G">G</button>
+          <button class="note-btn" data-note="A">A</button>
+          <button class="note-btn" data-note="B">B</button>
+        </div>
+      </div>
+
+      <!-- AI Analysis -->
+      <div class="ai-panel" id="aiPanel">
+        <div class="ai-header">
+          <div class="ai-icon">✦</div>
+          <div>
+            <div class="ai-title">AI Session Analysis</div>
+            <div class="ai-subtitle">Powered by Claude · Per-session insights</div>
+          </div>
+        </div>
+        <div class="ai-body" id="aiBody">
+          <p style="color:var(--muted2);font-style:italic">Complete at least 5 notes to unlock AI analysis of your session.</p>
+        </div>
+        <button class="analyse-btn" id="analyseBtn" onclick="runAIAnalysis()" disabled>
+          <span>✦</span> Analyse My Session
+        </button>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: Settings + Stats -->
+    <div>
+
+      <!-- Settings card -->
+      <div class="card" style="margin-bottom:1rem">
+        <div class="card-title">⚙ Settings</div>
+
+        <div class="settings-grid">
+          <div class="setting-group">
+            <label>Clef</label>
+            <div class="seg-control">
+              <button class="seg-btn active" data-clef="treble" onclick="setClef('treble',this)">Treble</button>
+              <button class="seg-btn" data-clef="bass" onclick="setClef('bass',this)">Bass</button>
+              <button class="seg-btn" data-clef="both" onclick="setClef('both',this)">Both</button>
+            </div>
+          </div>
+          <div class="setting-group">
+            <label>Difficulty</label>
+            <div class="seg-control">
+              <button class="seg-btn active" data-diff="beginner" onclick="setDiff('beginner',this)">Easy</button>
+              <button class="seg-btn" data-diff="intermediate" onclick="setDiff('intermediate',this)">Mid</button>
+              <button class="seg-btn" data-diff="advanced" onclick="setDiff('advanced',this)">Hard</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="setting-group" style="margin-bottom:.8rem">
+          <label>Note Range</label>
+          <div class="range-row">
+            <select class="range-select" id="rangeFrom">
+              <option value="C2">C2</option><option value="D2">D2</option><option value="E2">E2</option>
+              <option value="F2">F2</option><option value="G2">G2</option><option value="A2">A2</option>
+              <option value="B2">B2</option><option value="C3">C3</option><option value="D3">D3</option>
+              <option value="E3">E3</option><option value="F3">F3</option><option value="G3">G3</option>
+              <option value="A3">A3</option><option value="B3">B3</option>
+              <option value="C4" selected>C4</option>
+              <option value="D4">D4</option><option value="E4">E4</option><option value="F4">F4</option>
+            </select>
+            <span style="color:var(--muted2);font-size:.8rem">to</span>
+            <select class="range-select" id="rangeTo">
+              <option value="E4">E4</option><option value="F4">F4</option><option value="G4">G4</option>
+              <option value="A4">A4</option><option value="B4" selected>B4</option>
+              <option value="C5">C5</option><option value="D5">D5</option><option value="E5">E5</option>
+              <option value="F5">F5</option><option value="G5">G5</option><option value="A5">A5</option>
+              <option value="B5">B5</option><option value="C6">C6</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="setting-group" style="margin-bottom:.8rem">
+          <label>Questions per session</label>
+          <div class="seg-control">
+            <button class="seg-btn" data-count="5" onclick="setCount(5,this)">5</button>
+            <button class="seg-btn active" data-count="10" onclick="setCount(10,this)">10</button>
+            <button class="seg-btn" data-count="20" onclick="setCount(20,this)">20</button>
+            <button class="seg-btn" data-count="0" onclick="setCount(0,this)">∞</button>
+          </div>
+        </div>
+
+        <div class="setting-group" style="margin-bottom:.8rem">
+          <label>Include sharps / flats</label>
+          <div class="seg-control">
+            <button class="seg-btn active" data-acc="natural" onclick="setAcc('natural',this)">Natural only</button>
+            <button class="seg-btn" data-acc="all" onclick="setAcc('all',this)">With ♯/♭</button>
+          </div>
+        </div>
+
+        <button class="start-btn" id="startBtn" onclick="startSession()">▶ Start Session</button>
+        <button class="start-btn" id="stopBtn" onclick="stopSession()" style="display:none;background:var(--card2);border:1px solid var(--border);color:var(--muted)">⏹ End Session</button>
+      </div>
+
+      <!-- Timer -->
+      <div class="card" style="margin-bottom:1rem">
+        <div class="card-title">⏱ Response Timer</div>
+        <div class="timer-wrap">
+          <svg width="80" height="80" class="timer-ring-svg">
+            <circle class="timer-ring-bg" cx="40" cy="40" r="35"/>
+            <circle class="timer-ring-fill" id="timerRing" cx="40" cy="40" r="35" stroke="#FF2D78" stroke-dasharray="220" stroke-dashoffset="220"/>
+          </svg>
+          <div class="timer-text" id="timerText">—</div>
+          <div class="timer-sublabel">SECONDS</div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted2);text-align:center">Limit: 3.0s · Faster = better score</div>
+      </div>
+
+      <!-- Live stats -->
+      <div class="card" style="margin-bottom:1rem">
+        <div class="card-title">📊 Live Stats</div>
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="stat-val" id="statAcc">—</div>
+            <div class="stat-lbl">accuracy</div>
+            <div class="accuracy-bar-wrap"><div class="accuracy-bar" id="accBar"></div></div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" id="statAvgTime">—</div>
+            <div class="stat-lbl">avg time</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-val" id="statStreak">0</div>
+            <div class="stat-lbl">streak</div>
+          </div>
+        </div>
+        <div class="streak-display" id="streakDisplay" style="display:none">
+          <div class="streak-icon">🔥</div>
+          <div class="streak-text" id="streakText">3 in a row!</div>
+        </div>
+      </div>
+
+      <!-- Session log -->
+      <div class="card">
+        <div class="card-title">📋 Session Log</div>
+        <div class="session-log" id="sessionLog">
+          <div class="log-empty">No answers yet — start a session!</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════════════════════
+   TONE.JS AUDIO  — correct async Reverb initialisation
+═══════════════════════════════════════════════════════════ */
+const limiter    = new Tone.Limiter(-3).toDestination();
+const pianoReverb = new Tone.Reverb({ decay: 1.2, wet: 0.18 });
+pianoReverb.connect(limiter);
+
+// PolySynth → reverb → limiter  (single signal path, no double-connect)
+const pianoSynth = new Tone.PolySynth(Tone.Synth, {
+  oscillator: { type: 'triangle' },
+  envelope:   { attack: 0.005, decay: 0.3, sustain: 0.35, release: 1.0 },
+  volume: -10,
+});
+// Wait for reverb IR to generate before connecting, then connect properly
+pianoReverb.ready.then(() => {
+  pianoSynth.connect(pianoReverb);
+}).catch(() => {
+  // Fallback: connect directly to limiter if reverb fails
+  pianoSynth.connect(limiter);
+});
+
+const correctSynth = new Tone.Synth({
+  oscillator: { type: 'sine' },
+  envelope:   { attack: 0.01, decay: 0.1, sustain: 0.3, release: 0.4 },
+  volume: -14,
+}).connect(limiter);
+
+const wrongSynth = new Tone.Synth({
+  oscillator: { type: 'sawtooth' },
+  envelope:   { attack: 0.01, decay: 0.15, sustain: 0, release: 0.2 },
+  volume: -18,
+}).connect(limiter);
+
+async function ensureAudio() {
+  if (Tone.context.state !== 'running') await Tone.start();
+}
+
+function playNote(hz, dur = 0.8) {
+  if (!hz || isNaN(hz)) return;
+  ensureAudio().then(() => pianoSynth.triggerAttackRelease(hz, dur, Tone.now()));
+}
+
+function playCorrect() {
+  ensureAudio().then(() => {
+    const now = Tone.now();
+    correctSynth.triggerAttackRelease('C5', '8n', now);
+    correctSynth.triggerAttackRelease('E5', '8n', now + 0.12);
+  });
+}
+
+function playWrong() {
+  ensureAudio().then(() => wrongSynth.triggerAttackRelease('A2', '8n', Tone.now()));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   NOTE DATA
+═══════════════════════════════════════════════════════════ */
+const NOTE_ORDER    = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+const NOTE_CHROMATIC = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+
+/** Convert note name + octave → Hz. Returns 0 on bad input. */
+function noteHz(note, octave) {
+  if (!note || octave == null) return 0;
+  const base    = note.replace('#', '').replace('b', '');
+  const isSharp = note.includes('#');
+  const isFlat  = note.includes('b');
+  let chromIdx;
+  if (isSharp) {
+    chromIdx = NOTE_CHROMATIC.indexOf(base + '#');
+  } else if (isFlat) {
+    chromIdx = NOTE_CHROMATIC.indexOf(base) - 1;
+  } else {
+    chromIdx = NOTE_CHROMATIC.indexOf(base);
+  }
+  if (chromIdx < 0) return 0;              // guard: unknown note name
+  const steps = (octave - 4) * 12 + chromIdx - 9;
+  return Math.round(440 * Math.pow(2, steps / 12));
+}
+
+/** Diatonic steps from C4 (Middle C) — used for staff placement */
+function diatonicStepsFromC4(note, octave) {
+  const base = note.replace('#', '').replace('b', '');
+  const idx  = NOTE_ORDER.indexOf(base);
+  if (idx < 0) return 0;
+  return (octave - 4) * 7 + idx;
+}
+
+/** Build pool of note objects for the selected range + clef */
+function buildNotePool(fromStr, toStr, clef, includeAccidentals) {
+  const pool = [];
+  const from = parseNoteStr(fromStr);
+  const to   = parseNoteStr(toStr);
+  if (!from || !to) return pool;
+
+  const fromVal = from.octave * 7 + NOTE_ORDER.indexOf(from.note);
+  const toVal   = to.octave   * 7 + NOTE_ORDER.indexOf(to.note);
+
+  for (let oct = from.octave; oct <= to.octave; oct++) {
+    for (let ni = 0; ni < NOTE_ORDER.length; ni++) {
+      const note    = NOTE_ORDER[ni];
+      const thisVal = oct * 7 + ni;
+      if (thisVal < fromVal || thisVal > toVal) continue;
+
+      const dSteps = diatonicStepsFromC4(note, oct);
+      if (clef === 'treble' && dSteps < -2) continue;
+      if (clef === 'bass'   && dSteps >  2) continue;
+
+      pool.push({ note, octave: oct, accidental: null });
+
+      if (includeAccidentals && !['E', 'B'].includes(note)) {
+        pool.push({ note, octave: oct, accidental: '#' });
+      }
+    }
+  }
+  return pool;
+}
+
+function parseNoteStr(str) {
+  if (!str || str.length < 2) return null;
+  const note   = str.slice(0, -1);
+  const octave = parseInt(str.slice(-1), 10);
+  if (!NOTE_ORDER.includes(note) || isNaN(octave)) return null;
+  return { note, octave };
+}
+
+/* ═══════════════════════════════════════════════════════════
+   APP STATE
+═══════════════════════════════════════════════════════════ */
+let state = {
+  running:       false,
+  clef:          'treble',
+  difficulty:    'beginner',
+  count:         10,
+  accidentals:   'natural',
+  currentNote:   null,
+  currentClef:   'treble',
+  questionNum:   0,
+  totalQ:        0,
+  correct:       0,
+  streak:        0,
+  bestStreak:    0,
+  questionStart: 0,
+  timerRAF:      null,
+  log:           [],
+  notePool:      [],
+  answered:      false,
+};
+
+/* ═══════════════════════════════════════════════════════════
+   SETTINGS
+═══════════════════════════════════════════════════════════ */
+function setClef(v, btn) {
+  state.clef = v;
+  document.querySelectorAll('[data-clef]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function setDiff(v, btn) {
+  state.difficulty = v;
+  document.querySelectorAll('[data-diff]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function setCount(v, btn) {
+  state.count = v;
+  document.querySelectorAll('[data-count]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+function setAcc(v, btn) {
+  state.accidentals = v;
+  document.querySelectorAll('[data-acc]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SESSION CONTROL
+═══════════════════════════════════════════════════════════ */
+function startSession() {
+  ensureAudio();
+  const from   = document.getElementById('rangeFrom').value;
+  const to     = document.getElementById('rangeTo').value;
+  const incAcc = state.accidentals === 'all';
+
+  state.notePool = buildNotePool(from, to, state.clef, incAcc);
+  if (state.notePool.length === 0) {
+    showToast('⚠ No notes in that range for this clef — adjust settings');
+    return;
+  }
+
+  state.running     = true;
+  state.questionNum = 0;
+  state.totalQ      = 0;
+  state.correct     = 0;
+  state.streak      = 0;
+  state.bestStreak  = 0;
+  state.log         = [];
+  state.answered    = false;
+
+  document.getElementById('startBtn').style.display  = 'none';
+  document.getElementById('stopBtn').style.display   = 'block';
+  document.getElementById('idleOverlay').style.display = 'none';
+  document.getElementById('sessionLog').innerHTML    = '<div class="log-empty" style="opacity:.5">Session started…</div>';
+  document.getElementById('aiBody').innerHTML        = '<p style="color:var(--muted2);font-style:italic">Complete at least 5 notes to unlock AI analysis.</p>';
+  document.getElementById('analyseBtn').disabled     = true;
+  hideFeedback();
+  updateStats();
+  nextQuestion();
+}
+
+function stopSession() {
+  state.running = false;
+  cancelAnimationFrame(state.timerRAF);
+  setTimerDisplay(null);
+  document.getElementById('startBtn').style.display = 'block';
+  document.getElementById('stopBtn').style.display  = 'none';
+  document.getElementById('idleOverlay').style.display = 'flex';
+  setButtonsDisabled(true);
+  drawStaff(null, null);
+  drawMiniKb(null);
+  updateStats();
+  if (state.log.length >= 3) document.getElementById('analyseBtn').disabled = false;
+}
+
+function nextQuestion() {
+  if (!state.running) return;
+  if (state.count > 0 && state.questionNum >= state.count) {
+    sessionComplete();
+    return;
+  }
+
+  state.questionNum++;
+  state.totalQ++;
+  state.answered = false;
+
+  // Pick random note from pool
+  const pick = state.notePool[Math.floor(Math.random() * state.notePool.length)];
+  const noteLabel = pick.note + (pick.accidental || '');
+  state.currentNote = {
+    ...pick,
+    label:   noteLabel,
+    display: noteLabel + pick.octave,
+  };
+
+  // Determine clef
+  if (state.clef === 'both') {
+    const dSteps = diatonicStepsFromC4(pick.note, pick.octave);
+    state.currentClef = dSteps >= 0 ? 'treble' : 'bass';
+  } else {
+    state.currentClef = state.clef;
+  }
+
+  drawStaff(state.currentNote, state.currentClef);
+  drawMiniKb(null);
+
+  // Play the note so they can also hear it
+  const hz = noteHz(pick.note + (pick.accidental || ''), pick.octave);
+  playNote(hz, 0.6);
+
+  // Progress bar
+  if (state.count > 0) {
+    document.getElementById('progressFill').style.width =
+      ((state.questionNum - 1) / state.count * 100) + '%';
+  }
+  document.getElementById('sessionCounter').textContent =
+    `${state.correct} / ${state.totalQ}`;
+
+  setButtonsDisabled(false);
+  hideFeedback();
+  state.questionStart = performance.now();
+  startTimer();
+}
+
+function setButtonsDisabled(disabled) {
+  document.querySelectorAll('.note-btn').forEach(b => { b.disabled = disabled; });
+}
+
+function handleAnswer(guessNote) {
+  if (!state.running || state.answered) return;
+  state.answered = true;
+  cancelAnimationFrame(state.timerRAF);
+
+  const elapsed   = (performance.now() - state.questionStart) / 1000;
+  const isTimeout = guessNote === '__TIMEOUT__';
+  const correct   = !isTimeout && guessNote === state.currentNote.note;
+  const tooSlow   = elapsed > 3.0;
+  const win       = correct && !tooSlow;
+
+  setTimerDisplay(elapsed, elapsed <= 1.5 ? 'green' : elapsed <= 3 ? 'amber' : 'red');
+  setButtonsDisabled(true);
+
+  // Highlight on mini keyboard (skip for timeout)
+  if (!isTimeout) drawMiniKb({ note: guessNote, correct: win });
+
+  // Colour the pressed button
+  if (!isTimeout) {
+    const btn = document.querySelector(`.note-btn[data-note="${guessNote}"]`);
+    if (btn) btn.classList.add(win ? 'correct' : 'wrong');
+  }
+
+  // Always show the correct answer
+  if (!win) {
+    const correctBtn = document.querySelector(`.note-btn[data-note="${state.currentNote.note}"]`);
+    if (correctBtn) correctBtn.classList.add('correct');
+  }
+
+  if (win)  playCorrect();
+  else      playWrong();
+
+  // Update state
+  if (win) {
+    state.correct++;
+    state.streak++;
+    if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+  } else {
+    state.streak = 0;
+  }
+
+  // Feedback message
+  if (isTimeout) {
+    showFeedback('slow', '⏰',
+      "Too slow — keep practising!",
+      `Your response time is more than 3 seconds. The note was ${state.currentNote.display}`);
+  } else if (tooSlow && correct) {
+    showFeedback('slow', '⏰',
+      "Correct note, but too slow!",
+      `${elapsed.toFixed(1)}s — your response time is more than 3 seconds, keep practising`);
+  } else if (win) {
+    const speed = elapsed < 1 ? 'Lightning fast! ⚡' : elapsed < 2 ? 'Nice!' : 'Correct!';
+    showFeedback('correct', '✓',
+      `${speed} That's ${state.currentNote.display}`,
+      `${elapsed.toFixed(2)}s · Streak: ${state.streak}🔥`);
+  } else {
+    showFeedback('wrong', '✗',
+      `Not quite — it was ${state.currentNote.display}`,
+      `You guessed ${guessNote} · ${elapsed.toFixed(2)}s`);
+  }
+
+  // Log
+  const result = tooSlow || isTimeout ? 'slow' : win ? 'ok' : 'no';
+  state.log.push({
+    note:    state.currentNote.display,
+    guess:   isTimeout ? '(timeout)' : guessNote,
+    time:    elapsed,
+    correct: win,
+    tooSlow: tooSlow || isTimeout,
+    result,
+  });
+  appendLogRow(state.log[state.log.length - 1]);
+  updateStats();
+
+  if (state.log.length >= 5) document.getElementById('analyseBtn').disabled = false;
+
+  setTimeout(() => {
+    resetNoteButtons();
+    nextQuestion();
+  }, 1200);
+}
+
+function sessionComplete() {
+  state.running = false;
+  setButtonsDisabled(true);
+  document.getElementById('startBtn').style.display = 'block';
+  document.getElementById('stopBtn').style.display  = 'none';
+
+  const acc = state.totalQ > 0 ? Math.round((state.correct / state.totalQ) * 100) : 0;
+  showFeedback('correct', '🏆',
+    `Session complete! ${acc}% accuracy`,
+    `${state.correct}/${state.totalQ} correct · Best streak: ${state.bestStreak}`);
+  document.getElementById('progressFill').style.width = '100%';
+
+  const overlay = document.getElementById('idleOverlay');
+  overlay.style.display = 'flex';
+  overlay.querySelector('.idle-icon').textContent = '🏆';
+  overlay.querySelector('.idle-text').innerHTML =
+    `<strong style="color:var(--green)">${acc}% accuracy</strong><br><span>Press Start for a new session</span>`;
+
+  if (state.log.length >= 3) document.getElementById('analyseBtn').disabled = false;
+  showToast(`🏆 Session done! ${acc}% accuracy`);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TIMER
+═══════════════════════════════════════════════════════════ */
+const TIMER_LIMIT = 3.0;
+const RING_CIRCUM = 2 * Math.PI * 35; // 219.9
+
+function startTimer() {
+  cancelAnimationFrame(state.timerRAF);
+  const t0 = performance.now();
+
+  function tick() {
+    if (!state.running || state.answered) return;
+    const elapsed  = (performance.now() - t0) / 1000;
+    const fraction = Math.min(elapsed / TIMER_LIMIT, 1);
+    const offset   = RING_CIRCUM * (1 - fraction);
+
+    const ring = document.getElementById('timerRing');
+    const text = document.getElementById('timerText');
+    ring.style.strokeDashoffset = offset;
+    ring.style.stroke = elapsed < 1.5 ? '#39D98A' : elapsed < 2.5 ? '#F59E0B' : '#EF4444';
+    text.textContent  = elapsed.toFixed(1);
+    text.style.color  = elapsed > 2.5 ? '#EF4444' : 'var(--white)';
+
+    if (elapsed >= TIMER_LIMIT) {
+      ring.style.strokeDashoffset = 0;
+      text.textContent = '3.0';
+      if (!state.answered) handleAnswer('__TIMEOUT__');
+      return;
+    }
+    state.timerRAF = requestAnimationFrame(tick);
+  }
+  state.timerRAF = requestAnimationFrame(tick);
+}
+
+function setTimerDisplay(val, color = 'white') {
+  const ring = document.getElementById('timerRing');
+  const text = document.getElementById('timerText');
+  if (val === null) {
+    ring.style.strokeDashoffset = RING_CIRCUM;
+    ring.style.stroke = '#FF2D78';
+    text.textContent  = '—';
+    text.style.color  = 'var(--white)';
+    return;
+  }
+  ring.style.strokeDashoffset = RING_CIRCUM * (1 - Math.min(val / TIMER_LIMIT, 1));
+  ring.style.stroke = color === 'green' ? '#39D98A' : color === 'amber' ? '#F59E0B' : '#EF4444';
+  text.textContent  = val.toFixed(2);
+  text.style.color  = color === 'red' ? '#EF4444' : 'var(--white)';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FEEDBACK
+═══════════════════════════════════════════════════════════ */
+function showFeedback(type, icon, main, sub) {
+  const banner = document.getElementById('feedbackBanner');
+  banner.className = `feedback-banner ${type} show`;
+  document.getElementById('feedbackIcon').textContent = icon;
+  document.getElementById('feedbackMain').textContent = main;
+  document.getElementById('feedbackSub').textContent  = sub || '';
+}
+function hideFeedback() {
+  document.getElementById('feedbackBanner').className = 'feedback-banner';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STATS
+═══════════════════════════════════════════════════════════ */
+function updateStats() {
+  const acc   = state.totalQ > 0 ? Math.round((state.correct / state.totalQ) * 100) : 0;
+  const times = state.log.map(l => l.time);
+  const avg   = times.length
+    ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(2)
+    : '—';
+
+  document.getElementById('statAcc').textContent     = state.totalQ > 0 ? acc + '%' : '—';
+  document.getElementById('statAvgTime').textContent = avg === '—' ? '—' : avg + 's';
+  document.getElementById('statStreak').textContent  = state.streak;
+  document.getElementById('accBar').style.width      = acc + '%';
+  document.getElementById('accBar').style.background = acc >= 80 ? 'var(--green)' : acc >= 50 ? 'var(--amber)' : 'var(--red)';
+  document.getElementById('sessionCounter').textContent = `${state.correct} / ${state.totalQ}`;
+
+  const sd = document.getElementById('streakDisplay');
+  if (state.streak >= 3) {
+    sd.style.display = 'flex';
+    document.getElementById('streakText').textContent = `${state.streak} correct in a row! 🔥`;
+  } else {
+    sd.style.display = 'none';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SESSION LOG
+═══════════════════════════════════════════════════════════ */
+function appendLogRow(entry) {
+  const container = document.getElementById('sessionLog');
+  const empty = container.querySelector('.log-empty');
+  if (empty) empty.remove();
+
+  const resultLabels = { ok: '✓ correct', no: '✗ wrong', slow: '⏰ slow' };
+  const row = document.createElement('div');
+  row.className = 'log-row';
+  row.innerHTML = `
+    <span class="log-note">${entry.note}</span>
+    <span class="log-time">${entry.time.toFixed(2)}s</span>
+    <span class="log-result ${entry.result}">${resultLabels[entry.result] || entry.result}</span>
+  `;
+  container.insertBefore(row, container.firstChild);
+}
+
+function resetNoteButtons() {
+  document.querySelectorAll('.note-btn').forEach(b => {
+    b.classList.remove('correct', 'wrong');
+    b.disabled = false;
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STAFF CANVAS
+═══════════════════════════════════════════════════════════ */
+const staffCanvas = document.getElementById('staffCanvas');
+const sCtx        = staffCanvas.getContext('2d');
+const SW = 700, SH = 200;
+
+function drawStaff(noteObj, clef) {
+  sCtx.clearRect(0, 0, SW, SH);
+  sCtx.fillStyle = '#0D1117';
+  sCtx.fillRect(0, 0, SW, SH);
+
+  if (!noteObj) return;           // early exit — nothing to draw
+
+  const isTreble   = clef === 'treble';
+  const lineGap    = 16;
+  const staffTop   = isTreble ? 55 : 85;
+  const staffLeft  = 80;
+  const staffW     = SW - 100;
+  const stepSize   = lineGap / 2;
+
+  // Staff lines
+  sCtx.strokeStyle = '#2a3a4a';
+  sCtx.lineWidth   = 1.5;
+  for (let i = 0; i < 5; i++) {
+    sCtx.beginPath();
+    sCtx.moveTo(staffLeft, staffTop + i * lineGap);
+    sCtx.lineTo(staffLeft + staffW, staffTop + i * lineGap);
+    sCtx.stroke();
+  }
+
+  // Clef
+  sCtx.font      = '72px serif';
+  sCtx.textAlign = 'left';
+  if (isTreble) {
+    sCtx.fillStyle = '#00D4FF';
+    sCtx.fillText('𝄞', staffLeft - 56, staffTop + 4 * lineGap + 6);
+  } else {
+    sCtx.fillStyle = '#FF2D78';
+    sCtx.fillText('𝄢', staffLeft - 50, staffTop + 2 * lineGap + 6);
+  }
+
+  // Clef label
+  sCtx.font      = '10px "DM Mono",monospace';
+  sCtx.fillStyle = isTreble ? '#00D4FF' : '#FF2D78';
+  sCtx.fillText(isTreble ? 'TREBLE CLEF' : 'BASS CLEF', staffLeft + 5, staffTop - 12);
+  sCtx.fillText(`Q${state.questionNum}`, staffLeft + 5, staffTop - 2);
+
+  // Note Y position on staff
+  // Middle C = one ledger line below treble staff = staffTop + 5*lineGap
+  //            one ledger line above bass staff   = staffTop - lineGap
+  const middleCY   = isTreble
+    ? staffTop + 5 * lineGap
+    : staffTop - lineGap;
+  const dSteps     = diatonicStepsFromC4(noteObj.note, noteObj.octave);
+  const noteY      = middleCY - dSteps * stepSize;
+  const noteX      = SW / 2;
+
+  // Ledger lines — treble: below staff and above staff
+  sCtx.strokeStyle = '#2a3a4a';
+  sCtx.lineWidth   = 1.5;
+  if (isTreble) {
+    for (let ly = staffTop + 5 * lineGap; ly <= noteY + stepSize / 2; ly += lineGap) {
+      sCtx.beginPath(); sCtx.moveTo(noteX - 18, ly); sCtx.lineTo(noteX + 18, ly); sCtx.stroke();
+    }
+    for (let ly = staffTop - lineGap; ly >= noteY - stepSize / 2; ly -= lineGap) {
+      sCtx.beginPath(); sCtx.moveTo(noteX - 18, ly); sCtx.lineTo(noteX + 18, ly); sCtx.stroke();
+    }
+  } else {
+    for (let ly = staffTop - lineGap; ly >= noteY - stepSize / 2; ly -= lineGap) {
+      sCtx.beginPath(); sCtx.moveTo(noteX - 18, ly); sCtx.lineTo(noteX + 18, ly); sCtx.stroke();
+    }
+    for (let ly = staffTop + 5 * lineGap; ly <= noteY + stepSize / 2; ly += lineGap) {
+      sCtx.beginPath(); sCtx.moveTo(noteX - 18, ly); sCtx.lineTo(noteX + 18, ly); sCtx.stroke();
+    }
+  }
+
+  // Note head glow + fill
+  sCtx.shadowColor = '#FF2D78';
+  sCtx.shadowBlur  = 20;
+  sCtx.fillStyle   = '#FF2D78';
+  sCtx.beginPath();
+  sCtx.ellipse(noteX, noteY, 13, 9, -0.18, 0, Math.PI * 2);
+  sCtx.fill();
+  sCtx.shadowBlur = 0;
+
+  // Accidental
+  if (noteObj.accidental === '#' || noteObj.accidental === 'b') {
+    sCtx.fillStyle  = '#FF2D78';
+    sCtx.font       = 'bold 22px serif';
+    sCtx.textAlign  = 'right';
+    sCtx.fillText(noteObj.accidental === '#' ? '♯' : '♭', noteX - 16, noteY + 8);
+  }
+
+  // Outer ring
+  sCtx.strokeStyle = '#FF2D78';
+  sCtx.lineWidth   = 1.5;
+  sCtx.globalAlpha = 0.3;
+  sCtx.beginPath();
+  sCtx.ellipse(noteX, noteY, 20, 14, -0.18, 0, Math.PI * 2);
+  sCtx.stroke();
+  sCtx.globalAlpha = 1;
+
+  // ? badge
+  sCtx.fillStyle    = '#fff';
+  sCtx.font         = 'bold 13px "DM Mono",monospace';
+  sCtx.textAlign    = 'center';
+  sCtx.textBaseline = 'middle';
+  sCtx.shadowColor  = '#FF2D78';
+  sCtx.shadowBlur   = 8;
+  sCtx.fillText('?', noteX, noteY);
+  sCtx.shadowBlur   = 0;
+  sCtx.textBaseline = 'alphabetic';
+
+  // Closing barline
+  sCtx.strokeStyle = '#4a5568';
+  sCtx.lineWidth = 2;
+  sCtx.beginPath(); sCtx.moveTo(staffLeft + staffW, staffTop - 2); sCtx.lineTo(staffLeft + staffW, staffTop + 4 * lineGap + 2); sCtx.stroke();
+  sCtx.lineWidth = 5;
+  sCtx.beginPath(); sCtx.moveTo(staffLeft + staffW + 5, staffTop - 2); sCtx.lineTo(staffLeft + staffW + 5, staffTop + 4 * lineGap + 2); sCtx.stroke();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MINI KEYBOARD CANVAS
+═══════════════════════════════════════════════════════════ */
+const midiKbCanvas = document.getElementById('midiKbCanvas');
+const kbCtx        = midiKbCanvas.getContext('2d');
+const KBW = 700, KBH = 80;
+const KB_NOTES  = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+const KB_SHARPS = [true, true, false, true, true, true, false];
+const KW    = KBW / KB_NOTES.length;
+const BKW2  = KW * 0.6;
+const BKH2  = KBH * 0.6;
+
+function drawMiniKb(highlightInfo) {
+  kbCtx.clearRect(0, 0, KBW, KBH);
+  kbCtx.fillStyle = '#0a0810';
+  kbCtx.fillRect(0, 0, KBW, KBH);
+
+  KB_NOTES.forEach((note, i) => {
+    const x        = i * KW;
+    const isHL     = highlightInfo && highlightInfo.note === note;
+    const isGood   = isHL && highlightInfo.correct;
+    const isBad    = isHL && !highlightInfo.correct;
+
+    kbCtx.fillStyle   = isGood ? '#39D98A' : isBad ? '#EF4444' : '#f5f2eb';
+    kbCtx.strokeStyle = '#444';
+    kbCtx.lineWidth   = 0.8;
+    const r = 4;
+    kbCtx.beginPath();
+    kbCtx.moveTo(x + 1, 0); kbCtx.lineTo(x + KW - 1, 0);
+    kbCtx.lineTo(x + KW - 1, KBH - r);
+    kbCtx.arcTo(x + KW - 1, KBH, x + KW - 1 - r, KBH, r);
+    kbCtx.lineTo(x + 1 + r, KBH);
+    kbCtx.arcTo(x + 1, KBH, x + 1, KBH - r, r);
+    kbCtx.lineTo(x + 1, 0); kbCtx.closePath();
+    kbCtx.fill(); kbCtx.stroke();
+
+    kbCtx.fillStyle = isHL ? '#fff' : '#5a4020';
+    kbCtx.font      = 'bold 11px "DM Mono",monospace';
+    kbCtx.textAlign = 'center';
+    kbCtx.fillText(note, x + KW / 2, KBH - 8);
+  });
+
+  // Black keys
+  KB_NOTES.forEach((note, i) => {
+    if (!KB_SHARPS[i] || i === KB_NOTES.length - 1) return;
+    const bx = (i + 1) * KW - BKW2 / 2;
+    const r  = 2;
+    kbCtx.beginPath();
+    kbCtx.moveTo(bx, 0); kbCtx.lineTo(bx + BKW2, 0);
+    kbCtx.lineTo(bx + BKW2, BKH2 - r);
+    kbCtx.arcTo(bx + BKW2, BKH2, bx + BKW2 - r, BKH2, r);
+    kbCtx.lineTo(bx + r, BKH2);
+    kbCtx.arcTo(bx, BKH2, bx, BKH2 - r, r);
+    kbCtx.lineTo(bx, 0); kbCtx.closePath();
+    kbCtx.fillStyle   = '#1a1428';
+    kbCtx.fill();
+    kbCtx.strokeStyle = 'rgba(0,0,0,.5)';
+    kbCtx.lineWidth   = 0.5;
+    kbCtx.stroke();
+  });
+}
+drawMiniKb(null);
+
+// Click on mini keyboard — plays sound always, submits answer when session running
+midiKbCanvas.addEventListener('click', e => {
+  const rect   = midiKbCanvas.getBoundingClientRect();
+  const scaleX = KBW / rect.width;
+  const scaleY = KBH / rect.height;
+  const x = (e.clientX - rect.left) * scaleX;
+  const y = (e.clientY - rect.top)  * scaleY;
+
+  // Check black keys first (they sit in the upper portion)
+  let clicked     = null;
+  let clickedSharp = false;
+  if (y < BKH2) {
+    KB_NOTES.forEach((note, i) => {
+      if (!KB_SHARPS[i] || i === KB_NOTES.length - 1) return;
+      const bx = (i + 1) * KW - BKW2 / 2;
+      if (x >= bx && x <= bx + BKW2) {
+        clicked      = note + '#';
+        clickedSharp = true;
+      }
+    });
+  }
+
+  // White key
+  if (!clicked) {
+    const noteIdx = Math.floor(x / KW);
+    if (noteIdx >= 0 && noteIdx < KB_NOTES.length) clicked = KB_NOTES[noteIdx];
+  }
+
+  if (!clicked) return;
+
+  // Always play the sound of the pressed key
+  const keyOctave = 4; // play in octave 4 for preview
+  const playHz    = clickedSharp
+    ? noteHz(clicked, keyOctave)          // e.g. "C#" → noteHz("C#", 4)
+    : noteHz(clicked, keyOctave);
+  if (playHz > 0) playNote(playHz, 0.7);
+
+  // Only submit as answer when a session is active and unanswered
+  if (state.running && !state.answered && !clickedSharp) {
+    handleAnswer(clicked);
+  }
+});
+
+// Note name buttons — play sound + submit answer
+document.getElementById('noteBtns').addEventListener('click', e => {
+  const btn = e.target.closest('.note-btn');
+  if (!btn) return;
+
+  // Always play sound for the note that was clicked
+  const hz = noteHz(btn.dataset.note, 4);
+  if (hz > 0) playNote(hz, 0.7);
+
+  // Only submit answer when session is active and not already answered
+  if (!btn.disabled && state.running && !state.answered) {
+    handleAnswer(btn.dataset.note);
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════
+   MIDI INPUT
+═══════════════════════════════════════════════════════════ */
+function midiNoteToName(midiNum) {
+  const names  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  const name   = names[midiNum % 12];
+  const octave = Math.floor(midiNum / 12) - 1;
+  return { note: name.replace('#', ''), isSharp: name.includes('#'), octave, full: name };
+}
+
+function onMidiMessage(msg) {
+  const [status, note, velocity] = msg.data;
+  const isNoteOn = (status & 0xF0) === 0x90 && velocity > 0;
+  if (!isNoteOn) return;
+
+  const parsed = midiNoteToName(note);
+  const hz     = noteHz(parsed.full, parsed.octave);
+  if (hz > 0) playNote(hz, 0.5);
+
+  if (state.running && !state.answered) {
+    drawMiniKb({ note: parsed.note, correct: parsed.note === state.currentNote?.note });
+    handleAnswer(parsed.note);
+  }
+}
+
+function initMidi() {
+  if (!navigator.requestMIDIAccess) return;
+  navigator.requestMIDIAccess().then(access => {
+    const update = () => {
+      let count = 0;
+      access.inputs.forEach(input => { input.onmidimessage = onMidiMessage; count++; });
+      document.getElementById('midiDot').className   = 'midi-dot' + (count ? ' connected' : '');
+      document.getElementById('midiLabel').textContent = count
+        ? `MIDI: ${count} device${count !== 1 ? 's' : ''}`
+        : 'MIDI: no device';
+    };
+    update();
+    access.onstatechange = update;
+    showToast('🎹 MIDI access granted');
+  }).catch(() => {
+    document.getElementById('midiLabel').textContent = 'MIDI: denied';
+  });
+}
+initMidi();
+
+/* ═══════════════════════════════════════════════════════════
+   AI ANALYSIS — uses built-in Anthropic API (no key needed)
+═══════════════════════════════════════════════════════════ */
+async function runAIAnalysis() {
+  const btn = document.getElementById('analyseBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="ai-spinner"></span> Analysing…';
+
+  const body = document.getElementById('aiBody');
+  body.innerHTML = '<div class="ai-loading"><div class="ai-spinner"></div><span>Claude is analysing your session…</span></div>';
+
+  const total    = state.log.length;
+  if (total === 0) {
+    body.innerHTML = '<p style="color:var(--muted2)">No data yet — complete some questions first.</p>';
+    btn.innerHTML  = '✦ Analyse My Session';
+    btn.disabled   = false;
+    return;
+  }
+
+  const correct  = state.log.filter(l => l.correct).length;
+  const slow     = state.log.filter(l => l.tooSlow).length;
+  const avgTime  = (state.log.reduce((a, l) => a + l.time, 0) / total).toFixed(2);
+  const accuracy = Math.round((correct / total) * 100);
+  const wrongNotes = state.log.filter(l => !l.correct && !l.tooSlow).map(l => `${l.note}→${l.guess}`).join(', ') || 'none';
+  const slowNotes  = state.log.filter(l => l.tooSlow).map(l => l.note).join(', ') || 'none';
+
+  const prompt = `You are a warm, encouraging piano teacher giving brief feedback on a student's sight-reading session.
+
+Session data:
+- Clef practiced: ${state.clef}
+- Questions: ${total} total, ${correct} correct (${accuracy}%)
+- Slow answers (>3s): ${slow}
+- Average response time: ${avgTime}s
+- Best streak: ${state.bestStreak}
+- Wrong answers: ${wrongNotes}
+- Slow notes: ${slowNotes}
+
+Write 2-3 short, encouraging sentences covering: overall result, one thing they did well, one thing to work on. 
+If any notes were answered in more than 3 seconds, include: "Your response time is more than 3 seconds on some notes — keep practising to build speed!"
+Be specific, warm, and practical. No bullet points.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model:      'claude-sonnet-4-20250514',
+        max_tokens: 280,
+        messages:   [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '';
+    if (!text) throw new Error('Empty response');
+
+    // Build chip tags
+    const chips = [
+      { label: `${accuracy}% accuracy`, type: accuracy >= 80 ? 'good' : accuracy >= 50 ? 'warn' : '' },
+      { label: `Avg ${avgTime}s`,        type: parseFloat(avgTime) < 2 ? 'good' : parseFloat(avgTime) < 3 ? 'warn' : '' },
+      ...(state.bestStreak >= 5 ? [{ label: `🔥 ${state.bestStreak} streak`, type: 'good' }] : []),
+    ];
+    const chipsHTML = chips.map(c => `<span class="ai-chip ${c.type}">${c.label}</span>`).join('');
+
+    body.innerHTML = `<div class="ai-chips">${chipsHTML}</div><p style="margin-top:.8rem">${text.replace(/\n+/g, ' ')}</p>`;
+    btn.innerHTML  = '✦ Re-analyse';
+    btn.disabled   = false;
+
+  } catch (err) {
+    // Graceful local fallback
+    body.innerHTML = `
+      <p><strong>${accuracy}% accuracy</strong> over ${total} questions · Avg response: <strong>${avgTime}s</strong> · Best streak: <strong>${state.bestStreak}</strong></p>
+      ${slow > 0 ? `<p style="color:var(--amber);margin-top:.5rem">⏰ ${slow} note${slow > 1 ? 's were' : ' was'} over 3 seconds — your response time is more than 3 seconds, keep practising!</p>` : ''}
+      ${wrongNotes !== 'none' ? `<p style="margin-top:.5rem">Notes to review: <strong>${wrongNotes}</strong></p>` : '<p style="color:var(--green);margin-top:.5rem">✓ All notes answered correctly!</p>'}
+    `;
+    btn.innerHTML = '✦ Try again';
+    btn.disabled  = false;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════════════ */
+let toastTimer = null;
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   KEYBOARD SHORTCUTS
+═══════════════════════════════════════════════════════════ */
+const KEY_MAP = { a:'C', s:'D', d:'E', f:'F', g:'G', h:'A', j:'B' };
+document.addEventListener('keydown', e => {
+  if (e.repeat) return;
+  if (e.code === 'Space') { e.preventDefault(); if (!state.running) startSession(); return; }
+  if (!state.running || state.answered) return;
+  const note = KEY_MAP[e.key.toLowerCase()];
+  if (note) handleAnswer(note);
+});
+
+/* ═══════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════ */
+drawStaff(null, null);
+drawMiniKb(null);
+updateStats();
+</script>
+</body>
+</html>
