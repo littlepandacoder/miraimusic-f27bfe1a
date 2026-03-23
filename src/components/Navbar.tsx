@@ -91,6 +91,13 @@ const Navbar = () => {
               Sight Reading
             </Link>
             <Link
+              to="/games/piano-hero"
+              className="nav-link py-2 font-semibold"
+              onClick={() => setIsOpen(false)}
+            >
+              Piano Hero
+            </Link>
+            <Link
               to="/login"
               className="flex items-center gap-2 nav-link py-2 font-medium"
               onClick={() => setIsOpen(false)}
