@@ -13,7 +13,7 @@
   --bg2:      #0f0d1a;
   --card:     #151228;
   --border:   rgba(255,255,255,0.07);
-  --pink:     #FF2D78;
+  --pink:     #e6317a;
   --sky:      #00D4FF;
   --green:    #39D98A;
   --amber:    #F59E0B;
@@ -22,13 +22,13 @@
   --white:    #FFFFFF;
   --off-white:#E8ECF0;
   --muted:    #6B7280;
-  --lane-c:   #FF2D78;
+  --lane-c:   #e6317a;
   --lane-d:   #FF6B35;
   --lane-e:   #F59E0B;
   --lane-f:   #39D98A;
   --lane-g:   #00D4FF;
   --lane-a:   #A855F7;
-  --lane-b:   #FF2D78;
+  --lane-b:   #e6317a;
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -693,7 +693,7 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--off-white)}
 ═══════════════════════════════════════════════════════════ */
 const NOTE_NAMES    = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const NOTE_WHITES   = ['C','D','E','F','G','A','B'];
-const NOTE_COLORS   = {C:'#FF2D78',D:'#FF6B35',E:'#F59E0B',F:'#39D98A',G:'#00D4FF',A:'#A855F7',B:'#FF2D78'};
+const NOTE_COLORS   = {C:'#e6317a',D:'#FF6B35',E:'#F59E0B',F:'#39D98A',G:'#00D4FF',A:'#A855F7',B:'#e6317a'};
 const SHARP_COLORS  = {C:'#FF5599','D':'#FF8C5A','F':'#34D399','G':'#22D3EE','A':'#C084FC'};
 
 function noteHz(midiNum) {
@@ -1021,7 +1021,7 @@ function drawPlayPiano() {
     const oct       = Math.floor(k.midi / 12) - 1;
 
     let fill;
-    if (isActive) fill = NOTE_COLORS[note] || '#FF2D78';
+    if (isActive) fill = NOTE_COLORS[note] || '#e6317a';
     else if (isHovered) fill = '#d8d4cc';
     else fill = note === 'C' ? '#f0edd8' : '#f5f2ec';
 
@@ -1071,7 +1071,7 @@ function drawPlayPiano() {
     const note      = NOTE_NAMES[k.midi % 12];
 
     let fill;
-    if (isActive)      fill = SHARP_COLORS[note.replace('#','')] || '#FF2D78';
+    if (isActive)      fill = SHARP_COLORS[note.replace('#','')] || '#e6317a';
     else if (isHovered) fill = '#3a3050';
     else fill = '#1a1428';
 
@@ -1137,7 +1137,7 @@ function triggerNote(midi, canvas) {
     const kCX   = (k.x + k.w / 2) / scaleX + rect.left;
     const kCY   = rect.top + (k.isSharp ? BKH * 0.5 : PPH * 0.7) / (PPH / rect.height);
     const note  = NOTE_NAMES[midi % 12].replace('#','');
-    spawnParticles(kCX, kCY, NOTE_COLORS[note] || '#FF2D78', 8);
+    spawnParticles(kCX, kCY, NOTE_COLORS[note] || '#e6317a', 8);
   }
 }
 
@@ -1286,7 +1286,7 @@ function drawLiveStaff() {
   sCtx.font = '56px serif'; sCtx.textAlign = 'left';
   sCtx.fillStyle = '#00D4FF';
   sCtx.fillText('𝄞', sLeft - 50, tTop + 4 * lineGap + 4);
-  sCtx.fillStyle = '#FF2D78';
+  sCtx.fillStyle = '#e6317a';
   sCtx.fillText('𝄢', sLeft - 46, bTop + 2 * lineGap + 4);
 
   // Middle C ledger position
@@ -1320,7 +1320,7 @@ function drawLiveStaff() {
     const noteY = refY - steps * (lineGap / 2);
     const noteX = sLeft + 20 + i * noteSpacing;
 
-    const color = NOTE_COLORS[noteName] || '#FF2D78';
+    const color = NOTE_COLORS[noteName] || '#e6317a';
 
     sCtx.globalAlpha = alpha;
 
@@ -1613,7 +1613,7 @@ const SONGS = [
     id: 'someone',
     name: 'Someone You Loved',
     composer: 'Lewis Capaldi',
-    bpm: 72, difficulty: 'medium', color: '#FF2D78',
+    bpm: 72, difficulty: 'medium', color: '#e6317a',
     notes: [
       // Verse melody — "I was getting kinda used to being someone you loved"
       // Key of C, mostly stepwise, gentle and singable
@@ -2347,7 +2347,7 @@ function launchGame(song, waitMode = false) {
   game.notes = song.notes.map(([midi, beat, dur]) => {
     const note  = NOTE_NAMES[midi % 12];
     const base  = note.replace('#','');
-    const color = NOTE_COLORS[base] || '#FF2D78';
+    const color = NOTE_COLORS[base] || '#e6317a';
     return {
       midi, beat, dur,
       color,
@@ -2648,7 +2648,7 @@ function renderGameKeyboard() {
     const note    = NOTE_NAMES[k.midi % 12];
     const isWait  = waitTargetMidi === k.midi;
     const isLit   = litMidis.has(k.midi) || game.pressedKeys.has(k.midi);
-    const color   = isWait ? '#00D4FF' : (NOTE_COLORS[note] || '#FF2D78');
+    const color   = isWait ? '#00D4FF' : (NOTE_COLORS[note] || '#e6317a');
     const oct     = Math.floor(k.midi / 12) - 1;
 
     gkCtx.fillStyle = isLit ? color : (note === 'C' ? '#f0edd8' : '#f5f2ec');
@@ -2682,7 +2682,7 @@ function renderGameKeyboard() {
     const base   = note.replace('#','');
     const isWait = waitTargetMidi === k.midi;
     const isLit  = litMidis.has(k.midi) || game.pressedKeys.has(k.midi);
-    const color  = isWait ? '#00D4FF' : (SHARP_COLORS[base] || '#FF2D78');
+    const color  = isWait ? '#00D4FF' : (SHARP_COLORS[base] || '#e6317a');
 
     gkCtx.fillStyle = isLit ? color : '#1a1428';
     if (isLit) {
@@ -2879,7 +2879,7 @@ function endGame(completed) {
         spawnParticles(
           Math.random() * window.innerWidth,
           Math.random() * window.innerHeight * 0.6,
-          ['#FF2D78','#39D98A','#00D4FF','#F59E0B','#A855F7'][Math.floor(Math.random()*5)],
+          ['#e6317a','#39D98A','#00D4FF','#F59E0B','#A855F7'][Math.floor(Math.random()*5)],
           20
         );
       }, i * 200);
