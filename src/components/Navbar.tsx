@@ -35,6 +35,9 @@ const Navbar = () => {
             <Link to="/blog/sight-reading" className="nav-link font-semibold">
               Sight Reading
             </Link>
+            <Link to="/games/piano-hero" className="nav-link font-semibold">
+              Piano Hero
+            </Link>
             <Link 
               to="/login" 
               className="flex items-center gap-2 text-foreground hover:text-primary transition-colors font-medium"
