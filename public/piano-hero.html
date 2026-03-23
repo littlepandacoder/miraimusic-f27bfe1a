@@ -13,7 +13,7 @@
   --bg2:      #0f0d1a;
   --card:     #151228;
   --border:   rgba(255,255,255,0.07);
-  --pink:     #e6317a;
+  --pink:     #FF2D78;
   --sky:      #00D4FF;
   --green:    #39D98A;
   --amber:    #F59E0B;
@@ -22,13 +22,13 @@
   --white:    #FFFFFF;
   --off-white:#E8ECF0;
   --muted:    #6B7280;
-  --lane-c:   #e6317a;
+  --lane-c:   #FF2D78;
   --lane-d:   #FF6B35;
   --lane-e:   #F59E0B;
   --lane-f:   #39D98A;
   --lane-g:   #00D4FF;
   --lane-a:   #A855F7;
-  --lane-b:   #e6317a;
+  --lane-b:   #FF2D78;
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -693,7 +693,7 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--off-white)}
 ═══════════════════════════════════════════════════════════ */
 const NOTE_NAMES    = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const NOTE_WHITES   = ['C','D','E','F','G','A','B'];
-const NOTE_COLORS   = {C:'#e6317a',D:'#FF6B35',E:'#F59E0B',F:'#39D98A',G:'#00D4FF',A:'#A855F7',B:'#e6317a'};
+const NOTE_COLORS   = {C:'#FF2D78',D:'#FF6B35',E:'#F59E0B',F:'#39D98A',G:'#00D4FF',A:'#A855F7',B:'#FF2D78'};
 const SHARP_COLORS  = {C:'#FF5599','D':'#FF8C5A','F':'#34D399','G':'#22D3EE','A':'#C084FC'};
 
 function noteHz(midiNum) {
@@ -1021,7 +1021,7 @@ function drawPlayPiano() {
     const oct       = Math.floor(k.midi / 12) - 1;
 
     let fill;
-    if (isActive) fill = NOTE_COLORS[note] || '#e6317a';
+    if (isActive) fill = NOTE_COLORS[note] || '#FF2D78';
     else if (isHovered) fill = '#d8d4cc';
     else fill = note === 'C' ? '#f0edd8' : '#f5f2ec';
 
@@ -1071,7 +1071,7 @@ function drawPlayPiano() {
     const note      = NOTE_NAMES[k.midi % 12];
 
     let fill;
-    if (isActive)      fill = SHARP_COLORS[note.replace('#','')] || '#e6317a';
+    if (isActive)      fill = SHARP_COLORS[note.replace('#','')] || '#FF2D78';
     else if (isHovered) fill = '#3a3050';
     else fill = '#1a1428';
 
@@ -1137,7 +1137,7 @@ function triggerNote(midi, canvas) {
     const kCX   = (k.x + k.w / 2) / scaleX + rect.left;
     const kCY   = rect.top + (k.isSharp ? BKH * 0.5 : PPH * 0.7) / (PPH / rect.height);
     const note  = NOTE_NAMES[midi % 12].replace('#','');
-    spawnParticles(kCX, kCY, NOTE_COLORS[note] || '#e6317a', 8);
+    spawnParticles(kCX, kCY, NOTE_COLORS[note] || '#FF2D78', 8);
   }
 }
 
@@ -1286,7 +1286,7 @@ function drawLiveStaff() {
   sCtx.font = '56px serif'; sCtx.textAlign = 'left';
   sCtx.fillStyle = '#00D4FF';
   sCtx.fillText('𝄞', sLeft - 50, tTop + 4 * lineGap + 4);
-  sCtx.fillStyle = '#e6317a';
+  sCtx.fillStyle = '#FF2D78';
   sCtx.fillText('𝄢', sLeft - 46, bTop + 2 * lineGap + 4);
 
   // Middle C ledger position
@@ -1320,7 +1320,7 @@ function drawLiveStaff() {
     const noteY = refY - steps * (lineGap / 2);
     const noteX = sLeft + 20 + i * noteSpacing;
 
-    const color = NOTE_COLORS[noteName] || '#e6317a';
+    const color = NOTE_COLORS[noteName] || '#FF2D78';
 
     sCtx.globalAlpha = alpha;
 
@@ -1517,20 +1517,17 @@ if (IS_SECURE) initMidi();
 // beatOffset and duration in 8th note units (2 = quarter)
 
 const SONGS = [
+  // ── EASY ──────────────────────────────────────────────────
   {
     id: 'ode',
     name: 'Ode to Joy',
     composer: 'Beethoven',
-    bpm: 100,
-    difficulty: 'easy',
-    color: '#39D98A',
+    bpm: 100, difficulty: 'easy', color: '#39D98A',
     notes: [
-      // E E F G G F E D C C D E E D D
       [64,0,2],[64,2,2],[65,4,2],[67,6,2],
       [67,8,2],[65,10,2],[64,12,2],[62,14,2],
       [60,16,2],[60,18,2],[62,20,2],[64,22,2],
       [64,24,3],[62,27,1],[62,28,4],
-      // E E F G G F E D C C D E D C C
       [64,32,2],[64,34,2],[65,36,2],[67,38,2],
       [67,40,2],[65,42,2],[64,44,2],[62,46,2],
       [60,48,2],[60,50,2],[62,52,2],[64,54,2],
@@ -1538,38 +1535,119 @@ const SONGS = [
     ],
   },
   {
+    id: 'twinkle',
+    name: 'Twinkle Twinkle',
+    composer: 'Traditional',
+    bpm: 110, difficulty: 'easy', color: '#FF6B35',
+    notes: [
+      [60,0,2],[60,2,2],[67,4,2],[67,6,2],[69,8,2],[69,10,2],[67,12,4],
+      [65,16,2],[65,18,2],[64,20,2],[64,22,2],[62,24,2],[62,26,2],[60,28,4],
+      [67,32,2],[67,34,2],[65,36,2],[65,38,2],[64,40,2],[64,42,2],[62,44,4],
+      [67,48,2],[67,50,2],[65,52,2],[65,54,2],[64,56,2],[64,58,2],[62,60,4],
+      [60,64,2],[60,66,2],[67,68,2],[67,70,2],[69,72,2],[69,74,2],[67,76,4],
+      [65,80,2],[65,82,2],[64,84,2],[64,86,2],[62,88,2],[62,90,2],[60,92,4],
+    ],
+  },
+  {
+    id: 'hb',
+    name: 'Happy Birthday',
+    composer: 'Hill Sisters',
+    bpm: 100, difficulty: 'easy', color: '#A855F7',
+    notes: [
+      [60,0,1],[60,1,1],[62,2,2],[60,4,2],[65,6,2],[64,8,4],
+      [60,12,1],[60,13,1],[62,14,2],[60,16,2],[67,18,2],[65,20,4],
+      [60,24,1],[60,25,1],[72,26,2],[69,28,2],[65,30,2],[64,32,2],[62,34,4],
+      [70,38,1],[70,39,1],[69,40,2],[65,42,2],[67,44,2],[65,46,4],
+    ],
+  },
+  {
     id: 'jingle',
     name: 'Jingle Bells',
     composer: 'Pierpont',
-    bpm: 120,
-    difficulty: 'easy',
-    color: '#F59E0B',
+    bpm: 120, difficulty: 'easy', color: '#F59E0B',
     notes: [
-      // E E E · E E E · E G C D E
       [64,0,2],[64,2,2],[64,4,4],
       [64,8,2],[64,10,2],[64,12,4],
       [64,16,2],[67,18,2],[60,20,2],[62,22,2],[64,24,6],
-      // F F F F F E E E E D D E D G
       [65,32,2],[65,34,2],[65,36,2],[65,38,2],
       [65,40,2],[64,42,2],[64,44,2],[64,46,2],
       [64,48,2],[62,50,2],[62,52,2],[64,54,2],[62,56,4],[67,60,4],
-      // E E E · E E E · E G C D E
       [64,64,2],[64,66,2],[64,68,4],
       [64,72,2],[64,74,2],[64,76,4],
       [64,80,2],[67,82,2],[60,84,2],[62,86,2],[64,88,6],
-      // F F F F F E E G G F D C
       [65,96,2],[65,98,2],[65,100,2],[65,102,2],
       [65,104,2],[64,106,2],[64,108,2],[67,110,2],
       [67,112,2],[65,114,2],[62,116,2],[60,118,4],
     ],
   },
   {
+    id: 'mary',
+    name: 'Mary Had a Little Lamb',
+    composer: 'Traditional',
+    bpm: 110, difficulty: 'easy', color: '#34D399',
+    notes: [
+      // E D C D E E E · D D D · E G G
+      [64,0,2],[62,2,2],[60,4,2],[62,6,2],[64,8,2],[64,10,2],[64,12,4],
+      [62,16,2],[62,18,2],[62,20,4],[64,24,2],[67,26,2],[67,28,4],
+      // E D C D E E E E D D E D C
+      [64,32,2],[62,34,2],[60,36,2],[62,38,2],[64,40,2],[64,42,2],[64,44,2],[64,46,2],
+      [62,48,2],[62,50,2],[64,52,2],[62,54,2],[60,56,6],
+    ],
+  },
+  {
+    id: 'itsy',
+    name: 'Itsy Bitsy Spider',
+    composer: 'Traditional',
+    bpm: 100, difficulty: 'easy', color: '#60A5FA',
+    notes: [
+      [60,0,2],[60,2,1],[65,3,1],[65,4,2],[67,6,2],
+      [69,8,2],[67,10,2],[65,12,4],
+      [64,16,2],[65,18,2],[64,20,2],[62,22,2],
+      [60,24,2],[60,26,1],[65,27,1],[65,28,2],[67,30,2],
+      [69,32,2],[67,34,2],[65,36,4],
+      [64,40,2],[65,42,2],[67,44,2],[65,46,2],
+      [64,48,2],[62,50,2],[60,52,6],
+    ],
+  },
+  {
+    id: 'someone',
+    name: 'Someone You Loved',
+    composer: 'Lewis Capaldi',
+    bpm: 72, difficulty: 'medium', color: '#FF2D78',
+    notes: [
+      // Verse melody — "I was getting kinda used to being someone you loved"
+      // Key of C, mostly stepwise, gentle and singable
+      [72,0,4],[71,4,4],[69,8,4],[67,12,4],
+      [65,16,4],[64,20,4],[62,24,4],[60,28,4],
+      // "And I tended to my needs"
+      [67,32,4],[65,36,4],[64,40,4],[62,44,4],
+      [60,48,8],
+      // "Now I need somebody to know"
+      [67,56,3],[67,59,1],[69,60,4],[67,64,4],
+      [65,68,4],[64,72,8],
+      // Pre-chorus: "I didn't wanna feel this way..."
+      [64,80,2],[65,82,2],[67,84,4],[69,88,4],
+      [67,92,4],[65,96,4],[64,100,8],
+      // Chorus: "I'm going under and I just can't fight it anymore..."
+      [72,108,2],[72,110,2],[71,112,4],[69,116,4],
+      [67,120,4],[65,124,4],[64,128,8],
+      [67,136,2],[69,138,2],[71,140,4],[72,144,4],
+      [71,148,4],[69,152,4],[67,156,8],
+      // "I need somebody to heal" 
+      [65,164,2],[65,166,2],[67,168,4],[69,172,4],
+      [67,176,4],[65,180,4],[64,184,4],[62,188,4],
+      [60,192,8],
+      // Final phrase
+      [64,200,4],[65,204,4],[67,208,4],[69,212,4],
+      [71,216,4],[72,220,8],
+    ],
+  },
+  // ── MEDIUM ────────────────────────────────────────────────
+  {
     id: 'fur',
     name: 'Für Elise',
     composer: 'Beethoven',
-    bpm: 80,
-    difficulty: 'medium',
-    color: '#00D4FF',
+    bpm: 80, difficulty: 'medium', color: '#00D4FF',
     notes: [
       [64,0,2],[63,2,2],[64,4,2],[63,6,2],[64,8,2],
       [59,10,2],[62,12,2],[60,14,2],[57,16,4],
@@ -1583,42 +1661,113 @@ const SONGS = [
     ],
   },
   {
-    id: 'hb',
-    name: 'Happy Birthday',
-    composer: 'Hill Sisters',
-    bpm: 100,
-    difficulty: 'easy',
-    color: '#A855F7',
+    id: 'moonlight',
+    name: 'Moonlight Sonata',
+    composer: 'Beethoven',
+    bpm: 60, difficulty: 'medium', color: '#818CF8',
     notes: [
-      [60,0,1],[60,1,1],[62,2,2],[60,4,2],[65,6,2],[64,8,4],
-      [60,12,1],[60,13,1],[62,14,2],[60,16,2],[67,18,2],[65,20,4],
-      [60,24,1],[60,25,1],[72,26,2],[69,28,2],[65,30,2],[64,32,2],[62,34,4],
-      [70,38,1],[70,39,1],[69,40,2],[65,42,2],[67,44,2],[65,46,4],
+      // 1st movement opening triplet theme
+      [44,0,2],[48,2,2],[56,4,2],[44,6,2],[48,8,2],[56,10,2],
+      [44,12,2],[48,14,2],[56,16,2],[44,18,2],[48,20,2],[56,22,2],
+      // Melody enters
+      [61,24,6],[56,30,2],
+      [44,32,2],[48,34,2],[56,36,2],[44,38,2],[48,40,2],[56,42,2],
+      [59,44,6],[56,50,2],
+      [42,52,2],[47,54,2],[56,56,2],[42,58,2],[47,60,2],[56,62,2],
+      [57,64,6],[56,70,2],
+      [41,72,2],[48,74,2],[56,76,2],[41,78,2],[48,80,2],[56,82,2],
+      [56,84,8],
     ],
   },
   {
-    id: 'twinkle',
-    name: 'Twinkle Twinkle',
-    composer: 'Traditional',
-    bpm: 110,
-    difficulty: 'easy',
-    color: '#FF6B35',
+    id: 'entertainer',
+    name: 'The Entertainer',
+    composer: 'Scott Joplin',
+    bpm: 100, difficulty: 'medium', color: '#FBBF24',
     notes: [
-      [60,0,2],[60,2,2],[67,4,2],[67,6,2],[69,8,2],[69,10,2],[67,12,4],
-      [65,16,2],[65,18,2],[64,20,2],[64,22,2],[62,24,2],[62,26,2],[60,28,4],
-      [67,32,2],[67,34,2],[65,36,2],[65,38,2],[64,40,2],[64,42,2],[62,44,4],
-      [67,48,2],[67,50,2],[65,52,2],[65,54,2],[64,56,2],[64,58,2],[62,60,4],
-      [60,64,2],[60,66,2],[67,68,2],[67,70,2],[69,72,2],[69,74,2],[67,76,4],
-      [65,80,2],[65,82,2],[64,84,2],[64,86,2],[62,88,2],[62,90,2],[60,92,4],
+      // Opening riff
+      [62,0,1],[64,1,1],[65,2,2],[62,4,1],[64,5,1],[65,6,2],
+      [62,8,2],[65,10,2],[69,12,2],[67,14,2],
+      [65,16,2],[64,18,2],[62,20,2],[60,22,2],
+      // Main theme
+      [62,24,1],[64,25,1],[65,26,2],[62,28,1],[64,29,1],[65,30,2],
+      [62,32,2],[65,34,2],[69,36,2],[67,38,2],
+      [72,40,2],[71,42,2],[69,44,2],[67,46,2],
+      [65,48,2],[64,50,2],[62,52,2],[60,54,2],
+      // Bridge
+      [65,56,2],[69,58,2],[72,60,2],[71,62,2],
+      [69,64,2],[65,66,2],[64,68,2],[62,72,4],
     ],
   },
+  {
+    id: 'rivers',
+    name: 'River Flows in You',
+    composer: 'Yiruma',
+    bpm: 75, difficulty: 'medium', color: '#38BDF8',
+    notes: [
+      // Gentle, lyrical — main melody
+      [69,0,4],[71,4,4],[72,8,4],[71,12,4],
+      [69,16,4],[67,20,4],[69,24,8],
+      [71,32,4],[72,36,4],[74,40,4],[72,44,4],
+      [71,48,4],[69,52,4],[71,56,8],
+      // Second phrase
+      [72,64,4],[71,68,4],[69,72,4],[67,76,4],
+      [65,80,4],[64,84,4],[65,88,4],[67,92,4],
+      [69,96,8],
+      // Return
+      [69,104,4],[71,108,4],[72,112,4],[71,116,4],
+      [69,120,4],[67,124,4],[65,128,4],[64,132,4],
+      [60,136,8],
+    ],
+  },
+  {
+    id: 'yesterday',
+    name: 'Yesterday',
+    composer: 'The Beatles',
+    bpm: 100, difficulty: 'medium', color: '#F472B6',
+    notes: [
+      // "Yesterday, all my troubles seemed so far away"
+      [64,0,3],[62,3,1],[60,4,2],[62,6,2],
+      [64,8,2],[65,10,2],[64,12,4],
+      [62,16,2],[62,18,2],[62,20,2],[60,22,2],
+      [59,24,6],
+      // "Now it looks as though they're here to stay"
+      [64,30,3],[62,33,1],[60,34,2],[62,36,2],
+      [64,38,2],[65,40,2],[64,42,4],
+      [62,46,2],[62,48,2],[62,50,2],[60,52,2],
+      [60,54,6],
+      // "Oh I believe in yesterday"
+      [59,60,2],[60,62,2],[62,64,2],[64,66,2],
+      [65,68,4],[67,72,4],[65,76,4],
+      [64,80,2],[62,82,2],[60,84,8],
+    ],
+  },
+  {
+    id: 'perfect',
+    name: 'Perfect',
+    composer: 'Ed Sheeran',
+    bpm: 63, difficulty: 'medium', color: '#F87171',
+    notes: [
+      // "I found a love for me..."
+      [60,0,4],[62,4,4],[64,8,4],[65,12,4],
+      [64,16,4],[62,20,4],[60,24,8],
+      // "Darling just dive right in..."
+      [64,32,4],[65,36,4],[67,40,4],[69,44,4],
+      [67,48,4],[65,52,4],[64,56,8],
+      // Chorus: "Baby I'm dancing in the dark..."
+      [69,64,3],[69,67,1],[67,68,4],
+      [65,72,4],[64,76,4],[62,80,4],[60,84,4],
+      [62,88,2],[64,90,2],[65,92,4],[64,96,8],
+      [65,104,4],[67,108,4],[69,112,4],[71,116,4],
+      [72,120,8],
+    ],
+  },
+  // ── HARD ──────────────────────────────────────────────────
   {
     id: 'canon',
     name: 'Canon in D',
     composer: 'Pachelbel',
-    bpm: 72,
-    difficulty: 'hard',
-    color: '#e6317a',
+    bpm: 72, difficulty: 'hard', color: '#A78BFA',
     notes: [
       [74,0,4],[69,4,4],[71,8,4],[66,12,4],
       [67,16,4],[64,20,4],[67,24,4],[66,28,4],
@@ -1626,6 +1775,141 @@ const SONGS = [
       [67,48,2],[64,50,2],[66,52,2],[68,54,2],[69,56,2],[66,58,2],[69,60,2],[71,62,2],
       [74,64,2],[73,66,2],[74,68,2],[69,70,2],[71,72,2],[68,74,2],[69,76,2],[66,78,2],
       [67,80,2],[69,82,2],[71,84,2],[67,86,2],[69,88,2],[66,90,2],[64,92,2],[66,94,2],
+    ],
+  },
+  {
+    id: 'gymnopedie',
+    name: 'Gymnopédie No.1',
+    composer: 'Erik Satie',
+    bpm: 60, difficulty: 'hard', color: '#C084FC',
+    notes: [
+      // Gentle 3/4 waltz feel — melody in right hand
+      [71,0,4],[69,4,4],[67,8,6],
+      [69,14,2],[71,16,4],[69,20,4],[67,24,6],
+      [64,30,2],[65,32,4],[64,36,4],[62,40,6],
+      [60,46,2],[62,48,4],[64,52,4],[65,56,6],
+      // Second phrase
+      [71,62,2],[72,64,4],[71,68,4],[69,72,6],
+      [67,78,2],[69,80,4],[71,84,4],[72,88,6],
+      [71,94,2],[69,96,4],[67,100,4],[65,104,6],
+      [64,110,2],[62,112,4],[60,116,8],
+    ],
+  },
+  {
+    id: 'clair',
+    name: 'Clair de Lune',
+    composer: 'Debussy',
+    bpm: 56, difficulty: 'hard', color: '#67E8F9',
+    notes: [
+      // Opening theme — arpeggiated feel
+      [57,0,4],[61,4,4],[64,8,4],[68,12,4],
+      [64,16,4],[61,20,4],[57,24,8],
+      [59,32,4],[62,36,4],[66,40,4],[71,44,4],
+      [66,48,4],[62,52,4],[59,56,8],
+      // Rising melody
+      [64,64,4],[66,68,4],[68,72,4],[71,76,4],
+      [73,80,4],[71,84,4],[68,88,4],[66,92,4],
+      [64,96,8],
+      // Descending
+      [73,104,4],[71,108,4],[68,112,4],[66,116,4],
+      [64,120,4],[61,124,4],[59,128,4],[57,132,4],
+      [56,136,8],
+    ],
+  },
+  {
+    id: 'bohemian',
+    name: 'Bohemian Rhapsody',
+    composer: 'Queen',
+    bpm: 72, difficulty: 'hard', color: '#FB923C',
+    notes: [
+      // "Is this the real life..." intro melody
+      [60,0,4],[64,4,4],[67,8,4],[72,12,4],
+      [71,16,4],[69,20,4],[67,24,4],[65,28,4],
+      [64,32,8],
+      // "Mama just killed a man..."
+      [67,40,2],[67,42,2],[67,44,2],[66,46,2],[67,48,4],
+      [65,52,2],[65,54,2],[65,56,4],
+      [64,60,2],[65,62,2],[64,64,2],[62,66,2],[60,68,4],
+      // "Didn't mean to make you cry..."
+      [65,72,4],[64,76,4],[62,80,4],[60,84,4],
+      [62,88,4],[64,92,4],[65,96,4],[67,100,4],
+      [69,104,8],
+      // "Nothing really matters..."
+      [67,112,2],[69,114,2],[71,116,4],[72,120,4],
+      [71,124,4],[69,128,4],[67,132,4],[65,136,4],
+      [64,140,8],
+    ],
+  },
+  {
+    id: 'nocturne',
+    name: 'Nocturne Op.9 No.2',
+    composer: 'Chopin',
+    bpm: 66, difficulty: 'hard', color: '#E879F9',
+    notes: [
+      // Opening melody
+      [71,0,4],[72,4,2],[71,6,2],[69,8,4],[67,12,4],
+      [65,16,4],[64,20,4],[65,24,4],[67,28,4],
+      [69,32,8],
+      // Continuation
+      [71,40,4],[72,44,2],[71,46,2],[69,48,4],
+      [72,52,4],[71,56,4],[69,60,4],[67,64,4],
+      [65,68,8],
+      // Rising phrase
+      [64,76,2],[65,78,2],[67,80,2],[69,82,2],[71,84,4],
+      [72,88,4],[74,92,4],[72,96,4],[71,100,4],
+      [69,104,8],
+      // Resolution
+      [67,112,4],[65,116,4],[64,120,4],[62,124,4],
+      [60,128,8],
+    ],
+  },
+  {
+    id: 'hallelujah',
+    name: 'Hallelujah',
+    composer: 'Leonard Cohen',
+    bpm: 68, difficulty: 'hard', color: '#FCD34D',
+    notes: [
+      // "I heard there was a secret chord..."
+      [60,0,4],[64,4,4],[67,8,4],[69,12,4],
+      [67,16,4],[64,20,4],[60,24,8],
+      // "that David played and it pleased the Lord..."
+      [65,32,4],[69,36,4],[72,40,4],[71,44,4],
+      [69,48,4],[65,52,4],[64,56,8],
+      // "but you don't really care for music, do ya?"
+      [60,64,2],[64,66,2],[67,68,4],[69,72,4],
+      [71,76,4],[72,80,4],[71,84,4],[69,88,4],
+      [67,92,8],
+      // Chorus: "Hallelujah..."
+      [67,100,4],[69,104,4],[71,108,4],[72,112,4],
+      [71,116,2],[72,118,2],[74,120,4],[72,124,4],
+      [71,128,4],[69,132,4],[67,136,8],
+      [65,144,4],[67,148,4],[69,152,4],[67,156,4],
+      [65,160,4],[64,164,4],[60,168,8],
+    ],
+  },
+  {
+    id: 'letitgo',
+    name: 'Let It Go',
+    composer: 'Frozen (Disney)',
+    bpm: 67, difficulty: 'hard', color: '#93C5FD',
+    notes: [
+      // "The snow glows white on the mountain tonight..."
+      [60,0,4],[62,4,4],[64,8,4],[65,12,4],
+      [64,16,4],[62,20,4],[60,24,8],
+      // "Not a footprint to be seen..."
+      [64,32,4],[65,36,4],[67,40,4],[69,44,4],
+      [67,48,4],[65,52,4],[64,56,8],
+      // Chorus: "Let it go, let it go..."
+      [65,64,3],[65,67,1],[64,68,2],[62,70,2],[60,72,4],
+      [60,76,2],[60,78,2],[62,80,4],[64,84,4],
+      [65,88,3],[65,91,1],[67,92,4],[65,96,8],
+      [67,104,2],[69,106,2],[71,108,4],[72,112,4],
+      [71,116,4],[69,120,4],[67,124,4],[65,128,4],
+      [64,132,8],
+      // "I don't care what they're going to say..."
+      [72,140,2],[71,142,2],[72,144,4],[71,148,4],
+      [69,152,4],[67,156,4],[65,160,4],[64,164,4],
+      [60,168,8],
     ],
   },
 ];
@@ -2063,7 +2347,7 @@ function launchGame(song, waitMode = false) {
   game.notes = song.notes.map(([midi, beat, dur]) => {
     const note  = NOTE_NAMES[midi % 12];
     const base  = note.replace('#','');
-    const color = NOTE_COLORS[base] || '#e6317a';
+    const color = NOTE_COLORS[base] || '#FF2D78';
     return {
       midi, beat, dur,
       color,
@@ -2364,7 +2648,7 @@ function renderGameKeyboard() {
     const note    = NOTE_NAMES[k.midi % 12];
     const isWait  = waitTargetMidi === k.midi;
     const isLit   = litMidis.has(k.midi) || game.pressedKeys.has(k.midi);
-    const color   = isWait ? '#00D4FF' : (NOTE_COLORS[note] || '#e6317a');
+    const color   = isWait ? '#00D4FF' : (NOTE_COLORS[note] || '#FF2D78');
     const oct     = Math.floor(k.midi / 12) - 1;
 
     gkCtx.fillStyle = isLit ? color : (note === 'C' ? '#f0edd8' : '#f5f2ec');
@@ -2398,7 +2682,7 @@ function renderGameKeyboard() {
     const base   = note.replace('#','');
     const isWait = waitTargetMidi === k.midi;
     const isLit  = litMidis.has(k.midi) || game.pressedKeys.has(k.midi);
-    const color  = isWait ? '#00D4FF' : (SHARP_COLORS[base] || '#e6317a');
+    const color  = isWait ? '#00D4FF' : (SHARP_COLORS[base] || '#FF2D78');
 
     gkCtx.fillStyle = isLit ? color : '#1a1428';
     if (isLit) {
@@ -2595,7 +2879,7 @@ function endGame(completed) {
         spawnParticles(
           Math.random() * window.innerWidth,
           Math.random() * window.innerHeight * 0.6,
-          ['#e6317a','#39D98A','#00D4FF','#F59E0B','#A855F7'][Math.floor(Math.random()*5)],
+          ['#FF2D78','#39D98A','#00D4FF','#F59E0B','#A855F7'][Math.floor(Math.random()*5)],
           20
         );
       }, i * 200);
