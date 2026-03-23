@@ -15,6 +15,7 @@ const AuthDebug = lazy(() => import("./pages/AuthDebug"));
 const Pricing = lazy(() => import("./pages/Pricing"));
 const PianoTheory = lazy(() => import("./pages/PianoTheory"));
 const SightReading = lazy(() => import("./pages/SightReading"));
+const PianoHero = lazy(() => import("./pages/PianoHero"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 
 const queryClient = new QueryClient();
