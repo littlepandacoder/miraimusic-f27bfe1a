@@ -1,0 +1,2794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Piano Hero — Musicable</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+<style>
+/* ═══ DESIGN TOKENS ════════════════════════════════════════ */
+:root {
+  --bg:       #0a0812;
+  --bg2:      #0f0d1a;
+  --card:     #151228;
+  --border:   rgba(255,255,255,0.07);
+  --pink:     #FF2D78;
+  --sky:      #00D4FF;
+  --green:    #39D98A;
+  --amber:    #F59E0B;
+  --purple:   #A855F7;
+  --red:      #EF4444;
+  --white:    #FFFFFF;
+  --off-white:#E8ECF0;
+  --muted:    #6B7280;
+  --lane-c:   #FF2D78;
+  --lane-d:   #FF6B35;
+  --lane-e:   #F59E0B;
+  --lane-f:   #39D98A;
+  --lane-g:   #00D4FF;
+  --lane-a:   #A855F7;
+  --lane-b:   #FF2D78;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg)}
+body{font-family:'Inter',system-ui,sans-serif;color:var(--off-white)}
+
+/* ═══ NAV ══════════════════════════════════════════════════ */
+#nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  height:52px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 1.5rem;
+  background:rgba(10,8,18,0.92);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{
+  font-family:'Orbitron',monospace;font-weight:900;font-size:1rem;
+  color:var(--pink);letter-spacing:.08em;text-decoration:none;
+  text-shadow:0 0 20px rgba(255,45,120,.5);
+}
+.nav-tabs{display:flex;gap:2px;background:rgba(255,255,255,.04);border-radius:8px;padding:3px}
+.nav-tab{
+  padding:.35rem 1rem;font-size:.78rem;font-weight:600;
+  color:var(--muted);background:transparent;border:none;cursor:pointer;
+  border-radius:6px;transition:all .2s;font-family:'DM Mono',monospace;letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.nav-tab.active{background:var(--pink);color:#fff;box-shadow:0 0 16px rgba(255,45,120,.5)}
+.nav-tab:hover:not(.active){color:var(--off-white);background:rgba(255,255,255,.06)}
+.nav-right{display:flex;align-items:center;gap:.8rem}
+.midi-badge{
+  display:flex;align-items:center;gap:.4rem;
+  font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);
+  padding:.25rem .7rem;border:1px solid var(--border);border-radius:100px;
+}
+.midi-dot{width:6px;height:6px;border-radius:50%;background:var(--muted)}
+.midi-dot.on{background:var(--green);box-shadow:0 0 6px rgba(57,217,138,.8)}
+.nav-link{font-size:.78rem;color:var(--muted);text-decoration:none;transition:color .2s}
+.nav-link:hover{color:var(--pink)}
+
+/* ═══ SCREENS ══════════════════════════════════════════════ */
+.screen{
+  position:fixed;inset:0;padding-top:52px;
+  display:none;flex-direction:column;
+  transition:opacity .3s;
+}
+.screen.active{display:flex}
+
+/* ═══ SCREEN 1: FREE PLAY ══════════════════════════════════ */
+#screen-play{
+  background:
+    radial-gradient(ellipse 60% 40% at 80% 20%, rgba(255,45,120,.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 20% 80%, rgba(0,212,255,.06) 0%, transparent 60%),
+    var(--bg);
+}
+
+.play-layout{
+  display:grid;
+  grid-template-rows:1fr auto auto;
+  height:100%;
+  gap:0;
+}
+
+/* Staff area */
+.staff-area{
+  position:relative;
+  display:flex;align-items:center;justify-content:center;
+  padding:1rem 1.5rem .5rem;
+  min-height:0;
+}
+#staffCanvas{
+  width:100%;max-width:900px;
+  border-radius:10px;
+  background:rgba(255,255,255,.02);
+  border:1px solid var(--border);
+}
+
+/* Info bar */
+.play-info{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.5rem 1.5rem;gap:1rem;flex-wrap:wrap;
+}
+.note-display{
+  display:flex;align-items:center;gap:1rem;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  border-radius:10px;padding:.5rem 1.1rem;min-width:180px;
+}
+.note-name{
+  font-family:'Orbitron',monospace;font-size:1.6rem;font-weight:900;
+  color:var(--pink);text-shadow:0 0 20px rgba(255,45,120,.6);
+  min-width:3.5rem;line-height:1;
+}
+.note-detail{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted)}
+.note-hz{font-size:.85rem;color:var(--sky);font-family:'DM Mono',monospace}
+.waveform{display:flex;align-items:flex-end;gap:3px;height:28px;margin-left:auto}
+.wbar{width:4px;background:var(--pink);border-radius:2px 2px 0 0;transition:height .08s;height:4px;opacity:.7}
+
+/* Piano keyboard */
+.piano-wrap{
+  position:relative;padding:.6rem 1rem 1rem;
+  background:rgba(0,0,0,.3);border-top:1px solid var(--border);
+}
+#pianoCanvas{
+  display:block;width:100%;height:auto;cursor:pointer;
+  border-radius:4px 4px 10px 10px;
+}
+.piano-hint{
+  font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted);
+  text-align:center;margin-top:.4rem;
+}
+
+/* ═══ SCREEN 2: GUITAR HERO GAME ═══════════════════════════ */
+#screen-game{background:var(--bg)}
+
+.game-layout{
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  height:100%;
+}
+
+/* Game HUD */
+.game-hud{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.5rem 1.5rem;gap:1rem;flex-wrap:wrap;
+  background:rgba(0,0,0,.4);border-bottom:1px solid var(--border);
+}
+.hud-score{
+  font-family:'Orbitron',monospace;font-size:1.5rem;font-weight:900;
+  color:var(--white);text-shadow:0 0 20px rgba(255,45,120,.4);
+}
+.hud-label{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.hud-combo{
+  font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;
+  color:var(--amber);text-shadow:0 0 15px rgba(245,158,11,.5);
+  transition:transform .1s;
+}
+.hud-combo.pop{transform:scale(1.4)}
+.combo-fire{font-size:.9rem}
+.accuracy-ring{position:relative;width:48px;height:48px}
+.accuracy-ring svg{transform:rotate(-90deg)}
+.accuracy-center{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;font-size:.65rem;font-weight:500;color:var(--white);
+}
+.health-bar{
+  flex:1;max-width:200px;height:8px;background:rgba(255,255,255,.08);
+  border-radius:4px;overflow:hidden;border:1px solid var(--border);
+}
+.health-fill{
+  height:100%;background:linear-gradient(90deg,var(--green),var(--sky));
+  border-radius:4px;transition:width .3s ease;width:100%;
+}
+.song-progress{
+  flex:1;max-width:200px;height:4px;background:rgba(255,255,255,.06);
+  border-radius:2px;overflow:hidden;
+}
+.song-progress-fill{height:100%;background:var(--pink);border-radius:2px;width:0%;transition:width .1s}
+.song-title{
+  font-family:'Orbitron',monospace;font-size:.75rem;color:var(--muted);
+  letter-spacing:.06em;text-align:center;max-width:140px;
+}
+
+/* Game canvas */
+#gameCanvas{display:block;width:100%;height:100%;cursor:pointer}
+.game-canvas-wrap{position:relative;overflow:hidden;min-height:0}
+
+/* Hit feedback overlay */
+#hitFeedback{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  pointer-events:none;z-index:10;
+  font-family:'Orbitron',monospace;font-size:2rem;font-weight:900;
+  opacity:0;transition:opacity .15s;text-align:center;
+  text-shadow:0 0 30px currentColor;
+}
+
+/* Game keyboard */
+#gameKbCanvas{display:block;width:100%;cursor:pointer}
+.game-kb-wrap{
+  background:rgba(0,0,0,.5);border-top:2px solid rgba(255,45,120,.3);
+  padding:.4rem .8rem .6rem;
+  position:relative;
+}
+.game-kb-wrap::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--pink),transparent);
+}
+
+/* ═══ SCREEN 3: SONG SELECT ════════════════════════════════ */
+#screen-songs{
+  background:
+    radial-gradient(ellipse 50% 60% at 10% 50%, rgba(255,45,120,.06) 0%, transparent 60%),
+    var(--bg);
+  overflow-y:auto;
+  padding:1.5rem;
+}
+.songs-grid{
+  max-width:900px;margin:0 auto;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;
+  padding-top:1rem;
+}
+.song-card{
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:1.3rem;cursor:pointer;transition:all .2s;position:relative;overflow:hidden;
+}
+.song-card::before{
+  content:'';position:absolute;inset:0;opacity:0;
+  background:linear-gradient(135deg,rgba(255,45,120,.12),rgba(0,212,255,.06));
+  transition:opacity .2s;
+}
+.song-card:hover{border-color:var(--pink);transform:translateY(-2px);box-shadow:0 8px 32px rgba(255,45,120,.2)}
+.song-card:hover::before{opacity:1}
+.song-diff{
+  display:inline-flex;align-items:center;gap:.3rem;
+  font-family:'DM Mono',monospace;font-size:.62rem;font-weight:500;
+  padding:.2rem .6rem;border-radius:100px;margin-bottom:.7rem;text-transform:uppercase;letter-spacing:.06em;
+}
+.diff-easy{background:rgba(57,217,138,.15);border:1px solid rgba(57,217,138,.3);color:var(--green)}
+.diff-medium{background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:var(--amber)}
+.diff-hard{background:rgba(255,45,120,.15);border:1px solid rgba(255,45,120,.3);color:var(--pink)}
+.song-name{font-family:'Orbitron',monospace;font-size:.95rem;font-weight:700;color:var(--white);margin-bottom:.3rem}
+.song-meta{font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted)}
+.song-bpm{color:var(--sky);margin-top:.2rem;font-family:'DM Mono',monospace;font-size:.7rem}
+.song-dots{display:flex;gap:3px;margin-top:.8rem}
+.song-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.1)}
+.song-dot.filled{background:var(--amber)}
+.play-song-btn{
+  margin-top:1rem;width:100%;padding:.6rem;background:var(--pink);color:#fff;
+  font-family:'DM Mono',monospace;font-size:.75rem;font-weight:500;
+  border:none;border-radius:8px;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;
+  transition:opacity .2s;position:relative;z-index:1;
+}
+.play-song-btn:hover{opacity:.85}
+
+/* Mode toggle on song card */
+.mode-row{display:flex;gap:4px;margin-top:.7rem}
+.mode-btn{
+  flex:1;padding:.38rem .5rem;font-family:'DM Mono',monospace;font-size:.65rem;font-weight:500;
+  border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);
+  border-radius:6px;cursor:pointer;transition:all .15s;text-align:center;letter-spacing:.04em;
+}
+.mode-btn.selected{background:rgba(255,45,120,.2);border-color:rgba(255,45,120,.5);color:var(--pink)}
+.mode-btn.wait-selected{background:rgba(0,212,255,.15);border-color:rgba(0,212,255,.4);color:var(--sky)}
+
+/* Wait mode HUD indicator */
+.wait-indicator{
+  display:none;align-items:center;gap:.4rem;
+  font-family:'DM Mono',monospace;font-size:.72rem;color:var(--sky);
+  padding:.28rem .7rem;background:rgba(0,212,255,.1);
+  border:1px solid rgba(0,212,255,.3);border-radius:100px;
+  animation:waitPulse 1.2s ease-in-out infinite;
+}
+.wait-indicator.show{display:flex}
+@keyframes waitPulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* Audio mic badge */
+.mic-badge{
+  display:flex;align-items:center;gap:.4rem;
+  font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);
+  padding:.25rem .7rem;border:1px solid var(--border);border-radius:100px;
+  cursor:pointer;transition:all .2s;
+}
+.mic-badge:hover{border-color:var(--sky);color:var(--sky)}
+.mic-badge.active{
+  border-color:rgba(0,212,255,.5);color:var(--sky);
+  background:rgba(0,212,255,.08);
+}
+.mic-dot{width:6px;height:6px;border-radius:50%;background:var(--muted);flex-shrink:0}
+.mic-dot.on{background:var(--sky);box-shadow:0 0 6px rgba(0,212,255,.8);animation:micPulse .8s ease-in-out infinite alternate}
+@keyframes micPulse{from{opacity:1}to{opacity:.4}}
+
+/* Page title */
+.page-title{
+  font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:900;
+  color:var(--white);max-width:900px;margin:0 auto 1rem;
+  padding:0;
+}
+.page-title span{color:var(--pink)}
+
+/* ═══ COUNTDOWN OVERLAY ════════════════════════════════════ */
+#countdown{
+  position:fixed;inset:0;z-index:500;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(10,8,18,.85);backdrop-filter:blur(6px);
+  flex-direction:column;gap:1rem;
+}
+#countdown.active{display:flex}
+.countdown-num{
+  font-family:'Orbitron',monospace;font-size:8rem;font-weight:900;
+  color:var(--pink);text-shadow:0 0 60px rgba(255,45,120,.8);
+  animation:countPulse .9s ease-out;
+}
+@keyframes countPulse{from{transform:scale(2);opacity:0}to{transform:scale(1);opacity:1}}
+.countdown-song{
+  font-family:'DM Mono',monospace;font-size:.9rem;color:var(--muted);
+  letter-spacing:.1em;text-transform:uppercase;
+}
+
+/* ═══ END SCREEN ═══════════════════════════════════════════ */
+#endScreen{
+  position:fixed;inset:0;z-index:500;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(10,8,18,.95);backdrop-filter:blur(8px);
+  flex-direction:column;gap:1.2rem;text-align:center;
+  padding:2rem;
+}
+#endScreen.active{display:flex}
+.end-title{
+  font-family:'Orbitron',monospace;font-size:2.5rem;font-weight:900;
+  color:var(--pink);text-shadow:0 0 40px rgba(255,45,120,.7);
+}
+.end-grade{
+  font-family:'Orbitron',monospace;font-size:5rem;font-weight:900;
+  line-height:1;
+}
+.end-stats{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  padding:1.2rem;max-width:400px;width:100%;
+}
+.end-stat-val{font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:700;color:var(--white)}
+.end-stat-lbl{font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);margin-top:.2rem;text-transform:uppercase}
+.end-btn{
+  padding:.75rem 2rem;background:var(--pink);color:#fff;
+  font-family:'Orbitron',monospace;font-size:.85rem;font-weight:700;
+  border:none;border-radius:10px;cursor:pointer;letter-spacing:.06em;
+  transition:opacity .2s,transform .2s;
+}
+.end-btn:hover{opacity:.85;transform:scale(1.03)}
+.end-btn.outline{background:transparent;border:2px solid var(--border);color:var(--muted)}
+.end-btn-row{display:flex;gap:.8rem;justify-content:center}
+
+/* ═══ PARTICLES ════════════════════════════════════════════ */
+#particleCanvas{
+  position:fixed;inset:0;pointer-events:none;z-index:300;
+}
+
+/* ═══ GLOBAL BTN ════════════════════════════════════════════ */
+.btn-pink{
+  background:var(--pink);color:#fff;font-weight:700;font-size:.78rem;
+  padding:.45rem 1.1rem;border-radius:8px;border:none;cursor:pointer;
+  transition:opacity .2s;font-family:'DM Mono',monospace;letter-spacing:.04em;
+}
+/* ═══ INPUT MODAL ═══════════════════════════════════════════ */
+#inputModal{
+  position:fixed;inset:0;z-index:600;
+  display:none;align-items:center;justify-content:center;
+  background:rgba(10,8,18,.88);backdrop-filter:blur(12px);
+}
+#inputModal.active{display:flex}
+.modal-box{
+  background:#12101e;border:1px solid rgba(255,45,120,.25);
+  border-radius:20px;padding:2rem;max-width:480px;width:90%;
+  box-shadow:0 0 60px rgba(255,45,120,.12);
+}
+.modal-song-name{
+  font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;
+  color:var(--white);margin-bottom:.25rem;
+}
+.modal-subtitle{
+  font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted);
+  margin-bottom:1.4rem;letter-spacing:.06em;text-transform:uppercase;
+}
+.modal-section{margin-bottom:1.2rem}
+.modal-label{
+  font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:.55rem;
+}
+.input-option{
+  display:flex;align-items:center;gap:.9rem;
+  background:rgba(255,255,255,.03);border:1px solid var(--border);
+  border-radius:10px;padding:.8rem 1rem;cursor:pointer;
+  transition:all .18s;margin-bottom:.5rem;position:relative;
+  user-select:none;
+}
+.input-option:hover{border-color:rgba(255,45,120,.35);background:rgba(255,45,120,.06)}
+.input-option.selected{
+  border-color:var(--pink);background:rgba(255,45,120,.1);
+}
+.input-option.selected .option-check{opacity:1;transform:scale(1)}
+.input-option.disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
+.option-icon{font-size:1.4rem;flex-shrink:0;width:32px;text-align:center}
+.option-title{font-family:'DM Mono',monospace;font-size:.82rem;font-weight:500;color:var(--off-white)}
+.option-desc{font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted);margin-top:.15rem}
+.option-check{
+  position:absolute;right:.9rem;top:50%;transform:translateY(-50%) scale(0.6);
+  width:20px;height:20px;border-radius:50%;
+  background:var(--pink);display:flex;align-items:center;justify-content:center;
+  font-size:.7rem;color:#fff;opacity:0;transition:all .15s;
+}
+.midi-device-list{
+  max-height:100px;overflow-y:auto;margin-top:.4rem;
+}
+.midi-device-item{
+  display:flex;align-items:center;gap:.5rem;
+  font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted);
+  padding:.3rem .5rem;border-radius:6px;
+}
+.midi-device-item::before{content:'🎹';font-size:.75rem}
+.midi-status-msg{
+  font-family:'DM Mono',monospace;font-size:.68rem;
+  color:var(--muted);padding:.3rem .5rem;
+}
+.modal-mode-row{display:flex;gap:.5rem;margin-bottom:1.2rem}
+.modal-mode-btn{
+  flex:1;padding:.5rem .4rem;font-family:'DM Mono',monospace;
+  font-size:.68rem;font-weight:500;text-align:center;cursor:pointer;
+  border:1px solid var(--border);background:rgba(255,255,255,.03);
+  color:var(--muted);border-radius:8px;transition:all .15s;
+}
+.modal-mode-btn.sel-normal{background:rgba(255,45,120,.15);border-color:rgba(255,45,120,.4);color:var(--pink)}
+.modal-mode-btn.sel-wait{background:rgba(0,212,255,.12);border-color:rgba(0,212,255,.35);color:var(--sky)}
+.modal-actions{display:flex;gap:.7rem;margin-top:1.4rem}
+.modal-btn-cancel{
+  flex:1;padding:.7rem;font-family:'DM Mono',monospace;font-size:.78rem;
+  background:transparent;border:1px solid var(--border);color:var(--muted);
+  border-radius:10px;cursor:pointer;transition:all .15s;
+}
+.modal-btn-cancel:hover{border-color:rgba(255,255,255,.2);color:var(--off-white)}
+.modal-btn-play{
+  flex:2;padding:.7rem;font-family:'Orbitron',monospace;font-size:.82rem;font-weight:700;
+  background:var(--pink);color:#fff;border:none;border-radius:10px;cursor:pointer;
+  transition:opacity .15s,transform .15s;letter-spacing:.05em;
+  box-shadow:0 0 20px rgba(255,45,120,.35);
+}
+.modal-btn-play:hover{opacity:.88;transform:scale(1.02)}
+.mic-test-bar{
+  height:4px;background:rgba(255,255,255,.06);border-radius:2px;
+  overflow:hidden;margin-top:.5rem;
+}
+.mic-test-fill{height:100%;background:var(--sky);width:0%;transition:width .05s;border-radius:2px}
+/* ═══ SECURE CONTEXT WARNING ════════════════════════════════ */
+.secure-warning{
+  background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.35);
+  border-radius:10px;padding:.8rem 1rem;margin-bottom:1rem;
+  font-family:'DM Mono',monospace;font-size:.7rem;color:var(--amber);
+  line-height:1.6;display:none;
+}
+.secure-warning.show{display:block}
+.secure-warning strong{color:#fff;display:block;margin-bottom:.3rem;font-size:.75rem}
+.secure-warning code{
+  display:block;background:rgba(0,0,0,.4);border-radius:6px;
+  padding:.4rem .6rem;margin:.35rem 0;color:var(--sky);
+  font-size:.72rem;letter-spacing:.03em;cursor:pointer;
+  border:1px solid rgba(0,212,255,.15);
+}
+.secure-warning code:hover{background:rgba(0,212,255,.08)}
+.secure-warning .copy-hint{font-size:.62rem;color:var(--muted);margin-top:.15rem}
+</style>
+</head>
+<body>
+
+<canvas id="particleCanvas"></canvas>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="https://www.musicable.app/" class="nav-logo">🎹 Piano Hero</a>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showScreen('play')">Free Play</button>
+    <button class="nav-tab" onclick="showScreen('songs')">Songs</button>
+  </div>
+  <div class="nav-right">
+    <div class="midi-badge">
+      <div class="midi-dot" id="midiDot"></div>
+      <span id="midiLabel">MIDI: scanning…</span>
+    </div>
+    <a href="https://www.musicable.app/" class="nav-link">Back →</a>
+  </div>
+</nav>
+
+<!-- INPUT MODAL -->
+<div id="inputModal">
+  <div class="modal-box">
+
+    <!-- Secure context warning — shown only when opened as file:// -->
+    <div class="secure-warning" id="secureWarning">
+      <strong>⚠ MIDI &amp; Microphone need a local server</strong>
+      Your browser blocks mic and MIDI when opening HTML files directly.<br>
+      Serve this file locally to enable them — open a terminal and run:<br>
+      <code id="serveCmd1" onclick="copyCmd(this)">npx serve .</code>
+      <div class="copy-hint">↑ click to copy · requires Node.js</div>
+      <code id="serveCmd2" onclick="copyCmd(this)">python3 -m http.server 8080</code>
+      <div class="copy-hint">↑ click to copy · requires Python 3</div>
+      Then open <strong style="color:var(--sky)">http://localhost:8080</strong> (or the port shown) in your browser.<br>
+      <span style="color:var(--muted)">Keyboard &amp; click piano work fine without a server.</span>
+    </div>
+
+    <div class="modal-song-name" id="modalSongName">Für Elise</div>
+    <div class="modal-subtitle">Choose your input &amp; game mode</div>
+
+    <div class="modal-section">
+      <div class="modal-label">🎮 Game Mode</div>
+      <div class="modal-mode-row">
+        <button class="modal-mode-btn sel-normal" id="modalNormalBtn" onclick="setModalMode('normal')">▶ Normal</button>
+        <button class="modal-mode-btn" id="modalWaitBtn" onclick="setModalMode('wait')">⏸ Wait Mode</button>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-label">🎹 Input Method</div>
+
+      <div class="input-option selected" id="opt-keyboard" onclick="selectInput('keyboard')">
+        <div class="option-icon">⌨️</div>
+        <div>
+          <div class="option-title">Computer Keyboard</div>
+          <div class="option-desc">A S D F G H J K = C D E F G A B C  ·  Always available</div>
+        </div>
+        <div class="option-check">✓</div>
+      </div>
+
+      <div class="input-option" id="opt-midi" onclick="selectInput('midi')">
+        <div class="option-icon">🎹</div>
+        <div>
+          <div class="option-title">MIDI Keyboard</div>
+          <div class="option-desc" id="midiOptionDesc">Scanning for devices…</div>
+          <div class="midi-device-list" id="midiDeviceList"></div>
+        </div>
+        <div class="option-check">✓</div>
+      </div>
+
+      <div class="input-option" id="opt-mic" onclick="selectInput('mic')">
+        <div class="option-icon" id="micOptionIcon">🎤</div>
+        <div style="flex:1">
+          <div class="option-title">Microphone</div>
+          <div class="option-desc" id="micOptionDesc">Sing or play an acoustic instrument · Pitch detected live</div>
+          <div id="micPermStatus" style="display:none;font-family:'DM Mono',monospace;font-size:.68rem;margin-top:.35rem"></div>
+          <div class="mic-test-bar" id="micTestBar" style="display:none"><div class="mic-test-fill" id="micTestFill"></div></div>
+        </div>
+        <div class="option-check">✓</div>
+      </div>
+
+      <div class="input-option" id="opt-click" onclick="selectInput('click')">
+        <div class="option-icon">🖱️</div>
+        <div>
+          <div class="option-title">Click / Touch Piano</div>
+          <div class="option-desc">Tap the on-screen keyboard with mouse or finger</div>
+        </div>
+        <div class="option-check">✓</div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="modal-btn-cancel" onclick="closeInputModal()">Cancel</button>
+      <button class="modal-btn-play" id="modalPlayBtn" onclick="confirmAndPlay()">▶ Play</button>
+    </div>
+  </div>
+</div>
+
+<!-- COUNTDOWN -->
+<div id="countdown">
+  <div class="countdown-song" id="countdownSong">Für Elise</div>
+  <div class="countdown-num" id="countdownNum">3</div>
+</div>
+
+<!-- END SCREEN -->
+<div id="endScreen">
+  <div class="end-title">RESULTS</div>
+  <div class="end-grade" id="endGrade">S</div>
+  <div class="end-stats">
+    <div><div class="end-stat-val" id="endScore">0</div><div class="end-stat-lbl">Score</div></div>
+    <div><div class="end-stat-val" id="endCombo">0</div><div class="end-stat-lbl">Max Combo</div></div>
+    <div><div class="end-stat-val" id="endAcc">0%</div><div class="end-stat-lbl">Accuracy</div></div>
+  </div>
+  <div style="font-family:'DM Mono',monospace;font-size:.8rem;color:var(--muted)" id="endBreakdown"></div>
+  <div class="end-btn-row">
+    <button class="end-btn outline" onclick="backToSongs()">Song Select</button>
+    <button class="end-btn" id="retryBtn" onclick="retryGame()">▶ Retry</button>
+  </div>
+</div>
+
+<!-- SCREEN 1: FREE PLAY -->
+<div class="screen active" id="screen-play">
+  <div class="play-layout">
+    <div class="staff-area">
+      <canvas id="staffCanvas" width="900" height="180" aria-label="Sheet music staff"></canvas>
+    </div>
+    <div class="play-info">
+      <div class="note-display">
+        <div class="note-name" id="playNoteName">—</div>
+        <div>
+          <div class="note-detail" id="playNoteDetail">Press any key to play</div>
+          <div class="note-hz" id="playNoteHz"></div>
+        </div>
+        <div class="waveform" id="playWaveform">
+          <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
+          <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
+          <div class="wbar"></div><div class="wbar"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:.6rem;align-items:center">
+        <button class="btn-pink" onclick="clearStaff()" style="font-size:.7rem;padding:.38rem .8rem">Clear</button>
+        <span style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted)">
+          MIDI · Click keys · Keyboard A–L = C4–D5
+        </span>
+      </div>
+    </div>
+    <div class="piano-wrap">
+      <canvas id="pianoCanvas" width="1060" height="150" aria-label="Piano keyboard"></canvas>
+      <div class="piano-hint">Click any key or connect MIDI · Keyboard shortcuts: A=C4 S=D4 D=E4 F=F4 G=G4 H=A4 J=B4 K=C5</div>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 2: GAME -->
+<div class="screen" id="screen-game">
+  <div class="game-layout">
+    <!-- HUD -->
+    <div class="game-hud">
+      <div>
+        <div class="hud-label">Score</div>
+        <div class="hud-score" id="hudScore">0</div>
+      </div>
+      <div>
+        <div class="hud-label">Combo</div>
+        <div class="hud-combo" id="hudCombo">x0 <span class="combo-fire"></span></div>
+      </div>
+      <div>
+        <div class="hud-label">Accuracy</div>
+        <div class="accuracy-ring">
+          <svg width="48" height="48">
+            <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="4"/>
+            <circle cx="24" cy="24" r="20" fill="none" stroke="#39D98A" stroke-width="4"
+              stroke-dasharray="125.6" stroke-dashoffset="125.6" id="accRing" stroke-linecap="round"/>
+          </svg>
+          <div class="accuracy-center" id="accText">—</div>
+        </div>
+      </div>
+      <div style="flex:1;max-width:160px">
+        <div class="hud-label" style="margin-bottom:.3rem">Health</div>
+        <div class="health-bar"><div class="health-fill" id="healthFill"></div></div>
+      </div>
+      <div style="flex:1;max-width:160px;text-align:right">
+        <div class="song-title" id="hudSongTitle">Song</div>
+        <div class="song-progress" style="margin-top:.4rem"><div class="song-progress-fill" id="songProgressFill"></div></div>
+      </div>
+      <button class="btn-pink" onclick="pauseGame()" id="pauseBtn" style="font-size:.7rem;padding:.4rem .8rem">⏸ Pause</button>
+      <div class="wait-indicator" id="waitIndicator">⏸ Waiting for note…</div>
+    </div>
+
+    <!-- Game canvas -->
+    <div class="game-canvas-wrap" id="gameCanvasWrap">
+      <canvas id="gameCanvas" aria-label="Falling notes game"></canvas>
+      <div id="hitFeedback"></div>
+    </div>
+
+    <!-- Game keyboard -->
+    <div class="game-kb-wrap">
+      <canvas id="gameKbCanvas" height="90" aria-label="Game piano keyboard"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 3: SONG SELECT -->
+<div class="screen" id="screen-songs">
+  <div class="page-title">Choose a <span>Song</span></div>
+  <div class="songs-grid" id="songsGrid"></div>
+</div>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════════════════════
+   CONSTANTS & LOOKUPS
+═══════════════════════════════════════════════════════════ */
+const NOTE_NAMES    = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const NOTE_WHITES   = ['C','D','E','F','G','A','B'];
+const NOTE_COLORS   = {C:'#FF2D78',D:'#FF6B35',E:'#F59E0B',F:'#39D98A',G:'#00D4FF',A:'#A855F7',B:'#FF2D78'};
+const SHARP_COLORS  = {C:'#FF5599','D':'#FF8C5A','F':'#34D399','G':'#22D3EE','A':'#C084FC'};
+
+function noteHz(midiNum) {
+  return 440 * Math.pow(2, (midiNum - 69) / 12);
+}
+
+function midiToNoteName(midi) {
+  const note = NOTE_NAMES[midi % 12];
+  const oct  = Math.floor(midi / 12) - 1;
+  return { note, oct, full: note + oct, isSharp: note.includes('#') };
+}
+
+function noteNameToMidi(name, octave) {
+  const idx = NOTE_NAMES.indexOf(name);
+  if (idx < 0) return 60;
+  return (octave + 1) * 12 + idx;
+}
+
+// Staff position (diatonic steps from C4, used for Y placement)
+function staffStepsFromC4(midi) {
+  const note    = NOTE_NAMES[midi % 12].replace('#','');
+  const oct     = Math.floor(midi / 12) - 1;
+  const whites  = ['C','D','E','F','G','A','B'];
+  const noteIdx = whites.indexOf(note);
+  if (noteIdx < 0) {
+    // Sharp: use the diatonic of the natural
+    const nat   = NOTE_NAMES[midi % 12].replace('#','');
+    const nIdx  = whites.indexOf(nat);
+    return (oct - 4) * 7 + nIdx;
+  }
+  return (oct - 4) * 7 + noteIdx;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AUDIO ENGINE — Tone.Sampler (Salamander Grand Piano)
+   Real piano samples + instant key-up cutoff via AmplitudeEnvelope.
+   Each note gets its own envelope so release is hard and immediate.
+═══════════════════════════════════════════════════════════ */
+
+// Track loading state for UI feedback
+let pianoReady = false;
+
+// Shared output chain: Sampler → small reverb → limiter → out
+const masterLimiter = new Tone.Limiter(-3).toDestination();
+
+const pianoReverb = new Tone.Reverb({
+  decay: 0.8,
+  wet:   0.08,   // just 8% room — avoids lingering reverb tail
+}).connect(masterLimiter);
+
+// Tone.Sampler with Salamander Grand Piano samples
+// triggerAttack / triggerRelease gives us note-on / note-off
+const pianoSampler = new Tone.Sampler({
+  urls: {
+    'A0':'A0.mp3',  'C1':'C1.mp3',  'D#1':'Ds1.mp3', 'F#1':'Fs1.mp3',
+    'A1':'A1.mp3',  'C2':'C2.mp3',  'D#2':'Ds2.mp3', 'F#2':'Fs2.mp3',
+    'A2':'A2.mp3',  'C3':'C3.mp3',  'D#3':'Ds3.mp3', 'F#3':'Fs3.mp3',
+    'A3':'A3.mp3',  'C4':'C4.mp3',  'D#4':'Ds4.mp3', 'F#4':'Fs4.mp3',
+    'A4':'A4.mp3',  'C5':'C5.mp3',  'D#5':'Ds5.mp3', 'F#5':'Fs5.mp3',
+    'A5':'A5.mp3',  'C6':'C6.mp3',  'D#6':'Ds6.mp3', 'F#6':'Fs6.mp3',
+    'A6':'A6.mp3',  'C7':'C7.mp3',  'D#7':'Ds7.mp3', 'F#7':'Fs7.mp3',
+    'A7':'A7.mp3',  'C8':'C8.mp3',
+  },
+  baseUrl: 'https://tonejs.github.io/audio/salamander/',
+  // Short release so key-up cuts sound quickly
+  release: 0.1,
+  onload: () => {
+    pianoReady = true;
+    console.log('🎹 Salamander piano loaded');
+  },
+}).connect(pianoReverb);
+
+// AmplitudeEnvelope per active note — gives us an instant hard gate on key-up
+// sustain:1 while held, release:0.015 = 15ms fade to silence on key-up
+const activeEnvelopes = new Map(); // midi → Tone.AmplitudeEnvelope
+
+function getOrCreateEnvelope(midi) {
+  if (activeEnvelopes.has(midi)) {
+    // Re-use: stop old one first
+    const old = activeEnvelopes.get(midi);
+    old.triggerRelease();
+    setTimeout(() => old.dispose(), 200);
+    activeEnvelopes.delete(midi);
+  }
+  const env = new Tone.AmplitudeEnvelope({
+    attack:  0.004,   // 4ms — near-instant onset
+    decay:   0.001,
+    sustain: 1.0,     // hold at full while key is down
+    release: 0.015,   // 15ms fade on key-up — inaudible click prevention
+  }).connect(pianoReverb);
+  activeEnvelopes.set(midi, env);
+  return env;
+}
+
+// Fallback PolySynth — used only while samples are loading
+const fallbackSynth = new Tone.PolySynth(Tone.Synth, {
+  oscillator: { type: 'triangle8' },
+  envelope: {
+    attack:  0.005,
+    decay:   0.3,
+    sustain: 0.0,   // percussive — decays to silence on its own
+    release: 0.02,
+  },
+  volume: -14,
+}).connect(pianoReverb);
+
+// Hit / miss feedback sounds
+const hitSound = new Tone.MembraneSynth({
+  pitchDecay: 0.04, octaves: 3,
+  envelope: { attack: 0.001, decay: 0.06, sustain: 0, release: 0.04 },
+  volume: -18,
+}).connect(masterLimiter);
+
+const missSound = new Tone.Synth({
+  oscillator: { type: 'sawtooth' },
+  envelope: { attack: 0.01, decay: 0.07, sustain: 0, release: 0.05 },
+  volume: -22,
+}).connect(masterLimiter);
+
+// Ensure audio context is running (required before any sound)
+async function startAudio() {
+  if (Tone.context.state !== 'running') await Tone.start();
+}
+
+// midi number → Tone note string e.g. 60 → "C4"
+function midiToToneNote(midi) {
+  const names = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  return names[midi % 12] + (Math.floor(midi / 12) - 1);
+}
+
+// ── ATTACK: key pressed — start sample + open envelope gate ──
+function noteAttack(midi) {
+  if (midi < 21 || midi > 108) return;
+
+  const doAttack = () => {
+    const note = midiToToneNote(midi);
+    const now  = Tone.now();
+    if (pianoReady) {
+      // Route: Sampler → envelope → reverb → limiter
+      const env = getOrCreateEnvelope(midi);
+      // Connect sampler output through this envelope
+      // (Sampler → env is wired via env.connect(pianoReverb) above;
+      //  we trigger both simultaneously)
+      pianoSampler.triggerAttack(note, now);
+      env.triggerAttack(now);
+    } else {
+      fallbackSynth.triggerAttack(note, now);
+    }
+  };
+
+  if (Tone.context.state === 'running') doAttack();
+  else startAudio().then(doAttack);
+}
+
+// ── RELEASE: key released — close envelope gate immediately ──
+function noteRelease(midi) {
+  if (midi < 21 || midi > 108) return;
+  if (Tone.context.state !== 'running') return;
+
+  const note = midiToToneNote(midi);
+  const now  = Tone.now();
+
+  if (pianoReady) {
+    // Trigger sampler release (handles its own 100ms tail)
+    pianoSampler.triggerRelease(note, now);
+    // Also release the envelope gate for immediate volume cutoff
+    const env = activeEnvelopes.get(midi);
+    if (env) {
+      env.triggerRelease(now);
+      // Clean up envelope after its release tail
+      setTimeout(() => {
+        env.dispose();
+        if (activeEnvelopes.get(midi) === env) activeEnvelopes.delete(midi);
+      }, 300);
+    }
+  } else {
+    fallbackSynth.triggerRelease(note, now);
+  }
+}
+
+// ── Release all notes (panic / song end) ──
+function releaseAllNotes() {
+  activeEnvelopes.forEach((env, midi) => {
+    const note = midiToToneNote(midi);
+    if (pianoReady) pianoSampler.triggerRelease(note, Tone.now());
+    env.triggerRelease(Tone.now());
+    setTimeout(() => env.dispose(), 300);
+  });
+  activeEnvelopes.clear();
+  if (!pianoReady) fallbackSynth.releaseAll();
+}
+
+// ── Duration-based play (game feedback, song preview) ──
+function playPianoNote(midi, dur = 0.35) {
+  if (midi < 21 || midi > 108) return;
+  const doPlay = () => {
+    const note = midiToToneNote(midi);
+    const now  = Tone.now();
+    if (pianoReady) {
+      pianoSampler.triggerAttackRelease(note, Math.max(0.05, dur), now);
+    } else {
+      fallbackSynth.triggerAttackRelease(note, Math.max(0.05, dur), now);
+    }
+  };
+  if (Tone.context.state === 'running') doPlay();
+  else startAudio().then(doPlay);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PARTICLE SYSTEM
+═══════════════════════════════════════════════════════════ */
+const pCanvas  = document.getElementById('particleCanvas');
+const pCtx     = pCanvas.getContext('2d');
+const particles = [];
+
+function resizeParticleCanvas() {
+  pCanvas.width  = window.innerWidth;
+  pCanvas.height = window.innerHeight;
+}
+resizeParticleCanvas();
+window.addEventListener('resize', resizeParticleCanvas);
+
+function spawnParticles(x, y, color, count = 12) {
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.random() * Math.PI * 2);
+    const speed = 2 + Math.random() * 5;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 3,
+      life: 1, decay: 0.02 + Math.random() * 0.03,
+      size: 3 + Math.random() * 5,
+      color,
+    });
+  }
+}
+
+function updateParticles() {
+  pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x  += p.vx; p.y  += p.vy;
+    p.vy += 0.18;
+    p.life -= p.decay;
+    if (p.life <= 0) { particles.splice(i, 1); continue; }
+    pCtx.globalAlpha = p.life;
+    pCtx.fillStyle   = p.color;
+    pCtx.beginPath();
+    pCtx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    pCtx.fill();
+  }
+  pCtx.globalAlpha = 1;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SCREEN NAVIGATION
+═══════════════════════════════════════════════════════════ */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    if (t.textContent.toLowerCase().includes(id === 'songs' ? 'song' : id)) t.classList.add('active');
+  });
+  if (id === 'songs') buildSongList();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PIANO KEYBOARD (shared builder)
+═══════════════════════════════════════════════════════════ */
+const PIANO_START = 21; // A0
+const PIANO_END   = 108; // C8
+const TOTAL_KEYS  = PIANO_END - PIANO_START + 1;
+
+// Compute white keys
+const WHITE_KEYS = [];
+for (let m = PIANO_START; m <= PIANO_END; m++) {
+  if (!NOTE_NAMES[m % 12].includes('#')) WHITE_KEYS.push(m);
+}
+const N_WHITE = WHITE_KEYS.length; // 52
+
+function buildKeyLayout(canvasWidth) {
+  const wkw  = canvasWidth / N_WHITE;
+  const keys = [];
+  let wi = 0;
+  for (let m = PIANO_START; m <= PIANO_END; m++) {
+    const name = NOTE_NAMES[m % 12];
+    const isSharp = name.includes('#');
+    if (!isSharp) {
+      keys.push({ midi: m, x: wi * wkw, w: wkw, isSharp: false });
+      wi++;
+    } else {
+      const bx = (wi - 1) * wkw + wkw * 0.65;
+      const bw = wkw * 0.6;
+      keys.push({ midi: m, x: bx, w: bw, isSharp: true });
+    }
+  }
+  return { keys, wkw };
+}
+
+/* ═══════════════════════════════════════════════════════════
+   FREE PLAY — PIANO CANVAS
+═══════════════════════════════════════════════════════════ */
+const playPianoCanvas = document.getElementById('pianoCanvas');
+const ppc = playPianoCanvas.getContext('2d');
+const PPW = 1060, PPH = 150;
+const WKH = PPH, BKH = PPH * 0.60;
+
+let activeKeys    = new Set();
+let hoveredKey    = null;
+let waveInterval  = null;
+
+function drawPlayPiano() {
+  ppc.clearRect(0, 0, PPW, PPH);
+  ppc.fillStyle = '#0a0812';
+  ppc.fillRect(0, 0, PPW, PPH);
+
+  const { keys, wkw } = buildKeyLayout(PPW);
+
+  // White keys pass
+  keys.filter(k => !k.isSharp).forEach(k => {
+    const isActive  = activeKeys.has(k.midi);
+    const isHovered = hoveredKey === k.midi;
+    const note      = NOTE_NAMES[k.midi % 12];
+    const oct       = Math.floor(k.midi / 12) - 1;
+
+    let fill;
+    if (isActive) fill = NOTE_COLORS[note] || '#FF2D78';
+    else if (isHovered) fill = '#d8d4cc';
+    else fill = note === 'C' ? '#f0edd8' : '#f5f2ec';
+
+    // Key body
+    ppc.fillStyle = fill;
+    const r = 5;
+    ppc.beginPath();
+    ppc.moveTo(k.x + 1, 0); ppc.lineTo(k.x + k.w - 1, 0);
+    ppc.lineTo(k.x + k.w - 1, WKH - r);
+    ppc.arcTo(k.x + k.w - 1, WKH, k.x + k.w - 1 - r, WKH, r);
+    ppc.lineTo(k.x + 1 + r, WKH);
+    ppc.arcTo(k.x + 1, WKH, k.x + 1, WKH - r, r);
+    ppc.lineTo(k.x + 1, 0); ppc.closePath();
+
+    if (isActive) {
+      ppc.shadowColor = fill;
+      ppc.shadowBlur  = 15;
+    }
+    ppc.fill();
+    ppc.shadowBlur = 0;
+    ppc.strokeStyle = '#333';
+    ppc.lineWidth   = 0.8;
+    ppc.stroke();
+
+    // Top sheen
+    if (!isActive) {
+      const sh = ppc.createLinearGradient(k.x, 0, k.x, 30);
+      sh.addColorStop(0, 'rgba(255,255,255,0.5)');
+      sh.addColorStop(1, 'rgba(255,255,255,0)');
+      ppc.fillStyle = sh;
+      ppc.fillRect(k.x + 2, 0, k.w - 4, 28);
+    }
+
+    // C label
+    if (note === 'C') {
+      ppc.fillStyle = isActive ? '#fff' : '#8a6030';
+      ppc.font = `bold ${Math.max(8, wkw * 0.45)}px "DM Mono",monospace`;
+      ppc.textAlign = 'center';
+      ppc.fillText('C' + oct, k.x + k.w / 2, WKH - 7);
+    }
+  });
+
+  // Black keys pass
+  keys.filter(k => k.isSharp).forEach(k => {
+    const isActive  = activeKeys.has(k.midi);
+    const isHovered = hoveredKey === k.midi;
+    const note      = NOTE_NAMES[k.midi % 12];
+
+    let fill;
+    if (isActive)      fill = SHARP_COLORS[note.replace('#','')] || '#FF2D78';
+    else if (isHovered) fill = '#3a3050';
+    else fill = '#1a1428';
+
+    const r = 3;
+    ppc.beginPath();
+    ppc.moveTo(k.x, 0); ppc.lineTo(k.x + k.w, 0);
+    ppc.lineTo(k.x + k.w, BKH - r);
+    ppc.arcTo(k.x + k.w, BKH, k.x + k.w - r, BKH, r);
+    ppc.lineTo(k.x + r, BKH);
+    ppc.arcTo(k.x, BKH, k.x, BKH - r, r);
+    ppc.lineTo(k.x, 0); ppc.closePath();
+
+    if (isActive) { ppc.shadowColor = fill; ppc.shadowBlur = 12; }
+    ppc.fillStyle = fill;
+    ppc.fill();
+    ppc.shadowBlur = 0;
+    ppc.strokeStyle = 'rgba(0,0,0,.6)';
+    ppc.lineWidth   = 0.6;
+    ppc.stroke();
+  });
+
+  // Octave dividers
+  ppc.strokeStyle = 'rgba(255,45,120,0.1)';
+  ppc.lineWidth   = 1;
+  for (let oct = 0; oct <= 8; oct++) {
+    const cMidi = (oct + 1) * 12; // MIDI of C in that octave
+    const idx   = WHITE_KEYS.indexOf(cMidi);
+    if (idx < 0) continue;
+    const x = idx * (PPW / N_WHITE);
+    ppc.beginPath(); ppc.moveTo(x, 0); ppc.lineTo(x, PPH); ppc.stroke();
+  }
+}
+drawPlayPiano();
+
+// Piano click / hover
+function getPianoKeyAt(canvasEl, clientX, clientY) {
+  const rect   = canvasEl.getBoundingClientRect();
+  const scaleX = canvasEl.width / rect.width;
+  const scaleY = canvasEl.height / rect.height;
+  const cx     = (clientX - rect.left) * scaleX;
+  const cy     = (clientY - rect.top)  * scaleY;
+  const { keys } = buildKeyLayout(canvasEl.width);
+  // Sharps first
+  for (const k of keys.filter(k => k.isSharp)) {
+    if (cx >= k.x && cx <= k.x + k.w && cy >= 0 && cy <= BKH * (canvasEl.height / PPH)) return k;
+  }
+  for (const k of keys.filter(k => !k.isSharp)) {
+    if (cx >= k.x && cx <= k.x + k.w) return k;
+  }
+  return null;
+}
+
+function triggerNote(midi, canvas) {
+  noteAttack(midi);
+  activeKeys.add(midi);
+  drawPlayPiano();
+  updatePlayInfo(midi);
+  const { keys } = buildKeyLayout(canvas?.width || PPW);
+  const k = keys.find(k => k.midi === midi);
+  if (k) {
+    const rect  = (canvas || playPianoCanvas).getBoundingClientRect();
+    const scaleX = (canvas?.width || PPW) / rect.width;
+    const kCX   = (k.x + k.w / 2) / scaleX + rect.left;
+    const kCY   = rect.top + (k.isSharp ? BKH * 0.5 : PPH * 0.7) / (PPH / rect.height);
+    const note  = NOTE_NAMES[midi % 12].replace('#','');
+    spawnParticles(kCX, kCY, NOTE_COLORS[note] || '#FF2D78', 8);
+  }
+}
+
+function releaseNote(midi) {
+  if (!activeKeys.has(midi)) return;
+  noteRelease(midi);
+  activeKeys.delete(midi);
+  drawPlayPiano();
+}
+
+// Track which midi key is currently held by mouse/touch
+let mouseHeldMidi = null;
+
+playPianoCanvas.addEventListener('mousedown', e => {
+  e.preventDefault();
+  startAudio();
+  const k = getPianoKeyAt(playPianoCanvas, e.clientX, e.clientY);
+  if (k) {
+    if (mouseHeldMidi !== null && mouseHeldMidi !== k.midi) releaseNote(mouseHeldMidi);
+    mouseHeldMidi = k.midi;
+    triggerNote(k.midi, playPianoCanvas);
+  }
+});
+
+// Single document-level mouseup — catches release anywhere on desktop,
+// regardless of whether mouse drifted off either canvas
+document.addEventListener('mouseup', () => {
+  // Free play piano
+  if (mouseHeldMidi !== null) { releaseNote(mouseHeldMidi); mouseHeldMidi = null; }
+  // Game keyboard
+  if (gameKbHeldMidi !== null) { gameKeyRelease(gameKbHeldMidi); gameKbHeldMidi = null; }
+});
+
+playPianoCanvas.addEventListener('mouseleave', () => {
+  hoveredKey = null;
+  drawPlayPiano();
+  // Note intentionally NOT released on mouseleave — document mouseup handles it.
+  // This lets the user keep holding a note while moving the mouse off-canvas.
+});
+
+playPianoCanvas.addEventListener('mousemove', e => {
+  const k = getPianoKeyAt(playPianoCanvas, e.clientX, e.clientY);
+  const newHov = k ? k.midi : null;
+  if (newHov !== hoveredKey) { hoveredKey = newHov; drawPlayPiano(); }
+  // Slide between keys while holding mouse button
+  if (mouseHeldMidi !== null && k && k.midi !== mouseHeldMidi) {
+    releaseNote(mouseHeldMidi);
+    mouseHeldMidi = k.midi;
+    triggerNote(k.midi, playPianoCanvas);
+  }
+});
+
+// Touch support
+playPianoCanvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  startAudio();
+  const t = e.changedTouches[0];
+  const k = getPianoKeyAt(playPianoCanvas, t.clientX, t.clientY);
+  if (k) { mouseHeldMidi = k.midi; triggerNote(k.midi, playPianoCanvas); }
+}, { passive: false });
+
+playPianoCanvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (mouseHeldMidi !== null) { releaseNote(mouseHeldMidi); mouseHeldMidi = null; }
+}, { passive: false });
+
+/* ═══════════════════════════════════════════════════════════
+   PLAY INFO & WAVEFORM
+═══════════════════════════════════════════════════════════ */
+function updatePlayInfo(midi) {
+  const { note, oct, isSharp } = midiToNoteName(midi);
+  const hz = noteHz(midi);
+  const staffNote = isSharp ? note + oct : note + oct;
+  document.getElementById('playNoteName').textContent  = note + oct;
+  document.getElementById('playNoteDetail').textContent = isSharp ? `${note} (♯) Octave ${oct}` : `${note} · Octave ${oct}`;
+  document.getElementById('playNoteHz').textContent     = `${Math.round(hz)} Hz`;
+
+  // Waveform pulse
+  clearInterval(waveInterval);
+  const bars = document.querySelectorAll('#playWaveform .wbar');
+  waveInterval = setInterval(() => {
+    bars.forEach(b => { b.style.height = (4 + Math.random() * 22) + 'px'; });
+  }, 70);
+  setTimeout(() => { clearInterval(waveInterval); bars.forEach(b => b.style.height = '4px'); }, 1200);
+
+  // Staff update
+  addNoteToStaff(midi);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LIVE STAFF NOTATION
+═══════════════════════════════════════════════════════════ */
+const staffCanvas = document.getElementById('staffCanvas');
+const sCtx        = staffCanvas.getContext('2d');
+const SW = 900, SH = 180;
+let staffNotes    = []; // { midi, x, timestamp }
+const MAX_STAFF_NOTES = 16;
+
+function clearStaff() {
+  staffNotes = [];
+  drawLiveStaff();
+}
+
+function addNoteToStaff(midi) {
+  staffNotes.push({ midi, timestamp: Date.now() });
+  if (staffNotes.length > MAX_STAFF_NOTES) staffNotes.shift();
+  drawLiveStaff();
+}
+
+function drawLiveStaff() {
+  sCtx.clearRect(0, 0, SW, SH);
+  sCtx.fillStyle = 'rgba(10,8,18,0.95)';
+  sCtx.fillRect(0, 0, SW, SH);
+
+  const lineGap = 14;
+  const tTop    = 28;  // treble top line
+  const bTop    = 108; // bass top line
+  const sLeft   = 70;
+  const sRight  = SW - 20;
+
+  // Staff lines — treble
+  sCtx.strokeStyle = '#2a3a50';
+  sCtx.lineWidth   = 1.2;
+  for (let i = 0; i < 5; i++) {
+    sCtx.beginPath();
+    sCtx.moveTo(sLeft, tTop + i * lineGap);
+    sCtx.lineTo(sRight, tTop + i * lineGap);
+    sCtx.stroke();
+  }
+  // Bass
+  for (let i = 0; i < 5; i++) {
+    sCtx.beginPath();
+    sCtx.moveTo(sLeft, bTop + i * lineGap);
+    sCtx.lineTo(sRight, bTop + i * lineGap);
+    sCtx.stroke();
+  }
+  // Brace / barline
+  sCtx.strokeStyle = '#3a4a60';
+  sCtx.lineWidth   = 2;
+  sCtx.beginPath();
+  sCtx.moveTo(sLeft, tTop);
+  sCtx.lineTo(sLeft, bTop + 4 * lineGap);
+  sCtx.stroke();
+
+  // Clefs
+  sCtx.font = '56px serif'; sCtx.textAlign = 'left';
+  sCtx.fillStyle = '#00D4FF';
+  sCtx.fillText('𝄞', sLeft - 50, tTop + 4 * lineGap + 4);
+  sCtx.fillStyle = '#FF2D78';
+  sCtx.fillText('𝄢', sLeft - 46, bTop + 2 * lineGap + 4);
+
+  // Middle C ledger position
+  // treble: E4=line4(bottom), each step = lineGap/2 diatonic
+  // C4 = one ledger below treble = tTop + 5*lineGap
+  // C4 = one ledger above bass  = bTop - lineGap
+  const middleCY_treble = tTop + 5 * lineGap;
+  const middleCY_bass   = bTop - lineGap;
+
+  // Draw notes
+  if (staffNotes.length === 0) {
+    sCtx.font = '12px "DM Mono",monospace';
+    sCtx.fillStyle = '#4a5568';
+    sCtx.textAlign = 'center';
+    sCtx.fillText('Play any key to see sheet notation', SW / 2, SH / 2 + 4);
+    return;
+  }
+
+  const noteSpacing = Math.min(60, (sRight - sLeft - 20) / Math.max(staffNotes.length, 1));
+
+  staffNotes.forEach((entry, i) => {
+    const steps   = staffStepsFromC4(entry.midi);
+    const isSharp = NOTE_NAMES[entry.midi % 12].includes('#');
+    const noteName= NOTE_NAMES[entry.midi % 12].replace('#','');
+    const age     = (Date.now() - entry.timestamp) / 1000;
+    const alpha   = Math.max(0.3, 1 - age * 0.25);
+
+    // Determine clef
+    const useTreeble = steps >= 0;
+    const refY  = useTreeble ? middleCY_treble : middleCY_bass;
+    const noteY = refY - steps * (lineGap / 2);
+    const noteX = sLeft + 20 + i * noteSpacing;
+
+    const color = NOTE_COLORS[noteName] || '#FF2D78';
+
+    sCtx.globalAlpha = alpha;
+
+    // Ledger lines
+    sCtx.strokeStyle = '#2a3a50';
+    sCtx.lineWidth   = 1.2;
+    const staffTopRef  = useTreeble ? tTop : bTop;
+    const staffBotRef  = useTreeble ? tTop + 4 * lineGap : bTop + 4 * lineGap;
+    if (noteY > staffBotRef + lineGap / 2) {
+      for (let ly = staffBotRef + lineGap; ly <= noteY + lineGap / 2; ly += lineGap) {
+        sCtx.beginPath(); sCtx.moveTo(noteX - 12, ly); sCtx.lineTo(noteX + 12, ly); sCtx.stroke();
+      }
+    }
+    if (noteY < staffTopRef - lineGap / 2) {
+      for (let ly = staffTopRef - lineGap; ly >= noteY - lineGap / 2; ly -= lineGap) {
+        sCtx.beginPath(); sCtx.moveTo(noteX - 12, ly); sCtx.lineTo(noteX + 12, ly); sCtx.stroke();
+      }
+    }
+
+    // Note head glow
+    sCtx.shadowColor = color;
+    sCtx.shadowBlur  = i === staffNotes.length - 1 ? 16 : 6;
+
+    // Note head (filled ellipse)
+    sCtx.fillStyle = color;
+    sCtx.beginPath();
+    sCtx.ellipse(noteX, noteY, 7, 5, -0.18, 0, Math.PI * 2);
+    sCtx.fill();
+    sCtx.shadowBlur = 0;
+
+    // Sharp accidental
+    if (isSharp) {
+      sCtx.fillStyle = color;
+      sCtx.font = 'bold 13px serif';
+      sCtx.textAlign = 'right';
+      sCtx.fillText('♯', noteX - 9, noteY + 5);
+    }
+
+    sCtx.globalAlpha = 1;
+  });
+}
+drawLiveStaff();
+
+/* ═══════════════════════════════════════════════════════════
+   KEYBOARD SHORTCUTS — attack on keydown, release on keyup
+═══════════════════════════════════════════════════════════ */
+const KB_MAP = { a:60, s:62, d:64, f:65, g:67, h:69, j:71, k:72, l:74 };
+const heldKbKeys = new Set(); // track which kb keys are physically held
+
+document.addEventListener('keydown', e => {
+  if (e.repeat) return;
+
+  // Escape closes modal or pauses game
+  if (e.code === 'Escape') {
+    if (document.getElementById('inputModal').classList.contains('active')) {
+      closeInputModal(); return;
+    }
+    if (currentScreen() === 'game') pauseGame();
+    return;
+  }
+
+  const midi = KB_MAP[e.key.toLowerCase()];
+  if (!midi) return;
+
+  if (currentScreen() === 'play') {
+    if (!heldKbKeys.has(midi)) {
+      heldKbKeys.add(midi);
+      triggerNote(midi, playPianoCanvas);
+    }
+    return;
+  }
+
+  if (currentScreen() === 'game') {
+    if (game.inputMode === 'midi' || game.inputMode === 'mic') return;
+    if (!heldKbKeys.has(midi)) {
+      heldKbKeys.add(midi);
+      gameKeyPress(midi);
+    }
+  }
+});
+
+document.addEventListener('keyup', e => {
+  const midi = KB_MAP[e.key.toLowerCase()];
+  if (!midi) return;
+  heldKbKeys.delete(midi);
+  if (currentScreen() === 'play') {
+    releaseNote(midi);
+  } else if (currentScreen() === 'game') {
+    gameKeyRelease(midi);
+  }
+});
+
+function currentScreen() {
+  const s = document.querySelector('.screen.active');
+  return s ? s.id.replace('screen-', '') : 'play';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MIDI INPUT
+═══════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════
+   SECURE CONTEXT DETECTION
+═══════════════════════════════════════════════════════════ */
+const IS_SECURE = window.isSecureContext ||
+                  location.protocol === 'https:' ||
+                  location.hostname === 'localhost' ||
+                  location.hostname === '127.0.0.1' ||
+                  location.hostname === '';
+
+/* ═══════════════════════════════════════════════════════════
+   MIDI — scan on demand, not at boot
+═══════════════════════════════════════════════════════════ */
+let midiAccess  = null;
+let midiDevices = [];
+let midiInitDone = false;
+
+function initMidi() {
+  if (midiInitDone) return;
+  midiInitDone = true;
+
+  if (!IS_SECURE) {
+    document.getElementById('midiLabel').textContent = 'MIDI: needs HTTPS';
+    updateModalMidiList();
+    return;
+  }
+  if (!navigator.requestMIDIAccess) {
+    document.getElementById('midiLabel').textContent = 'MIDI: n/a';
+    updateModalMidiList();
+    return;
+  }
+  navigator.requestMIDIAccess({ sysex: false }).then(access => {
+    midiAccess = access;
+    refreshMidiDevices();
+    access.onstatechange = refreshMidiDevices;
+  }).catch(() => {
+    document.getElementById('midiDot').className = 'midi-dot';
+    document.getElementById('midiLabel').textContent = 'MIDI: denied';
+    updateModalMidiList();
+  });
+}
+
+function refreshMidiDevices() {
+  if (!midiAccess) return;
+  midiDevices = [];
+  midiAccess.inputs.forEach(input => {
+    midiDevices.push({ id: input.id, name: input.name, input });
+    // Always wire message handler — gameKeyPress and triggerNote
+    // check current screen and input mode themselves
+    input.onmidimessage = onMidiMessage;
+  });
+
+  const count = midiDevices.length;
+  document.getElementById('midiDot').className = 'midi-dot' + (count ? ' on' : '');
+  document.getElementById('midiLabel').textContent = count
+    ? `MIDI: ${count} device${count > 1 ? 's' : ''}`
+    : 'MIDI: no device';
+
+  // Refresh modal list if open
+  updateModalMidiList();
+}
+
+function onMidiMessage(msg) {
+  const [status, note, velocity] = msg.data;
+  const cmd    = status & 0xF0;
+  const isOn   = cmd === 0x90 && velocity > 0;
+  const isOff  = cmd === 0x80 || (cmd === 0x90 && velocity === 0);
+
+  // Block during modal
+  if (document.getElementById('inputModal').classList.contains('active')) return;
+  if (modal.selectedInput !== 'midi' && modal.selectedInput !== null) return;
+
+  if (isOn) {
+    startAudio();
+    if (currentScreen() === 'play') {
+      triggerNote(note, playPianoCanvas);
+    } else if (currentScreen() === 'game') {
+      gameKeyPress(note);
+    }
+  } else if (isOff) {
+    if (currentScreen() === 'play') {
+      releaseNote(note);
+    } else if (currentScreen() === 'game') {
+      gameKeyRelease(note);
+    }
+  }
+}
+// Only auto-init MIDI on secure contexts. On file://, wait for user gesture.
+if (IS_SECURE) initMidi();
+
+/* ═══════════════════════════════════════════════════════════
+   SONG DATA
+═══════════════════════════════════════════════════════════ */
+// Each note: [midiNum, beatOffset, duration_beats]
+// beatOffset and duration in 8th note units (2 = quarter)
+
+const SONGS = [
+  {
+    id: 'ode',
+    name: 'Ode to Joy',
+    composer: 'Beethoven',
+    bpm: 100,
+    difficulty: 'easy',
+    color: '#39D98A',
+    notes: [
+      // E E F G G F E D C C D E E D D
+      [64,0,2],[64,2,2],[65,4,2],[67,6,2],
+      [67,8,2],[65,10,2],[64,12,2],[62,14,2],
+      [60,16,2],[60,18,2],[62,20,2],[64,22,2],
+      [64,24,3],[62,27,1],[62,28,4],
+      // E E F G G F E D C C D E D C C
+      [64,32,2],[64,34,2],[65,36,2],[67,38,2],
+      [67,40,2],[65,42,2],[64,44,2],[62,46,2],
+      [60,48,2],[60,50,2],[62,52,2],[64,54,2],
+      [62,56,3],[60,59,1],[60,60,4],
+    ],
+  },
+  {
+    id: 'jingle',
+    name: 'Jingle Bells',
+    composer: 'Pierpont',
+    bpm: 120,
+    difficulty: 'easy',
+    color: '#F59E0B',
+    notes: [
+      // E E E · E E E · E G C D E
+      [64,0,2],[64,2,2],[64,4,4],
+      [64,8,2],[64,10,2],[64,12,4],
+      [64,16,2],[67,18,2],[60,20,2],[62,22,2],[64,24,6],
+      // F F F F F E E E E D D E D G
+      [65,32,2],[65,34,2],[65,36,2],[65,38,2],
+      [65,40,2],[64,42,2],[64,44,2],[64,46,2],
+      [64,48,2],[62,50,2],[62,52,2],[64,54,2],[62,56,4],[67,60,4],
+      // E E E · E E E · E G C D E
+      [64,64,2],[64,66,2],[64,68,4],
+      [64,72,2],[64,74,2],[64,76,4],
+      [64,80,2],[67,82,2],[60,84,2],[62,86,2],[64,88,6],
+      // F F F F F E E G G F D C
+      [65,96,2],[65,98,2],[65,100,2],[65,102,2],
+      [65,104,2],[64,106,2],[64,108,2],[67,110,2],
+      [67,112,2],[65,114,2],[62,116,2],[60,118,4],
+    ],
+  },
+  {
+    id: 'fur',
+    name: 'Für Elise',
+    composer: 'Beethoven',
+    bpm: 80,
+    difficulty: 'medium',
+    color: '#00D4FF',
+    notes: [
+      [64,0,2],[63,2,2],[64,4,2],[63,6,2],[64,8,2],
+      [59,10,2],[62,12,2],[60,14,2],[57,16,4],
+      [48,20,2],[52,22,2],[57,24,2],
+      [59,26,4],[52,30,2],[56,32,2],[59,34,2],
+      [60,36,4],[52,40,2],[64,42,2],[63,44,2],
+      [64,46,2],[63,48,2],[64,50,2],[59,52,2],
+      [62,54,2],[60,56,2],[57,58,4],
+      [48,62,2],[52,64,2],[57,66,2],
+      [59,68,4],[52,72,2],[60,74,2],[59,76,2],[57,78,4],
+    ],
+  },
+  {
+    id: 'hb',
+    name: 'Happy Birthday',
+    composer: 'Hill Sisters',
+    bpm: 100,
+    difficulty: 'easy',
+    color: '#A855F7',
+    notes: [
+      [60,0,1],[60,1,1],[62,2,2],[60,4,2],[65,6,2],[64,8,4],
+      [60,12,1],[60,13,1],[62,14,2],[60,16,2],[67,18,2],[65,20,4],
+      [60,24,1],[60,25,1],[72,26,2],[69,28,2],[65,30,2],[64,32,2],[62,34,4],
+      [70,38,1],[70,39,1],[69,40,2],[65,42,2],[67,44,2],[65,46,4],
+    ],
+  },
+  {
+    id: 'twinkle',
+    name: 'Twinkle Twinkle',
+    composer: 'Traditional',
+    bpm: 110,
+    difficulty: 'easy',
+    color: '#FF6B35',
+    notes: [
+      [60,0,2],[60,2,2],[67,4,2],[67,6,2],[69,8,2],[69,10,2],[67,12,4],
+      [65,16,2],[65,18,2],[64,20,2],[64,22,2],[62,24,2],[62,26,2],[60,28,4],
+      [67,32,2],[67,34,2],[65,36,2],[65,38,2],[64,40,2],[64,42,2],[62,44,4],
+      [67,48,2],[67,50,2],[65,52,2],[65,54,2],[64,56,2],[64,58,2],[62,60,4],
+      [60,64,2],[60,66,2],[67,68,2],[67,70,2],[69,72,2],[69,74,2],[67,76,4],
+      [65,80,2],[65,82,2],[64,84,2],[64,86,2],[62,88,2],[62,90,2],[60,92,4],
+    ],
+  },
+  {
+    id: 'canon',
+    name: 'Canon in D',
+    composer: 'Pachelbel',
+    bpm: 72,
+    difficulty: 'hard',
+    color: '#FF2D78',
+    notes: [
+      [74,0,4],[69,4,4],[71,8,4],[66,12,4],
+      [67,16,4],[64,20,4],[67,24,4],[66,28,4],
+      [74,32,2],[73,34,2],[74,36,2],[69,38,2],[71,40,2],[68,42,2],[69,44,2],[66,46,2],
+      [67,48,2],[64,50,2],[66,52,2],[68,54,2],[69,56,2],[66,58,2],[69,60,2],[71,62,2],
+      [74,64,2],[73,66,2],[74,68,2],[69,70,2],[71,72,2],[68,74,2],[69,76,2],[66,78,2],
+      [67,80,2],[69,82,2],[71,84,2],[67,86,2],[69,88,2],[66,90,2],[64,92,2],[66,94,2],
+    ],
+  },
+];
+
+/* ═══════════════════════════════════════════════════════════
+   SONG SELECT
+═══════════════════════════════════════════════════════════ */
+function buildSongList() {
+  const grid = document.getElementById('songsGrid');
+  grid.innerHTML = '';
+  SONGS.forEach(song => {
+    const diffClass = 'diff-' + song.difficulty;
+    const diffLabel = song.difficulty.charAt(0).toUpperCase() + song.difficulty.slice(1);
+    const stars     = song.difficulty === 'easy' ? 2 : song.difficulty === 'medium' ? 3 : 5;
+    const dots      = Array.from({length:5}, (_,i) =>
+      `<div class="song-dot${i < stars ? ' filled' : ''}"></div>`).join('');
+
+    grid.innerHTML += `
+      <div class="song-card" style="border-color:rgba(${hexToRgb(song.color)},.2)" id="card-${song.id}">
+        <div class="song-diff ${diffClass}">${diffLabel}</div>
+        <div class="song-name">${song.name}</div>
+        <div class="song-meta">${song.composer}</div>
+        <div class="song-bpm">♩= ${song.bpm} BPM</div>
+        <div class="song-dots">${dots}</div>
+        <div class="mode-row">
+          <button class="mode-btn selected" id="mode-normal-${song.id}"
+            onclick="setCardMode('${song.id}','normal')">▶ Normal</button>
+          <button class="mode-btn" id="mode-wait-${song.id}"
+            onclick="setCardMode('${song.id}','wait')">⏸ Wait Mode</button>
+        </div>
+        <button class="play-song-btn" id="play-btn-${song.id}"
+          onclick="selectSong('${song.id}')"
+          style="background:${song.color}">
+          ▶ Play
+        </button>
+      </div>
+    `;
+  });
+}
+
+// Track selected mode per song
+const songModes = {};
+
+function setCardMode(songId, mode) {
+  songModes[songId] = mode;
+  const normalBtn = document.getElementById(`mode-normal-${songId}`);
+  const waitBtn   = document.getElementById(`mode-wait-${songId}`);
+  if (!normalBtn || !waitBtn) return;
+  normalBtn.className = 'mode-btn' + (mode === 'normal' ? ' selected' : '');
+  waitBtn.className   = 'mode-btn' + (mode === 'wait'   ? ' wait-selected' : '');
+  // Update play button label
+  const playBtn = document.getElementById(`play-btn-${songId}`);
+  if (playBtn) playBtn.textContent = mode === 'wait' ? '⏸ Play (Wait Mode)' : '▶ Play';
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `${r},${g},${b}`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GUITAR HERO GAME ENGINE
+═══════════════════════════════════════════════════════════ */
+const gameCanvas  = document.getElementById('gameCanvas');
+const gCtx        = gameCanvas.getContext('2d');
+const gameKbCanvas = document.getElementById('gameKbCanvas');
+const gkCtx        = gameKbCanvas.getContext('2d');
+
+let GW = 800, GH = 500; // set on resize
+let GKH = 90;
+
+// Game state
+let game = {
+  song:       null,
+  notes:      [],       // { midi, beatStart, beatDur, y, hit, missed, color, label }
+  active:     false,
+  paused:     false,
+  score:      0,
+  combo:      0,
+  maxCombo:   0,
+  health:     100,
+  totalNotes: 0,
+  hitNotes:   0,
+  perfectHits:0,
+  goodHits:   0,
+  startTime:  0,
+  beatDur:    0,        // ms per beat (8th note unit)
+  totalBeats: 0,
+  gameRAF:    null,
+  pressedKeys: new Set(),
+  hitFeedbacks:[],      // { text, color, y, life, x }
+};
+
+function resizeGame() {
+  const wrap = document.getElementById('gameCanvasWrap');
+  if (!wrap) return;
+  const rect  = wrap.getBoundingClientRect();
+  GW = rect.width;
+  GH = Math.max(200, rect.height);
+  gameCanvas.width  = GW;
+  gameCanvas.height = GH;
+  GKH = gameKbCanvas.parentElement.offsetHeight || 90;
+  gameKbCanvas.width  = gameCanvas.parentElement.offsetWidth || GW;
+  gameKbCanvas.height = GKH;
+}
+
+window.addEventListener('resize', () => { resizeGame(); });
+
+// Hit zone constants
+const HIT_ZONE_H      = 18;   // px height of hit zone bar
+const SCROLL_SPEED_PX = 1;    // pixels per ms — derived from bpm
+
+/* ═══════════════════════════════════════════════════════════
+   INPUT MODAL STATE & LOGIC
+═══════════════════════════════════════════════════════════ */
+const modal = {
+  song:          null,
+  selectedInput: 'keyboard',  // 'keyboard' | 'midi' | 'mic' | 'click'
+  selectedMode:  'normal',    // 'normal' | 'wait'
+};
+
+function selectSong(id) {
+  const song = SONGS.find(s => s.id === id);
+  if (!song) return;
+  modal.song = song;
+  modal.selectedMode  = (songModes[id] || 'normal');
+  modal.selectedInput = 'keyboard';
+
+  // Populate modal
+  document.getElementById('modalSongName').textContent = song.name;
+
+  // Sync mode buttons
+  setModalMode(modal.selectedMode);
+
+  // Reset option highlight
+  ['keyboard','midi','mic','click'].forEach(k => {
+    const el = document.getElementById('opt-' + k);
+    if (el) el.classList.toggle('selected', k === 'keyboard');
+  });
+
+  // Reset mic option to idle state
+  setMicStatus('idle');
+
+  // Show/hide secure context warning
+  const warning = document.getElementById('secureWarning');
+  if (warning) warning.classList.toggle('show', !IS_SECURE);
+
+  updateModalMidiList();
+
+  // Request MIDI access now (on user gesture) if not done yet
+  if (IS_SECURE && !midiInitDone) initMidi();
+
+  // Show modal
+  document.getElementById('inputModal').classList.add('active');
+
+  stopMic(); // ensure clean mic state
+}
+
+function updateModalMidiList() {
+  const desc  = document.getElementById('midiOptionDesc');
+  const list  = document.getElementById('midiDeviceList');
+  const optEl = document.getElementById('opt-midi');
+  if (!desc || !list || !optEl) return;
+
+  if (!IS_SECURE) {
+    desc.textContent = '⚠ Requires HTTPS or localhost — see warning above';
+    list.innerHTML   = '';
+    optEl.classList.add('disabled');
+    return;
+  }
+  if (!navigator.requestMIDIAccess) {
+    desc.textContent = 'Web MIDI not supported in this browser (try Chrome or Edge)';
+    list.innerHTML   = '';
+    optEl.classList.add('disabled');
+    return;
+  }
+  if (!midiAccess) {
+    desc.textContent = 'Requesting MIDI access…';
+    list.innerHTML   = '';
+    return;
+  }
+  if (midiDevices.length === 0) {
+    desc.textContent = 'No MIDI devices found — connect one and reopen this modal';
+    list.innerHTML   = '';
+    optEl.classList.remove('disabled');
+  } else {
+    desc.textContent = `${midiDevices.length} device${midiDevices.length > 1 ? 's' : ''} connected`;
+    list.innerHTML   = midiDevices.map(d =>
+      `<div class="midi-device-item">${d.name}</div>`
+    ).join('');
+    optEl.classList.remove('disabled');
+  }
+}
+
+function setModalMode(mode) {
+  modal.selectedMode = mode;
+  document.getElementById('modalNormalBtn').className =
+    'modal-mode-btn' + (mode === 'normal' ? ' sel-normal' : '');
+  document.getElementById('modalWaitBtn').className =
+    'modal-mode-btn' + (mode === 'wait' ? ' sel-wait' : '');
+}
+
+function selectInput(type) {
+  modal.selectedInput = type;
+  ['keyboard','midi','mic','click'].forEach(k => {
+    const el = document.getElementById('opt-' + k);
+    if (el) el.classList.toggle('selected', k === type);
+  });
+
+  if (type === 'mic') {
+    if (!IS_SECURE) {
+      // Can't request mic — show insecure context explanation
+      setMicStatus('insecure');
+      modal.selectedInput = 'keyboard';
+      ['keyboard','midi','mic','click'].forEach(k => {
+        const el = document.getElementById('opt-' + k);
+        if (el) el.classList.toggle('selected', k === 'keyboard');
+      });
+    } else if (!navigator.mediaDevices?.getUserMedia) {
+      setMicStatus('unsupported');
+      modal.selectedInput = 'keyboard';
+      ['keyboard','midi','mic','click'].forEach(k => {
+        const el = document.getElementById('opt-' + k);
+        if (el) el.classList.toggle('selected', k === 'keyboard');
+      });
+    } else {
+      startMicPreview();
+    }
+  } else {
+    stopMicPreview();
+    setMicStatus('idle');
+  }
+}
+
+function setMicStatus(state) {
+  const icon    = document.getElementById('micOptionIcon');
+  const desc    = document.getElementById('micOptionDesc');
+  const status  = document.getElementById('micPermStatus');
+  const testBar = document.getElementById('micTestBar');
+  const optEl   = document.getElementById('opt-mic');
+  if (!icon || !desc || !status || !testBar || !optEl) return;
+
+  if (state === 'idle') {
+    icon.textContent      = '🎤';
+    desc.style.display    = '';
+    desc.textContent      = 'Sing or play an acoustic instrument · Pitch detected live';
+    status.style.display  = 'none';
+    testBar.style.display = 'none';
+    optEl.classList.remove('disabled');
+  } else if (state === 'requesting') {
+    icon.textContent      = '⏳';
+    desc.style.display    = '';
+    desc.textContent      = 'Allow microphone access in the browser prompt above ↑';
+    status.style.display  = 'block';
+    status.style.color    = 'var(--amber)';
+    status.textContent    = '⚠ Waiting for permission — check your browser\'s address bar';
+    testBar.style.display = 'none';
+    optEl.classList.remove('disabled');
+  } else if (state === 'granted') {
+    icon.textContent      = '🎤';
+    desc.style.display    = '';
+    desc.textContent      = 'Microphone active — speak or play to test level below';
+    status.style.display  = 'block';
+    status.style.color    = 'var(--green)';
+    status.textContent    = '✓ Microphone access granted';
+    testBar.style.display = 'block';
+    optEl.classList.remove('disabled');
+  } else if (state === 'denied') {
+    icon.textContent      = '🚫';
+    desc.style.display    = '';
+    desc.textContent      = 'Mic access was blocked — check browser permissions and reload';
+    status.style.display  = 'block';
+    status.style.color    = 'var(--red)';
+    status.textContent    = '✗ Permission denied — click the 🔒 in your address bar to allow';
+    testBar.style.display = 'none';
+    optEl.classList.add('disabled');
+    modal.selectedInput   = 'keyboard';
+    // Re-select keyboard silently (no recursion into mic branch)
+    ['keyboard','midi','mic','click'].forEach(k => {
+      const el = document.getElementById('opt-' + k);
+      if (el) el.classList.toggle('selected', k === 'keyboard');
+    });
+    modal.selectedInput = 'keyboard';
+  } else if (state === 'insecure') {
+    icon.textContent      = '🔒';
+    desc.textContent      = 'Mic requires HTTPS or localhost — see the warning above';
+    status.style.display  = 'block';
+    status.style.color    = 'var(--amber)';
+    status.textContent    = '⚠ Open this file via a local server to use the microphone';
+    testBar.style.display = 'none';
+    optEl.classList.add('disabled');
+  } else if (state === 'unsupported') {
+    icon.textContent      = '🚫';
+    desc.textContent      = 'Microphone not supported in this browser';
+    status.style.display  = 'block';
+    status.style.color    = 'var(--red)';
+    status.textContent    = '✗ Try Chrome, Edge or Firefox with a local server';
+    testBar.style.display = 'none';
+    optEl.classList.add('disabled');
+  }
+}
+let micPreviewRaf = null;
+let micPreviewCtx = null;
+let micPreviewBuf = null;
+
+async function startMicPreview() {
+  // If we already have a live preview stream, don't re-request
+  if (micPreviewCtx) {
+    setMicStatus('granted');
+    return;
+  }
+
+  // Show "requesting" state immediately so user knows to look for browser prompt
+  setMicStatus('requesting');
+
+  try {
+    const stream   = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    const actx     = new (window.AudioContext || window.webkitAudioContext)();
+    const src      = actx.createMediaStreamSource(stream);
+    const analyser = actx.createAnalyser();
+    analyser.fftSize = 512;
+    src.connect(analyser);
+    micPreviewCtx = { stream, actx, analyser };
+    micPreviewBuf = new Float32Array(analyser.fftSize);
+
+    // Permission granted — update UI
+    setMicStatus('granted');
+
+    const fill = document.getElementById('micTestFill');
+    const loop = () => {
+      if (!micPreviewCtx) return; // stopped
+      micPreviewRaf = requestAnimationFrame(loop);
+      analyser.getFloatTimeDomainData(micPreviewBuf);
+      let rms = 0;
+      for (const v of micPreviewBuf) rms += v * v;
+      rms = Math.sqrt(rms / micPreviewBuf.length);
+      if (fill) fill.style.width = Math.min(100, rms * 600) + '%';
+    };
+    loop();
+
+  } catch (err) {
+    // Permission denied or error
+    setMicStatus('denied');
+  }
+}
+
+function stopMicPreview() {
+  cancelAnimationFrame(micPreviewRaf);
+  if (micPreviewCtx) {
+    micPreviewCtx.stream.getTracks().forEach(t => t.stop());
+    micPreviewCtx.actx.close().catch(()=>{});
+    micPreviewCtx = null;
+  }
+  const fill = document.getElementById('micTestFill');
+  if (fill) fill.style.width = '0%';
+}
+
+function closeInputModal() {
+  stopMicPreview();
+  document.getElementById('inputModal').classList.remove('active');
+}
+
+function confirmAndPlay() {
+  stopMicPreview(); // stop preview before game starts
+
+  const { song, selectedInput, selectedMode } = modal;
+  if (!song) return;
+  closeInputModal();
+
+  // Activate the chosen input
+  game.inputMode = selectedInput;
+
+  if (selectedInput === 'mic') {
+    // Start live mic input (full pitch detection)
+    startMic().then(() => {
+      startCountdown(song, selectedMode === 'wait');
+    });
+  } else {
+    startCountdown(song, selectedMode === 'wait');
+  }
+}
+
+function startCountdown(song, waitMode) {
+  const overlay = document.getElementById('countdown');
+  document.getElementById('countdownSong').textContent =
+    song.name + (waitMode ? ' — Wait Mode' : '');
+  overlay.classList.add('active');
+  let n = 3;
+  document.getElementById('countdownNum').textContent = n;
+
+  const tick = setInterval(() => {
+    n--;
+    if (n <= 0) {
+      clearInterval(tick);
+      overlay.classList.remove('active');
+      launchGame(song, waitMode);
+    } else {
+      const el = document.getElementById('countdownNum');
+      el.textContent = n;
+      el.style.animation = 'none';
+      requestAnimationFrame(() => { el.style.animation = ''; });
+    }
+  }, 900);
+}
+
+function launchGame(song, waitMode = false) {
+  showScreen('game');
+  resizeGame();
+
+  // Reset state
+  Object.assign(game, {
+    song, active: true, paused: false,
+    waitMode,
+    waitingForNote: false,    // true when paused waiting for correct note
+    waitTarget:     null,     // the note object we're waiting on
+    pausedAt:       0,        // performance.now() when wait started
+    totalPausedMs:  0,        // accumulated paused time (for wait mode)
+    score: 0, combo: 0, maxCombo: 0, health: 100,
+    totalNotes: song.notes.length, hitNotes: 0,
+    perfectHits: 0, goodHits: 0,
+    startTime: performance.now(),
+    hitFeedbacks: [], pressedKeys: new Set(),
+  });
+
+  // ms per 8th note unit
+  game.beatDur = (60000 / song.bpm) / 2;
+
+  // Total song length in beats
+  const lastNote   = song.notes.reduce((max, n) => Math.max(max, n[1] + n[2]), 0);
+  game.totalBeats  = lastNote + 8;
+
+  // Build note objects
+  game.notes = song.notes.map(([midi, beat, dur]) => {
+    const note  = NOTE_NAMES[midi % 12];
+    const base  = note.replace('#','');
+    const color = NOTE_COLORS[base] || '#FF2D78';
+    return {
+      midi, beat, dur,
+      color,
+      label: note + (Math.floor(midi / 12) - 1),
+      hit:    false,
+      missed: false,
+      hitTime: null,
+      active:  false,
+    };
+  });
+
+  document.getElementById('hudSongTitle').textContent =
+    song.name + (waitMode ? ' ⏸' : '');
+
+  // Show/hide wait indicator
+  document.getElementById('waitIndicator').classList.toggle('show', false);
+
+  cancelAnimationFrame(game.gameRAF);
+  gameLoop();
+}
+
+function gameLoop() {
+  if (!game.active) return;
+  if (!game.paused) updateGame();
+  renderGame();
+  renderGameKeyboard();
+  updateParticles();
+  game.gameRAF = requestAnimationFrame(gameLoop);
+}
+
+function updateGame() {
+  const now      = performance.now();
+
+  // In wait mode: if we're paused waiting for a note, freeze the clock
+  let elapsed;
+  if (game.waitingForNote) {
+    elapsed = game.pausedAt - game.startTime - game.totalPausedMs;
+  } else {
+    elapsed = now - game.startTime - game.totalPausedMs;
+  }
+  const curBeat  = elapsed / game.beatDur;
+
+  // Store current beat for use by gameKeyPress
+  game.curBeat = curBeat;
+
+  // Update HUD
+  document.getElementById('hudScore').textContent = game.score.toLocaleString();
+
+  const comboEl = document.getElementById('hudCombo');
+  comboEl.textContent = `x${game.combo} ${game.combo >= 10 ? '🔥' : ''}`;
+
+  const hitFrac = game.totalNotes > 0 ? game.hitNotes / game.totalNotes : 0;
+  const accPct  = Math.round(hitFrac * 100);
+  document.getElementById('accText').textContent = accPct + '%';
+  const ring = document.getElementById('accRing');
+  const circ = 2 * Math.PI * 20;
+  ring.style.strokeDashoffset = circ * (1 - hitFrac);
+  ring.style.stroke = accPct >= 80 ? '#39D98A' : accPct >= 50 ? '#F59E0B' : '#EF4444';
+
+  document.getElementById('healthFill').style.width = game.health + '%';
+  document.getElementById('songProgressFill').style.width =
+    Math.min(100, (curBeat / game.totalBeats) * 100) + '%';
+
+  // ── WAIT MODE LOGIC ─────────────────────────────────────
+  if (game.waitMode && !game.waitingForNote) {
+    // Find the next unhit, unmissed note that is approaching
+    const nextNote = game.notes.find(n => !n.hit && !n.missed && n.beat > curBeat - 1.5);
+    if (nextNote) {
+      const beatsUntil = nextNote.beat - curBeat;
+      // When the note reaches the hit zone (beatsUntil ≈ 0), pause and wait
+      if (beatsUntil <= 0.3 && beatsUntil >= -0.5) {
+        game.waitingForNote = true;
+        game.waitTarget     = nextNote;
+        game.pausedAt       = now;
+        document.getElementById('waitIndicator').classList.add('show');
+        // Flash the target note's key
+        game.pressedKeys.clear();
+      }
+    }
+  }
+
+  // ── NORMAL MISS DETECTION (not in wait mode) ─────────────
+  if (!game.waitMode) {
+    game.notes.forEach(n => {
+      if (n.hit || n.missed) return;
+      const noteBeatEnd = n.beat + 0.8;
+      if (curBeat > noteBeatEnd + 2) {
+        n.missed = true;
+        game.combo   = 0;
+        game.health  = Math.max(0, game.health - 8);
+        showHitFeedback('MISS', '#EF4444', getNoteLaneX(n.midi));
+        startAudio().then(() => missSound.triggerAttackRelease('C2', '16n', Tone.now()));
+        if (game.health <= 0) endGame(false);
+      }
+    });
+  }
+
+  // Song end
+  if (curBeat > game.totalBeats && !game.waitingForNote) endGame(true);
+}
+
+function getNoteLaneX(midi) {
+  // Map midi to x position matching the game keyboard
+  const wkw = GW / N_WHITE;
+  const wi   = WHITE_KEYS.indexOf(midi);
+  if (wi >= 0) return wi * wkw + wkw / 2;
+  // sharp: between neighbors
+  const below = WHITE_KEYS.indexOf(midi - 1);
+  if (below >= 0) return below * wkw + wkw;
+  return GW / 2;
+}
+
+function renderGame() {
+  gCtx.clearRect(0, 0, GW, GH);
+
+  // Background
+  gCtx.fillStyle = '#0a0812';
+  gCtx.fillRect(0, 0, GW, GH);
+
+  // In wait mode, draw pulsing border
+  if (game.waitingForNote) {
+    const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 200);
+    gCtx.strokeStyle = `rgba(0,212,255,${0.3 + pulse * 0.4})`;
+    gCtx.lineWidth   = 3;
+    gCtx.strokeRect(2, 2, GW - 4, GH - 4);
+  }
+
+  // Lane lines for each white key
+  const wkw    = GW / N_WHITE;
+  const hitY   = GH - HIT_ZONE_H;
+  const curBeat = game.curBeat || 0;
+
+  gCtx.strokeStyle = 'rgba(255,255,255,0.04)';
+  gCtx.lineWidth   = 1;
+  WHITE_KEYS.forEach((_, i) => {
+    gCtx.beginPath();
+    gCtx.moveTo(i * wkw, 0);
+    gCtx.lineTo(i * wkw, GH);
+    gCtx.stroke();
+  });
+
+  // Hit zone bar
+  const hitGrad = gCtx.createLinearGradient(0, hitY, 0, hitY + HIT_ZONE_H);
+  hitGrad.addColorStop(0, 'rgba(255,45,120,0.7)');
+  hitGrad.addColorStop(1, 'rgba(255,45,120,0)');
+  gCtx.fillStyle = hitGrad;
+  gCtx.fillRect(0, hitY, GW, HIT_ZONE_H);
+
+  gCtx.strokeStyle = 'rgba(255,45,120,0.8)';
+  gCtx.lineWidth   = 2;
+  gCtx.beginPath();
+  gCtx.moveTo(0, hitY);
+  gCtx.lineTo(GW, hitY);
+  gCtx.stroke();
+
+  // Notes — use the beat position already computed in updateGame
+  const ppb = GH / 20; // 20 beat units visible at a time
+
+  game.notes.forEach(n => {
+    if (n.hit) return;
+    const beatFromNow = n.beat - curBeat;
+    const noteH = Math.max(16, n.dur * ppb);
+    const noteY = hitY - beatFromNow * ppb - noteH;
+
+    // Skip if way off screen
+    if (noteY > GH + noteH || noteY + noteH < -noteH * 2) return;
+
+    // Note position X
+    const noteX = getNoteLaneX(n.midi);
+    const noteW = Math.max(16, wkw * (n.midi % 12 === 1 ? 0.5 : 0.75));
+
+    // Wait mode: pulse the target note
+    const isWaitTarget = game.waitingForNote && game.waitTarget === n;
+    if (isWaitTarget) {
+      const pulse = 0.6 + 0.4 * Math.sin(Date.now() / 120);
+      gCtx.shadowColor = '#00D4FF';
+      gCtx.shadowBlur  = 30 * pulse;
+      gCtx.strokeStyle = `rgba(0,212,255,${pulse})`;
+      gCtx.lineWidth   = 3;
+      gCtx.beginPath();
+      gCtx.roundRect
+        ? gCtx.roundRect(noteX - noteW/2 - 4, noteY - 4, noteW + 8, noteH + 8, 8)
+        : gCtx.rect(noteX - noteW/2 - 4, noteY - 4, noteW + 8, noteH + 8);
+      gCtx.stroke();
+      gCtx.shadowBlur = 0;
+    }
+
+    // Glow + draw
+    gCtx.shadowColor = n.color;
+    gCtx.shadowBlur  = n.missed ? 0 : 20;
+    gCtx.globalAlpha = n.missed ? 0.2 : 1;
+
+    // Note body — rounded rectangle
+    const r = 6;
+    gCtx.fillStyle = n.missed
+      ? '#333'
+      : n.color;
+    gCtx.beginPath();
+    gCtx.moveTo(noteX - noteW/2 + r, noteY);
+    gCtx.lineTo(noteX + noteW/2 - r, noteY);
+    gCtx.arcTo(noteX + noteW/2, noteY, noteX + noteW/2, noteY + r, r);
+    gCtx.lineTo(noteX + noteW/2, noteY + noteH - r);
+    gCtx.arcTo(noteX + noteW/2, noteY + noteH, noteX + noteW/2 - r, noteY + noteH, r);
+    gCtx.lineTo(noteX - noteW/2 + r, noteY + noteH);
+    gCtx.arcTo(noteX - noteW/2, noteY + noteH, noteX - noteW/2, noteY + noteH - r, r);
+    gCtx.lineTo(noteX - noteW/2, noteY + r);
+    gCtx.arcTo(noteX - noteW/2, noteY, noteX - noteW/2 + r, noteY, r);
+    gCtx.closePath();
+    gCtx.fill();
+
+    // Shine
+    if (!n.missed) {
+      const shine = gCtx.createLinearGradient(noteX - noteW/2, noteY, noteX + noteW/2, noteY);
+      shine.addColorStop(0, 'rgba(255,255,255,0.3)');
+      shine.addColorStop(0.5, 'rgba(255,255,255,0.05)');
+      shine.addColorStop(1, 'rgba(255,255,255,0)');
+      gCtx.fillStyle = shine;
+      gCtx.beginPath();
+      gCtx.moveTo(noteX - noteW/2 + r, noteY);
+      gCtx.lineTo(noteX + noteW/2 - r, noteY);
+      gCtx.arcTo(noteX + noteW/2, noteY, noteX + noteW/2, noteY + r, r);
+      gCtx.lineTo(noteX + noteW/2, noteY + noteH/3);
+      gCtx.lineTo(noteX - noteW/2, noteY + noteH/3);
+      gCtx.lineTo(noteX - noteW/2, noteY + r);
+      gCtx.arcTo(noteX - noteW/2, noteY, noteX - noteW/2 + r, noteY, r);
+      gCtx.closePath();
+      gCtx.fill();
+    }
+
+    // Label
+    if (!n.missed && noteH > 22) {
+      gCtx.shadowBlur  = 0;
+      gCtx.fillStyle   = '#fff';
+      gCtx.font        = `bold ${Math.max(9, Math.min(13, noteW * 0.55))}px "DM Mono",monospace`;
+      gCtx.textAlign   = 'center';
+      gCtx.textBaseline= 'middle';
+      gCtx.fillText(NOTE_NAMES[n.midi % 12], noteX, noteY + noteH / 2);
+      gCtx.textBaseline= 'alphabetic';
+    }
+
+    gCtx.shadowBlur  = 0;
+    gCtx.globalAlpha = 1;
+  });
+
+  // Hit feedbacks
+  game.hitFeedbacks = game.hitFeedbacks.filter(f => f.life > 0);
+  game.hitFeedbacks.forEach(f => {
+    f.y  -= 1.5;
+    f.life -= 0.03;
+    gCtx.globalAlpha = f.life;
+    gCtx.fillStyle   = f.color;
+    gCtx.font        = 'bold 20px "Orbitron",monospace';
+    gCtx.textAlign   = 'center';
+    gCtx.shadowColor = f.color;
+    gCtx.shadowBlur  = 12;
+    gCtx.fillText(f.text, f.x, f.y);
+    gCtx.shadowBlur  = 0;
+    gCtx.globalAlpha = 1;
+  });
+}
+
+function showHitFeedback(text, color, x) {
+  const hitY = GH - HIT_ZONE_H - 20;
+  game.hitFeedbacks.push({ text, color, x, y: hitY, life: 1 });
+}
+
+function renderGameKeyboard() {
+  const W = gameKbCanvas.width;
+  const H = GKH;
+  gkCtx.clearRect(0, 0, W, H);
+  gkCtx.fillStyle = '#0a0812';
+  gkCtx.fillRect(0, 0, W, H);
+
+  const wkw  = W / N_WHITE;
+  const wkh  = H;
+  const bkh  = H * 0.62;
+  const bkw  = wkw * 0.62;
+
+  const { keys } = buildKeyLayout(W);
+
+  // Determine which notes are near the hit zone (should be lit)
+  // Use the authoritative beat position from updateGame
+  const curBeat = game.curBeat || 0;
+  const litMidis = new Set();
+  let waitTargetMidi = null;
+  game.notes.forEach(n => {
+    if (n.hit) return;
+    const dist = Math.abs(n.beat - curBeat);
+    if (dist < 1) litMidis.add(n.midi);
+  });
+  // In wait mode, highlight the key we're waiting on
+  if (game.waitingForNote && game.waitTarget) {
+    waitTargetMidi = game.waitTarget.midi;
+    litMidis.add(waitTargetMidi);
+  }
+
+  keys.filter(k => !k.isSharp).forEach(k => {
+    const note    = NOTE_NAMES[k.midi % 12];
+    const isWait  = waitTargetMidi === k.midi;
+    const isLit   = litMidis.has(k.midi) || game.pressedKeys.has(k.midi);
+    const color   = isWait ? '#00D4FF' : (NOTE_COLORS[note] || '#FF2D78');
+    const oct     = Math.floor(k.midi / 12) - 1;
+
+    gkCtx.fillStyle = isLit ? color : (note === 'C' ? '#f0edd8' : '#f5f2ec');
+    if (isLit) {
+      gkCtx.shadowColor = color;
+      gkCtx.shadowBlur  = isWait ? 22 : 15;
+    }
+    const r = 5;
+    gkCtx.beginPath();
+    gkCtx.moveTo(k.x + 1, 0); gkCtx.lineTo(k.x + wkw - 1, 0);
+    gkCtx.lineTo(k.x + wkw - 1, wkh - r);
+    gkCtx.arcTo(k.x + wkw - 1, wkh, k.x + wkw - 1 - r, wkh, r);
+    gkCtx.lineTo(k.x + 1 + r, wkh);
+    gkCtx.arcTo(k.x + 1, wkh, k.x + 1, wkh - r, r);
+    gkCtx.lineTo(k.x + 1, 0); gkCtx.closePath();
+    gkCtx.fill();
+    gkCtx.shadowBlur = 0;
+    gkCtx.strokeStyle = '#222'; gkCtx.lineWidth = 0.8; gkCtx.stroke();
+
+    // C labels
+    if (note === 'C') {
+      gkCtx.fillStyle = isLit ? '#fff' : '#8a6030';
+      gkCtx.font = `bold ${Math.max(7, wkw * 0.38)}px "DM Mono",monospace`;
+      gkCtx.textAlign = 'center';
+      gkCtx.fillText('C' + oct, k.x + wkw / 2, wkh - 6);
+    }
+  });
+
+  keys.filter(k => k.isSharp).forEach(k => {
+    const note   = NOTE_NAMES[k.midi % 12];
+    const base   = note.replace('#','');
+    const isWait = waitTargetMidi === k.midi;
+    const isLit  = litMidis.has(k.midi) || game.pressedKeys.has(k.midi);
+    const color  = isWait ? '#00D4FF' : (SHARP_COLORS[base] || '#FF2D78');
+
+    gkCtx.fillStyle = isLit ? color : '#1a1428';
+    if (isLit) {
+      gkCtx.shadowColor = color;
+      gkCtx.shadowBlur  = isWait ? 18 : 12;
+    }
+    const r = 3;
+    gkCtx.beginPath();
+    gkCtx.moveTo(k.x, 0); gkCtx.lineTo(k.x + bkw, 0);
+    gkCtx.lineTo(k.x + bkw, bkh - r);
+    gkCtx.arcTo(k.x + bkw, bkh, k.x + bkw - r, bkh, r);
+    gkCtx.lineTo(k.x + r, bkh);
+    gkCtx.arcTo(k.x, bkh, k.x, bkh - r, r);
+    gkCtx.lineTo(k.x, 0); gkCtx.closePath();
+    gkCtx.fill();
+    gkCtx.shadowBlur = 0;
+    gkCtx.strokeStyle = 'rgba(0,0,0,.5)'; gkCtx.lineWidth = 0.5; gkCtx.stroke();
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GAME INPUT
+═══════════════════════════════════════════════════════════ */
+function gameKeyPress(midi) {
+  if (!game.active || game.paused) return;
+  startAudio();
+
+  // Attack the note — it will be released on key-up (keyboard/MIDI) or mouseup (canvas)
+  // Do NOT use playPianoNote here — that schedules a fixed-duration release via setTimeout
+  noteAttack(midi);
+  game.pressedKeys.add(midi);
+
+  // ── WAIT MODE ────────────────────────────────────────────
+  if (game.waitMode && game.waitingForNote) {
+    if (game.waitTarget && game.waitTarget.midi === midi) {
+      // Correct note — resume the clock, award Perfect
+      const pausedDuration = performance.now() - game.pausedAt;
+      game.totalPausedMs  += pausedDuration;
+      game.waitingForNote  = false;
+      game.waitTarget.hit  = true;
+      game.waitTarget      = null;
+      document.getElementById('waitIndicator').classList.remove('show');
+
+      game.hitNotes++;
+      game.perfectHits++;
+      game.combo++;
+      game.maxCombo = Math.max(game.maxCombo, game.combo);
+      const pts = 300 + game.combo * 10;
+      game.score  += pts;
+      game.health  = Math.min(100, game.health + 2);
+
+      const noteX = getNoteLaneX(midi);
+      showHitFeedback('PERFECT!', '#39D98A', noteX);
+      spawnParticles(noteX, GH - HIT_ZONE_H, '#00D4FF', 16);
+
+      const comboEl = document.getElementById('hudCombo');
+      comboEl.classList.add('pop');
+      setTimeout(() => comboEl.classList.remove('pop'), 150);
+      startAudio().then(() => hitSound.triggerAttackRelease('C2', '16n', Tone.now()));
+    } else {
+      // Wrong note in wait mode — flash red, keep waiting
+      showHitFeedback('WRONG KEY', '#EF4444', getNoteLaneX(midi));
+      startAudio().then(() => missSound.triggerAttackRelease('C2', '16n', Tone.now()));
+    }
+    return; // don't run normal scoring below
+  }
+
+  // ── NORMAL MODE ──────────────────────────────────────────
+  const curBeat = game.curBeat || 0;
+
+  // Find closest unhit note with same midi
+  let bestNote = null, bestDist = Infinity;
+  game.notes.forEach(n => {
+    if (n.hit || n.missed || n.midi !== midi) return;
+    const dist = Math.abs(n.beat - curBeat);
+    if (dist < bestDist) { bestDist = dist; bestNote = n; }
+  });
+
+  const PERFECT_W = 0.8;
+  const GOOD_W    = 1.6;
+
+  if (bestNote && bestDist < GOOD_W) {
+    bestNote.hit = true;
+    game.hitNotes++;
+    game.combo++;
+    game.maxCombo = Math.max(game.maxCombo, game.combo);
+
+    let pts, text, color;
+    if (bestDist < PERFECT_W) {
+      pts = 300 + game.combo * 10;
+      text = 'PERFECT!';
+      color = '#39D98A';
+      game.perfectHits++;
+    } else {
+      pts = 100 + game.combo * 5;
+      text = 'GOOD';
+      color = '#F59E0B';
+      game.goodHits++;
+    }
+    game.score  += pts;
+    game.health  = Math.min(100, game.health + 2);
+
+    const noteX = getNoteLaneX(midi);
+    showHitFeedback(text, color, noteX);
+    spawnParticles(noteX, GH - HIT_ZONE_H, bestNote.color, 14);
+
+    const comboEl = document.getElementById('hudCombo');
+    comboEl.classList.add('pop');
+    setTimeout(() => comboEl.classList.remove('pop'), 150);
+    startAudio().then(() => hitSound.triggerAttackRelease('C2', '16n', Tone.now()));
+  }
+}
+
+// Called when a game key is released — cuts sound immediately
+function gameKeyRelease(midi) {
+  game.pressedKeys.delete(midi);
+  noteRelease(midi);
+}
+
+let gameKbHeldMidi = null;
+
+function getGameKbKeyAt(cx, cy) {
+  const { keys } = buildKeyLayout(gameKbCanvas.width);
+  const bkh = gameKbCanvas.height * 0.62;
+  const bkw = gameKbCanvas.width / N_WHITE * 0.62;
+  if (cy < bkh) {
+    for (const k of keys.filter(k => k.isSharp)) {
+      if (cx >= k.x && cx <= k.x + bkw) return k;
+    }
+  }
+  const wi = Math.floor(cx / (gameKbCanvas.width / N_WHITE));
+  return keys.filter(k => !k.isSharp)[wi] || null;
+}
+
+// mousedown — start the note
+gameKbCanvas.addEventListener('mousedown', e => {
+  e.preventDefault();
+  const rect = gameKbCanvas.getBoundingClientRect();
+  const cx = (e.clientX - rect.left) * (gameKbCanvas.width / rect.width);
+  const cy = (e.clientY - rect.top)  * (gameKbCanvas.height / rect.height);
+  const k  = getGameKbKeyAt(cx, cy);
+  if (k) { gameKbHeldMidi = k.midi; gameKeyPress(k.midi); }
+});
+
+// touchstart / touchend for mobile (already works, keeping consistent)
+gameKbCanvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const t = e.changedTouches[0];
+  const rect = gameKbCanvas.getBoundingClientRect();
+  const cx = (t.clientX - rect.left) * (gameKbCanvas.width / rect.width);
+  const cy = (t.clientY - rect.top)  * (gameKbCanvas.height / rect.height);
+  const k  = getGameKbKeyAt(cx, cy);
+  if (k) { gameKbHeldMidi = k.midi; gameKeyPress(k.midi); }
+}, { passive: false });
+
+gameKbCanvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (gameKbHeldMidi !== null) { gameKeyRelease(gameKbHeldMidi); gameKbHeldMidi = null; }
+}, { passive: false });
+
+function pauseGame() {
+  if (!game.active) return;
+  game.paused = !game.paused;
+  document.getElementById('pauseBtn').textContent = game.paused ? '▶ Resume' : '⏸ Pause';
+  if (!game.paused) gameLoop();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GAME END
+═══════════════════════════════════════════════════════════ */
+function endGame(completed) {
+  game.active = false;
+  cancelAnimationFrame(game.gameRAF);
+
+  const acc  = game.totalNotes > 0 ? Math.round((game.hitNotes / game.totalNotes) * 100) : 0;
+  const grade = acc >= 95 ? 'S' : acc >= 85 ? 'A' : acc >= 70 ? 'B' : acc >= 55 ? 'C' : acc >= 40 ? 'D' : 'F';
+  const gradeColors = { S:'#39D98A', A:'#00D4FF', B:'#A855F7', C:'#F59E0B', D:'#FF6B35', F:'#EF4444' };
+
+  document.getElementById('endGrade').textContent  = grade;
+  document.getElementById('endGrade').style.color   = gradeColors[grade];
+  document.getElementById('endGrade').style.textShadow = `0 0 40px ${gradeColors[grade]}`;
+  document.getElementById('endScore').textContent   = game.score.toLocaleString();
+  document.getElementById('endCombo').textContent   = 'x' + game.maxCombo;
+  document.getElementById('endAcc').textContent     = acc + '%';
+  document.getElementById('endBreakdown').textContent =
+    `Perfect: ${game.perfectHits}  ·  Good: ${game.goodHits}  ·  Miss: ${game.totalNotes - game.hitNotes}`;
+
+  document.getElementById('endScreen').classList.add('active');
+
+  // Fireworks for S/A
+  if (grade === 'S' || grade === 'A') {
+    for (let i = 0; i < 8; i++) {
+      setTimeout(() => {
+        spawnParticles(
+          Math.random() * window.innerWidth,
+          Math.random() * window.innerHeight * 0.6,
+          ['#FF2D78','#39D98A','#00D4FF','#F59E0B','#A855F7'][Math.floor(Math.random()*5)],
+          20
+        );
+      }, i * 200);
+    }
+  }
+}
+
+function retryGame() {
+  document.getElementById('endScreen').classList.remove('active');
+  stopMic(); // clean up mic if it was running
+  if (game.song) selectSong(game.song.id);
+}
+
+function backToSongs() {
+  document.getElementById('endScreen').classList.remove('active');
+  cancelAnimationFrame(game.gameRAF);
+  stopMic();
+  showScreen('songs');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MICROPHONE PITCH DETECTION
+   Uses Web Audio API + autocorrelation (YIN-inspired)
+═══════════════════════════════════════════════════════════ */
+let micState = {
+  active:      false,
+  stream:      null,
+  audioCtx:    null,
+  analyser:    null,
+  source:      null,
+  rafId:       null,
+  lastMidi:    -1,
+  lastTrigger: 0,   // ms — debounce
+  buffer:      null,
+};
+
+async function toggleMicInput() {
+  if (micState.active) {
+    stopMic();
+  } else {
+    await startMic();
+  }
+}
+
+async function startMic() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const source   = audioCtx.createMediaStreamSource(stream);
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    source.connect(analyser);
+
+    micState.active   = true;
+    micState.stream   = stream;
+    micState.audioCtx = audioCtx;
+    micState.analyser = analyser;
+    micState.source   = source;
+    micState.buffer   = new Float32Array(analyser.fftSize);
+
+    // Update nav badge if it exists (was removed in latest version — safe no-op)
+    document.getElementById('micDot')?.classList.add('on');
+    const micLbl = document.getElementById('micLabel');
+    if (micLbl) micLbl.textContent = '🎤 Mic: on';
+    document.getElementById('micBadge')?.classList.add('active');
+
+    micPitchLoop();
+  } catch (e) {
+    alert('Microphone access denied. Please allow mic access and try again.');
+  }
+}
+
+function stopMic() {
+  micState.active = false;
+  cancelAnimationFrame(micState.rafId);
+  if (micState.stream)   micState.stream.getTracks().forEach(t => t.stop());
+  if (micState.audioCtx) micState.audioCtx.close();
+  micState.stream = micState.audioCtx = micState.analyser = micState.source = null;
+
+  // Update nav badge if it exists (safe no-op if removed)
+  document.getElementById('micDot')?.classList.remove('on');
+  const micLbl = document.getElementById('micLabel');
+  if (micLbl) micLbl.textContent = '🎤 Mic: off';
+  document.getElementById('micBadge')?.classList.remove('active');
+}
+
+function micPitchLoop() {
+  if (!micState.active) return;
+  micState.rafId = requestAnimationFrame(micPitchLoop);
+
+  // Don't process pitch while modal is open
+  if (document.getElementById('inputModal').classList.contains('active')) return;
+
+  micState.analyser.getFloatTimeDomainData(micState.buffer);
+
+  const freq = autoCorrelate(micState.buffer, micState.audioCtx.sampleRate);
+  if (freq < 50 || freq > 1500) return; // out of piano range
+
+  const midi = Math.round(12 * Math.log2(freq / 440) + 69);
+  const now  = performance.now();
+
+  // Debounce: only fire if note changed or enough time passed
+  if (midi === micState.lastMidi && now - micState.lastTrigger < 600) return;
+  if (Math.abs(midi - micState.lastMidi) < 1 && now - micState.lastTrigger < 300) return;
+
+  micState.lastMidi    = midi;
+  micState.lastTrigger = now;
+
+  const screen = currentScreen();
+  if (screen === 'play') {
+    triggerNote(midi, playPianoCanvas);
+  } else if (screen === 'game' && game.inputMode === 'mic') {
+    gameKeyPress(midi);
+  }
+}
+
+/**
+ * Autocorrelation pitch detection.
+ * Returns frequency in Hz, or -1 if no clear pitch found.
+ */
+function autoCorrelate(buf, sampleRate) {
+  const SIZE    = buf.length;
+  const maxSamp = Math.floor(SIZE / 2);
+
+  // Check RMS (silence detection)
+  let rms = 0;
+  for (let i = 0; i < SIZE; i++) rms += buf[i] * buf[i];
+  rms = Math.sqrt(rms / SIZE);
+  if (rms < 0.01) return -1; // too quiet
+
+  // Autocorrelation
+  const corr = new Float32Array(maxSamp);
+  for (let lag = 0; lag < maxSamp; lag++) {
+    let sum = 0;
+    for (let i = 0; i < maxSamp; i++) sum += buf[i] * buf[i + lag];
+    corr[lag] = sum;
+  }
+
+  // Find first dip then peak after it
+  let d = 1;
+  while (d < maxSamp && corr[d] > corr[d - 1]) d++;        // go down
+  let peakLag = d;
+  for (let i = d; i < maxSamp; i++) {
+    if (corr[i] > corr[peakLag]) peakLag = i;
+  }
+
+  if (corr[peakLag] < 0.9 * corr[0]) return -1; // weak correlation
+
+  // Parabolic interpolation for sub-sample accuracy
+  const x0 = peakLag > 0 ? corr[peakLag - 1] : corr[peakLag];
+  const x2 = peakLag < maxSamp - 1 ? corr[peakLag + 1] : corr[peakLag];
+  const refinedLag = peakLag + (x2 - x0) / (2 * (2 * corr[peakLag] - x2 - x0));
+
+  return sampleRate / refinedLag;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MAIN ANIMATION LOOP (free play particle update)
+═══════════════════════════════════════════════════════════ */
+function mainLoop() {
+  if (currentScreen() === 'play') updateParticles();
+  requestAnimationFrame(mainLoop);
+}
+mainLoop();
+
+/* ═══════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════ */
+resizeGame();
+window.addEventListener('resize', () => {
+  resizeGame();
+  drawPlayPiano();
+  drawLiveStaff();
+});
+
+// Copy terminal command to clipboard
+function copyCmd(el) {
+  const text = el.textContent.trim();
+  navigator.clipboard?.writeText(text).then(() => {
+    const orig = el.textContent;
+    el.textContent = '✓ Copied!';
+    setTimeout(() => { el.textContent = orig; }, 1500);
+  }).catch(() => {
+    // Fallback: select text
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  });
+}
+
+// Kick off with a gentle note animation on staff
+setTimeout(() => drawLiveStaff(), 100);
+</script>
+</body>
+</html>
