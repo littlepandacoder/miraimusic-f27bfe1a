@@ -9,8 +9,7 @@ const SightReading = forwardRef<HTMLDivElement>((_, ref) => {
           title="Sight Reading Trainer — Musicable"
           className="w-full h-screen border-0"
           style={{ minHeight: "100vh" }}
-          allow="autoplay; microphone"
-          loading="lazy"
+          allow="autoplay; microphone; midi"
         />
       </main>
     </div>

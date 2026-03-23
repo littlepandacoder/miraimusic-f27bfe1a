@@ -9,8 +9,7 @@ const PianoHero = forwardRef<HTMLDivElement>((_, ref) => {
           title="Piano Hero — Musicable"
           className="w-full h-screen border-0"
           style={{ minHeight: "100vh" }}
-          allow="autoplay; microphone; midi"
-          loading="lazy"
+          allow="autoplay *; microphone; midi"
         />
       </main>
     </div>
