@@ -13,7 +13,7 @@
   --bg2:      #0f0d1a;
   --card:     #151228;
   --border:   rgba(255,255,255,0.07);
-  --pink:     #e6317a;
+  --pink:     #FF2D78;
   --sky:      #00D4FF;
   --green:    #39D98A;
   --amber:    #F59E0B;
@@ -22,13 +22,13 @@
   --white:    #FFFFFF;
   --off-white:#E8ECF0;
   --muted:    #6B7280;
-  --lane-c:   #e6317a;
+  --lane-c:   #FF2D78;
   --lane-d:   #FF6B35;
   --lane-e:   #F59E0B;
   --lane-f:   #39D98A;
   --lane-g:   #00D4FF;
   --lane-a:   #A855F7;
-  --lane-b:   #e6317a;
+  --lane-b:   #FF2D78;
 }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -475,6 +475,16 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--off-white)}
 }
 .secure-warning code:hover{background:rgba(0,212,255,.08)}
 .secure-warning .copy-hint{font-size:.62rem;color:var(--muted);margin-top:.15rem}
+/* ═══ PRACTICE MODE ═════════════════════════════════════════ */
+#practice-pick{ background:
+  radial-gradient(ellipse 60% 40% at 80% 20%, rgba(255,45,120,.07) 0%,transparent 60%),
+  var(--bg);}
+#practiceStaff{ background:#0a0812; display:block; }
+.practice-staff-cursor{
+  position:absolute;left:28%;top:0;bottom:0;width:2px;
+  background:rgba(255,45,120,.6);pointer-events:none;
+  box-shadow:0 0 10px rgba(255,45,120,.4);
+}
 </style>
 </head>
 <body>
@@ -485,7 +495,7 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--off-white)}
 <nav id="nav">
   <a href="https://www.musicable.app/" class="nav-logo">🎹 Piano Hero</a>
   <div class="nav-tabs">
-    <button class="nav-tab active" onclick="showScreen('play')">Free Play</button>
+    <button class="nav-tab active" onclick="showScreen('play')">Practice</button>
     <button class="nav-tab" onclick="showScreen('songs')">Songs</button>
   </div>
   <div class="nav-right">
@@ -575,6 +585,47 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--off-white)}
   </div>
 </div>
 
+<!-- MULTIPLAYER LOBBY -->
+<div id="mpLobby" style="position:fixed;inset:0;z-index:550;display:none;align-items:center;justify-content:center;background:rgba(10,8,18,.92);backdrop-filter:blur(10px)">
+  <div style="background:#12101e;border:1px solid rgba(0,212,255,.25);border-radius:18px;padding:2rem;max-width:440px;width:90%;text-align:center">
+    <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--sky);margin-bottom:.3rem">🎮 Multiplayer</div>
+    <div style="font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted);margin-bottom:1.4rem">Open this page in another tab/window and enter the same room code</div>
+    <div style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted2);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.08em">Room Code</div>
+    <div style="display:flex;gap:.5rem;margin-bottom:1rem">
+      <input id="mpRoomInput" placeholder="e.g. PIANO42" style="flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--white);padding:.6rem .9rem;border-radius:8px;font-family:'Orbitron',monospace;font-size:1rem;text-transform:uppercase;letter-spacing:.1em;outline:none" maxlength="8"/>
+      <button onclick="generateRoomCode()" style="padding:.6rem .9rem;background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.3);color:var(--sky);border-radius:8px;cursor:pointer;font-family:'DM Mono',monospace;font-size:.7rem">Random</button>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted2);margin-bottom:.4rem;text-transform:uppercase;letter-spacing:.08em">Select Song</div>
+    <select id="mpSongSelect" style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);color:var(--white);padding:.55rem .8rem;border-radius:8px;font-family:'DM Mono',monospace;font-size:.78rem;margin-bottom:1.2rem;outline:none"></select>
+    <div id="mpStatus" style="font-family:'DM Mono',monospace;font-size:.72rem;color:var(--amber);min-height:1.4rem;margin-bottom:1rem"></div>
+    <div style="display:flex;gap:.7rem">
+      <button onclick="closeMpLobby()" style="flex:1;padding:.65rem;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:10px;cursor:pointer;font-family:'DM Mono',monospace;font-size:.75rem">Cancel</button>
+      <button onclick="joinMpRoom()" id="mpJoinBtn" style="flex:2;padding:.65rem;background:var(--sky);color:#000;border:none;border-radius:10px;cursor:pointer;font-family:'Orbitron',monospace;font-size:.78rem;font-weight:700">Join / Create Room</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRACTICE RESULTS -->
+<div id="practiceResults" style="position:fixed;inset:0;z-index:500;display:none;align-items:center;justify-content:center;background:rgba(10,8,18,.95);backdrop-filter:blur(8px);flex-direction:column;gap:1rem;padding:2rem;text-align:center">
+  <div style="font-family:'Orbitron',monospace;font-size:2rem;font-weight:900;color:var(--pink)">RESULTS</div>
+  <div id="practiceGrade" style="font-family:'Orbitron',monospace;font-size:5rem;font-weight:900;line-height:1"></div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.2rem;max-width:380px;width:100%">
+    <div><div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;color:var(--white)" id="prScore">0</div><div style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted)">SCORE</div></div>
+    <div><div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;color:var(--white)" id="prCombo">x0</div><div style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted)">MAX COMBO</div></div>
+    <div><div style="font-family:'Orbitron',monospace;font-size:1.2rem;font-weight:700;color:var(--white)" id="prAcc">0%</div><div style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted)">ACCURACY</div></div>
+  </div>
+  <!-- Multiplayer result panel -->
+  <div id="prMpPanel" style="display:none;background:var(--card);border:1px solid rgba(0,212,255,.2);border-radius:12px;padding:1rem;max-width:380px;width:100%">
+    <div style="font-family:'DM Mono',monospace;font-size:.68rem;color:var(--sky);margin-bottom:.6rem;text-transform:uppercase;letter-spacing:.08em">Multiplayer</div>
+    <div id="prMpResult" style="font-family:'Orbitron',monospace;font-size:1rem;color:var(--white)"></div>
+    <div id="prMpOpponent" style="font-family:'DM Mono',monospace;font-size:.75rem;color:var(--muted);margin-top:.4rem"></div>
+  </div>
+  <div style="display:flex;gap:.8rem">
+    <button onclick="stopPractice();showScreen('play')" style="padding:.7rem 1.6rem;background:transparent;border:2px solid var(--border);color:var(--muted);border-radius:10px;cursor:pointer;font-family:'Orbitron',monospace;font-size:.78rem">← Songs</button>
+    <button onclick="restartPractice()" style="padding:.7rem 1.8rem;background:var(--pink);color:#fff;border:none;border-radius:10px;cursor:pointer;font-family:'Orbitron',monospace;font-size:.78rem;font-weight:700">↺ Retry</button>
+  </div>
+</div>
+
 <!-- COUNTDOWN -->
 <div id="countdown">
   <div class="countdown-song" id="countdownSong">Für Elise</div>
@@ -597,35 +648,58 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--off-white)}
   </div>
 </div>
 
-<!-- SCREEN 1: FREE PLAY -->
+<!-- SCREEN 1: PRACTICE MODE -->
 <div class="screen active" id="screen-play">
-  <div class="play-layout">
-    <div class="staff-area">
-      <canvas id="staffCanvas" width="900" height="180" aria-label="Sheet music staff"></canvas>
+  <!-- Sub-screens within practice -->
+  <div id="practice-pick" style="height:100%;display:flex;flex-direction:column;overflow-y:auto;padding:1rem 1.5rem">
+    <div style="font-family:'Orbitron',monospace;font-size:1.1rem;font-weight:900;color:var(--white);margin-bottom:.4rem">
+      Practice Mode <span style="color:var(--pink)">🎼</span>
     </div>
-    <div class="play-info">
-      <div class="note-display">
-        <div class="note-name" id="playNoteName">—</div>
-        <div>
-          <div class="note-detail" id="playNoteDetail">Press any key to play</div>
-          <div class="note-hz" id="playNoteHz"></div>
+    <div style="font-family:'DM Mono',monospace;font-size:.7rem;color:var(--muted);margin-bottom:1rem">
+      Notes scroll on the staff · play along · wait mode pauses until you hit the right note
+    </div>
+    <!-- Options row -->
+    <div style="display:flex;gap:.7rem;flex-wrap:wrap;margin-bottom:1rem;align-items:center">
+      <div style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted2);text-transform:uppercase;letter-spacing:.08em">Mode:</div>
+      <button class="seg-btn active" id="practiceNormalBtn" onclick="setPracticeMode('normal',this)" style="font-size:.7rem;padding:.35rem .8rem;border-radius:6px;border:1px solid var(--border);background:var(--pink);color:#fff;cursor:pointer;font-family:'DM Mono',monospace">▶ Normal</button>
+      <button class="seg-btn" id="practiceWaitBtn" onclick="setPracticeMode('wait',this)" style="font-size:.7rem;padding:.35rem .8rem;border-radius:6px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:var(--muted);cursor:pointer;font-family:'DM Mono',monospace">⏸ Wait</button>
+      <div style="width:1px;height:20px;background:var(--border)"></div>
+      <button class="seg-btn" onclick="openMultiplayerLobby()" style="font-size:.7rem;padding:.35rem .9rem;border-radius:6px;border:1px solid rgba(0,212,255,.3);background:rgba(0,212,255,.1);color:var(--sky);cursor:pointer;font-family:'DM Mono',monospace">🎮 Multiplayer</button>
+    </div>
+    <!-- Song grid (reuses same cards) -->
+    <div class="songs-grid" id="practiceSongGrid" style="padding-top:0"></div>
+  </div>
+
+  <!-- Practice playing view -->
+  <div id="practice-view" style="display:none;height:100%;flex-direction:column">
+    <!-- HUD bar -->
+    <div style="display:flex;align-items:center;gap:1rem;padding:.5rem 1rem;background:rgba(0,0,0,.4);border-bottom:1px solid var(--border);flex-wrap:wrap">
+      <div style="font-family:'Orbitron',monospace;font-size:.8rem;font-weight:700;color:var(--white)" id="practiceTitle">Song</div>
+      <div class="wait-indicator" id="practiceWaitInd" style="display:none">⏸ Play the highlighted note</div>
+      <div style="margin-left:auto;display:flex;gap:1.2rem;align-items:center">
+        <div style="text-align:center">
+          <div style="font-family:'Orbitron',monospace;font-size:1.1rem;color:var(--green)" id="practiceScore">0</div>
+          <div style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted2)">SCORE</div>
         </div>
-        <div class="waveform" id="playWaveform">
-          <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
-          <div class="wbar"></div><div class="wbar"></div><div class="wbar"></div>
-          <div class="wbar"></div><div class="wbar"></div>
+        <div style="text-align:center">
+          <div style="font-family:'Orbitron',monospace;font-size:1.1rem;color:var(--sky)" id="practiceAcc">—</div>
+          <div style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted2)">ACC</div>
         </div>
-      </div>
-      <div style="display:flex;gap:.6rem;align-items:center">
-        <button class="btn-pink" onclick="clearStaff()" style="font-size:.7rem;padding:.38rem .8rem">Clear</button>
-        <span style="font-family:'DM Mono',monospace;font-size:.65rem;color:var(--muted)">
-          MIDI · Click keys · Keyboard A–L = C4–D5
-        </span>
+        <div style="text-align:center">
+          <div style="font-family:'Orbitron',monospace;font-size:1.1rem;color:var(--amber)" id="practiceCombo">x0</div>
+          <div style="font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted2)">COMBO</div>
+        </div>
+        <button onclick="stopPractice()" style="font-family:'DM Mono',monospace;font-size:.7rem;padding:.35rem .8rem;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer">✕ Stop</button>
       </div>
     </div>
-    <div class="piano-wrap">
-      <canvas id="pianoCanvas" width="1060" height="150" aria-label="Piano keyboard"></canvas>
-      <div class="piano-hint">Click any key or connect MIDI · Keyboard shortcuts: A=C4 S=D4 D=E4 F=F4 G=G4 H=A4 J=B4 K=C5</div>
+    <!-- Scrolling staff -->
+    <div style="flex:1;position:relative;min-height:0;overflow:hidden">
+      <canvas id="practiceStaff" style="display:block;width:100%;height:100%"></canvas>
+      <div id="practiceHitFB" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:900;opacity:0;transition:opacity .1s;text-align:center"></div>
+    </div>
+    <!-- Piano keyboard -->
+    <div style="background:rgba(0,0,0,.5);border-top:2px solid rgba(255,45,120,.2);padding:.4rem .6rem .5rem">
+      <canvas id="practiceKb" style="display:block;width:100%;cursor:pointer" height="80"></canvas>
     </div>
   </div>
 </div>
@@ -693,7 +767,7 @@ body{font-family:'Inter',system-ui,sans-serif;color:var(--off-white)}
 ═══════════════════════════════════════════════════════════ */
 const NOTE_NAMES    = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 const NOTE_WHITES   = ['C','D','E','F','G','A','B'];
-const NOTE_COLORS   = {C:'#e6317a',D:'#FF6B35',E:'#F59E0B',F:'#39D98A',G:'#00D4FF',A:'#A855F7',B:'#e6317a'};
+const NOTE_COLORS   = {C:'#FF2D78',D:'#FF6B35',E:'#F59E0B',F:'#39D98A',G:'#00D4FF',A:'#A855F7',B:'#FF2D78'};
 const SHARP_COLORS  = {C:'#FF5599','D':'#FF8C5A','F':'#34D399','G':'#22D3EE','A':'#C084FC'};
 
 function noteHz(midiNum) {
@@ -788,17 +862,43 @@ function getOrCreateEnvelope(midi) {
   return env;
 }
 
-// Fallback PolySynth — used only while samples are loading
+// Fallback PolySynth — maxPolyphony raised to 64 to prevent "Note dropped" warnings
+// The game can fire many notes rapidly; 32 (default) is too low.
 const fallbackSynth = new Tone.PolySynth(Tone.Synth, {
+  maxPolyphony: 64,
   oscillator: { type: 'triangle8' },
   envelope: {
     attack:  0.005,
     decay:   0.3,
-    sustain: 0.0,   // percussive — decays to silence on its own
+    sustain: 0.0,
     release: 0.02,
   },
   volume: -14,
 }).connect(pianoReverb);
+
+// Voice-steal guard for the Sampler — tracks how many notes are currently
+// being held. If we exceed MAX_SAMPLER_VOICES, we release the oldest note
+// before attacking the new one, preventing internal buffer overflow.
+const MAX_SAMPLER_VOICES = 24;
+const samplerVoices = []; // FIFO queue of { note, midi }
+
+function samplerAttack(note, midi, now) {
+  // If at capacity, steal the oldest voice
+  if (samplerVoices.length >= MAX_SAMPLER_VOICES) {
+    const oldest = samplerVoices.shift();
+    try { pianoSampler.triggerRelease(oldest.note, now); } catch(e) {}
+    const oldEnv = activeEnvelopes.get(oldest.midi);
+    if (oldEnv) { try { oldEnv.triggerRelease(now); } catch(e) {} }
+  }
+  samplerVoices.push({ note, midi });
+  pianoSampler.triggerAttack(note, now);
+}
+
+function samplerRelease(note, midi, now) {
+  const idx = samplerVoices.findIndex(v => v.midi === midi);
+  if (idx !== -1) samplerVoices.splice(idx, 1);
+  try { pianoSampler.triggerRelease(note, now); } catch(e) {}
+}
 
 // Hit / miss feedback sounds
 const hitSound = new Tone.MembraneSynth({
@@ -832,14 +932,11 @@ function noteAttack(midi) {
     const note = midiToToneNote(midi);
     const now  = Tone.now();
     if (pianoReady) {
-      // Route: Sampler → envelope → reverb → limiter
       const env = getOrCreateEnvelope(midi);
-      // Connect sampler output through this envelope
-      // (Sampler → env is wired via env.connect(pianoReverb) above;
-      //  we trigger both simultaneously)
-      pianoSampler.triggerAttack(note, now);
+      samplerAttack(note, midi, now);   // voice-steal aware
       env.triggerAttack(now);
     } else {
+      // PolySynth handles its own polyphony via maxPolyphony:64
       fallbackSynth.triggerAttack(note, now);
     }
   };
@@ -857,33 +954,32 @@ function noteRelease(midi) {
   const now  = Tone.now();
 
   if (pianoReady) {
-    // Trigger sampler release (handles its own 100ms tail)
-    pianoSampler.triggerRelease(note, now);
-    // Also release the envelope gate for immediate volume cutoff
+    samplerRelease(note, midi, now);    // voice-steal aware
     const env = activeEnvelopes.get(midi);
     if (env) {
       env.triggerRelease(now);
-      // Clean up envelope after its release tail
       setTimeout(() => {
         env.dispose();
         if (activeEnvelopes.get(midi) === env) activeEnvelopes.delete(midi);
       }, 300);
     }
   } else {
-    fallbackSynth.triggerRelease(note, now);
+    try { fallbackSynth.triggerRelease(note, now); } catch(e) {}
   }
 }
 
 // ── Release all notes (panic / song end) ──
 function releaseAllNotes() {
+  const now = Tone.now();
   activeEnvelopes.forEach((env, midi) => {
     const note = midiToToneNote(midi);
-    if (pianoReady) pianoSampler.triggerRelease(note, Tone.now());
-    env.triggerRelease(Tone.now());
+    if (pianoReady) samplerRelease(note, midi, now);
+    try { env.triggerRelease(now); } catch(e) {}
     setTimeout(() => env.dispose(), 300);
   });
   activeEnvelopes.clear();
-  if (!pianoReady) fallbackSynth.releaseAll();
+  samplerVoices.length = 0;
+  if (!pianoReady) { try { fallbackSynth.releaseAll(); } catch(e) {} }
 }
 
 // ── Duration-based play (game feedback, song preview) ──
@@ -995,410 +1091,1030 @@ function buildKeyLayout(canvasWidth) {
 }
 
 /* ═══════════════════════════════════════════════════════════
-   FREE PLAY — PIANO CANVAS
+   PRACTICE MODE ENGINE
+   Scrolling staff with real note heads, wait mode, multiplayer
 ═══════════════════════════════════════════════════════════ */
-const playPianoCanvas = document.getElementById('pianoCanvas');
-const ppc = playPianoCanvas.getContext('2d');
-const PPW = 1060, PPH = 150;
-const WKH = PPH, BKH = PPH * 0.60;
 
-let activeKeys    = new Set();
-let hoveredKey    = null;
-let waveInterval  = null;
+// ── Constants ─────────────────────────────────────────────
+// LINE_GAP is now computed dynamically from canvas height in staffGeometry()
+// so the grand staff always fills the available space correctly.
+const CURSOR_X_FRAC = 0.25; // playhead position as fraction of canvas width
+const SCROLL_BEATS_VISIBLE = 14; // how many beats visible ahead of cursor
 
-function drawPlayPiano() {
-  ppc.clearRect(0, 0, PPW, PPH);
-  ppc.fillStyle = '#0a0812';
-  ppc.fillRect(0, 0, PPW, PPH);
-
-  const { keys, wkw } = buildKeyLayout(PPW);
-
-  // White keys pass
-  keys.filter(k => !k.isSharp).forEach(k => {
-    const isActive  = activeKeys.has(k.midi);
-    const isHovered = hoveredKey === k.midi;
-    const note      = NOTE_NAMES[k.midi % 12];
-    const oct       = Math.floor(k.midi / 12) - 1;
-
-    let fill;
-    if (isActive) fill = NOTE_COLORS[note] || '#e6317a';
-    else if (isHovered) fill = '#d8d4cc';
-    else fill = note === 'C' ? '#f0edd8' : '#f5f2ec';
-
-    // Key body
-    ppc.fillStyle = fill;
-    const r = 5;
-    ppc.beginPath();
-    ppc.moveTo(k.x + 1, 0); ppc.lineTo(k.x + k.w - 1, 0);
-    ppc.lineTo(k.x + k.w - 1, WKH - r);
-    ppc.arcTo(k.x + k.w - 1, WKH, k.x + k.w - 1 - r, WKH, r);
-    ppc.lineTo(k.x + 1 + r, WKH);
-    ppc.arcTo(k.x + 1, WKH, k.x + 1, WKH - r, r);
-    ppc.lineTo(k.x + 1, 0); ppc.closePath();
-
-    if (isActive) {
-      ppc.shadowColor = fill;
-      ppc.shadowBlur  = 15;
-    }
-    ppc.fill();
-    ppc.shadowBlur = 0;
-    ppc.strokeStyle = '#333';
-    ppc.lineWidth   = 0.8;
-    ppc.stroke();
-
-    // Top sheen
-    if (!isActive) {
-      const sh = ppc.createLinearGradient(k.x, 0, k.x, 30);
-      sh.addColorStop(0, 'rgba(255,255,255,0.5)');
-      sh.addColorStop(1, 'rgba(255,255,255,0)');
-      ppc.fillStyle = sh;
-      ppc.fillRect(k.x + 2, 0, k.w - 4, 28);
-    }
-
-    // C label
-    if (note === 'C') {
-      ppc.fillStyle = isActive ? '#fff' : '#8a6030';
-      ppc.font = `bold ${Math.max(8, wkw * 0.45)}px "DM Mono",monospace`;
-      ppc.textAlign = 'center';
-      ppc.fillText('C' + oct, k.x + k.w / 2, WKH - 7);
-    }
-  });
-
-  // Black keys pass
-  keys.filter(k => k.isSharp).forEach(k => {
-    const isActive  = activeKeys.has(k.midi);
-    const isHovered = hoveredKey === k.midi;
-    const note      = NOTE_NAMES[k.midi % 12];
-
-    let fill;
-    if (isActive)      fill = SHARP_COLORS[note.replace('#','')] || '#e6317a';
-    else if (isHovered) fill = '#3a3050';
-    else fill = '#1a1428';
-
-    const r = 3;
-    ppc.beginPath();
-    ppc.moveTo(k.x, 0); ppc.lineTo(k.x + k.w, 0);
-    ppc.lineTo(k.x + k.w, BKH - r);
-    ppc.arcTo(k.x + k.w, BKH, k.x + k.w - r, BKH, r);
-    ppc.lineTo(k.x + r, BKH);
-    ppc.arcTo(k.x, BKH, k.x, BKH - r, r);
-    ppc.lineTo(k.x, 0); ppc.closePath();
-
-    if (isActive) { ppc.shadowColor = fill; ppc.shadowBlur = 12; }
-    ppc.fillStyle = fill;
-    ppc.fill();
-    ppc.shadowBlur = 0;
-    ppc.strokeStyle = 'rgba(0,0,0,.6)';
-    ppc.lineWidth   = 0.6;
-    ppc.stroke();
-  });
-
-  // Octave dividers
-  ppc.strokeStyle = 'rgba(255,45,120,0.1)';
-  ppc.lineWidth   = 1;
-  for (let oct = 0; oct <= 8; oct++) {
-    const cMidi = (oct + 1) * 12; // MIDI of C in that octave
-    const idx   = WHITE_KEYS.indexOf(cMidi);
-    if (idx < 0) continue;
-    const x = idx * (PPW / N_WHITE);
-    ppc.beginPath(); ppc.moveTo(x, 0); ppc.lineTo(x, PPH); ppc.stroke();
-  }
-}
-drawPlayPiano();
-
-// Piano click / hover
-function getPianoKeyAt(canvasEl, clientX, clientY) {
-  const rect   = canvasEl.getBoundingClientRect();
-  const scaleX = canvasEl.width / rect.width;
-  const scaleY = canvasEl.height / rect.height;
-  const cx     = (clientX - rect.left) * scaleX;
-  const cy     = (clientY - rect.top)  * scaleY;
-  const { keys } = buildKeyLayout(canvasEl.width);
-  // Sharps first
-  for (const k of keys.filter(k => k.isSharp)) {
-    if (cx >= k.x && cx <= k.x + k.w && cy >= 0 && cy <= BKH * (canvasEl.height / PPH)) return k;
-  }
-  for (const k of keys.filter(k => !k.isSharp)) {
-    if (cx >= k.x && cx <= k.x + k.w) return k;
-  }
-  return null;
+// ── Diatonic step helper (C4=0) ───────────────────────────
+const DIATONIC_WHITES = ['C','D','E','F','G','A','B'];
+function diatonicStep(midi) {
+  const name = NOTE_NAMES[midi % 12].replace('#','');
+  const oct  = Math.floor(midi / 12) - 1;
+  return (oct - 4) * 7 + DIATONIC_WHITES.indexOf(name);
 }
 
-function triggerNote(midi, canvas) {
+// ── Practice state ────────────────────────────────────────
+let pr = {
+  song:         null,
+  notes:        [],       // enriched from song.notes
+  active:       false,
+  waitMode:     false,
+  paused:       false,
+  startTime:    0,
+  totalPausedMs:0,
+  pausedAt:     0,
+  waitingForNote: false,
+  waitTarget:   null,
+  beatDur:      0,        // ms per 8th-note unit
+  totalBeats:   0,
+  score:        0,
+  combo:        0,
+  maxCombo:     0,
+  hitNotes:     0,
+  totalNotes:   0,
+  raf:          null,
+  inputMode:    'keyboard',
+  // multiplayer
+  mpRoom:       null,
+  mpChannel:    null,
+  mpOpScore:    0,
+  mpOpAcc:      0,
+  mpOpDone:     false,
+};
+
+let practiceMode = 'normal';
+
+function setPracticeMode(mode, btn) {
+  practiceMode = mode;
+  document.getElementById('practiceNormalBtn').style.background =
+    mode === 'normal' ? 'var(--pink)' : 'rgba(255,255,255,.04)';
+  document.getElementById('practiceNormalBtn').style.color =
+    mode === 'normal' ? '#fff' : 'var(--muted)';
+  document.getElementById('practiceWaitBtn').style.background =
+    mode === 'wait' ? 'rgba(0,212,255,.18)' : 'rgba(255,255,255,.04)';
+  document.getElementById('practiceWaitBtn').style.color =
+    mode === 'wait' ? 'var(--sky)' : 'var(--muted)';
+  document.getElementById('practiceWaitBtn').style.borderColor =
+    mode === 'wait' ? 'rgba(0,212,255,.4)' : 'var(--border)';
+}
+
+function buildPracticeSongList() {
+  const grid = document.getElementById('practiceSongGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  SONGS.forEach(song => {
+    const diffClass = 'diff-' + song.difficulty;
+    const diffLabel = song.difficulty.charAt(0).toUpperCase() + song.difficulty.slice(1);
+    const stars = song.difficulty === 'easy' ? 2 : song.difficulty === 'medium' ? 3 : 5;
+    const dots  = Array.from({length:5}, (_,i) =>
+      `<div class="song-dot${i < stars ? ' filled' : ''}"></div>`).join('');
+    grid.innerHTML += `
+      <div class="song-card" style="border-color:rgba(${hexToRgb(song.color)},.2)">
+        <div class="song-diff ${diffClass}">${diffLabel}</div>
+        <div class="song-name">${song.name}</div>
+        <div class="song-meta">${song.composer}</div>
+        <div class="song-bpm">♩= ${song.bpm} BPM</div>
+        <div class="song-dots">${dots}</div>
+        <button class="play-song-btn" onclick="startPractice('${song.id}')"
+          style="background:${song.color}">🎼 Practice</button>
+      </div>`;
+  });
+}
+
+function startPractice(songId) {
+  const song = SONGS.find(s => s.id === songId);
+  if (!song) return;
+
+  // Show input modal (reuse existing modal, but with practice target)
+  modal.song = song;
+  modal.selectedMode = practiceMode;
+  modal.selectedInput = 'keyboard';
+  modal._target = 'practice'; // flag for confirmAndPlay
+
+  document.getElementById('modalSongName').textContent = song.name;
+  setModalMode(modal.selectedMode);
+  ['keyboard','midi','mic','click'].forEach(k => {
+    const el = document.getElementById('opt-' + k);
+    if (el) el.classList.toggle('selected', k === 'keyboard');
+  });
+  setMicStatus('idle');
+  updateModalMidiList();
+
+  const warning = document.getElementById('secureWarning');
+  if (warning) warning.classList.toggle('show', !IS_SECURE);
+  if (IS_SECURE && !midiInitDone) initMidi();
+
+  document.getElementById('inputModal').classList.add('active');
+  stopMic();
+}
+
+function launchPractice(song, waitMode, inputMode) {
+  pr.song          = song;
+  pr.waitMode      = waitMode;
+  pr.inputMode     = inputMode;
+  pr.active        = true;
+  pr.paused        = false;
+  pr.waitingForNote= false;
+  pr.waitTarget    = null;
+  pr.startTime     = performance.now();
+  pr.totalPausedMs = 0;
+  pr.score         = 0;
+  pr.combo         = 0;
+  pr.maxCombo      = 0;
+  pr.hitNotes      = 0;
+  pr.totalNotes    = song.notes.length;
+  pr.beatDur       = (60000 / song.bpm) / 2;
+  pr.totalBeats    = song.notes.reduce((mx,n) => Math.max(mx, n[1]+n[2]), 0) + 8;
+
+  pr.notes = song.notes.map(([midi, beat, dur]) => ({
+    midi, beat, dur,
+    hit: false, missed: false,
+    color: NOTE_COLORS[NOTE_NAMES[midi%12].replace('#','')] || '#FF2D78',
+  }));
+
+  document.getElementById('practiceTitle').textContent = song.name;
+  document.getElementById('practiceWaitInd').style.display = waitMode ? 'flex' : 'none';
+  document.getElementById('practice-pick').style.display = 'none';
+  document.getElementById('practice-view').style.display = 'flex';
+  document.getElementById('practiceResults').style.display = 'none';
+
+  resizePracticeCanvases();
+  drawPracticeKb(null);
+
+  cancelAnimationFrame(pr.raf);
+  practiceLoop();
+}
+
+function stopPractice() {
+  pr.active = false;
+  cancelAnimationFrame(pr.raf);
+  stopMic();
+  // Disconnect multiplayer
+  if (pr.mpChannel) { pr.mpChannel.close(); pr.mpChannel = null; pr.mpRoom = null; }
+  document.getElementById('practice-view').style.display = 'none';
+  document.getElementById('practice-pick').style.display = 'flex';
+  document.getElementById('practiceResults').style.display = 'none';
+}
+
+function restartPractice() {
+  if (pr.song) {
+    document.getElementById('practiceResults').style.display = 'none';
+    startPractice(pr.song.id);
+  }
+}
+
+// ── Canvas setup ──────────────────────────────────────────
+const prStaffEl = document.getElementById('practiceStaff');
+const prCtx     = prStaffEl.getContext('2d');
+const prKbEl    = document.getElementById('practiceKb');
+const prKbCtx   = prKbEl.getContext('2d');
+
+let PR_W = 900, PR_H = 400;
+
+function resizePracticeCanvases() {
+  const view = document.getElementById('practice-view');
+  if (!view || view.style.display === 'none') return;
+  const staffWrap = prStaffEl.parentElement;
+  PR_W = staffWrap.clientWidth  || 900;
+  PR_H = staffWrap.clientHeight || 400;
+  prStaffEl.width  = PR_W;
+  prStaffEl.height = PR_H;
+  prKbEl.width = prKbEl.parentElement.clientWidth || PR_W;
+}
+window.addEventListener('resize', resizePracticeCanvases);
+
+// ── Staff geometry helpers ────────────────────────────────
+// Returns all measurements needed to draw the grand staff.
+// LINE_GAP is derived from canvas height so the staff always
+// fills ~80% of the available space — matching the reference image.
+function staffGeometry(h) {
+  // Target: grand staff (10 lines + gap between) fills 80% of height
+  // 10 lines = 9 line-gaps of staff + ~3 line-gaps gap between staves = 12 gaps total
+  // We want 12 gaps ≈ 0.80 * h  →  gap = h * 0.80 / 12
+  const LINE_GAP = Math.max(10, Math.round(h * 0.80 / 12));
+
+  // Vertical layout:
+  //   topPad   = 1.5 LINE_GAPs above treble top line
+  //   tTop     = top of treble staff
+  //   gap      = 2 LINE_GAPs between bottom of treble and top of bass (matches reference)
+  //   bTop     = top of bass staff
+  const topPad = LINE_GAP * 1.5;
+  const tTop   = topPad;
+  const bTop   = tTop + 4 * LINE_GAP + LINE_GAP * 2.5; // 4 treble spans + 2.5 gap
+
+  // Middle C positions:
+  //   Treble: 1 ledger line below treble bottom = tTop + 5*LINE_GAP
+  //   Bass:   1 ledger line above bass top      = bTop - LINE_GAP
+  const midCyT = tTop + 5 * LINE_GAP;
+  const midCyB = bTop - LINE_GAP;
+
+  return { tTop, bTop, midCyT, midCyB, LINE_GAP };
+}
+
+function noteYFromStep(step, geo) {
+  // step = diatonicStep(midi), C4=0
+  // Notes step >= -1 go on treble, below that on bass
+  const useTreble = step >= -1;
+  const refY      = useTreble ? geo.midCyT : geo.midCyB;
+  return refY - step * (geo.LINE_GAP / 2);
+}
+
+// ── Main practice render loop ─────────────────────────────
+function practiceLoop() {
+  if (!pr.active) return;
+
+  if (!pr.paused && !pr.waitingForNote) {
+    updatePracticeLogic();
+  }
+
+  drawPracticeStaff();
+  updatePracticeHUD();
+  pr.raf = requestAnimationFrame(practiceLoop);
+}
+
+function practiceElapsed() {
+  if (pr.waitingForNote) {
+    return pr.pausedAt - pr.startTime - pr.totalPausedMs;
+  }
+  return performance.now() - pr.startTime - pr.totalPausedMs;
+}
+
+function updatePracticeLogic() {
+  const curBeat = practiceElapsed() / pr.beatDur;
+  pr.curBeat = curBeat;
+
+  // Wait mode: find next note approaching cursor
+  if (pr.waitMode && !pr.waitingForNote) {
+    const next = pr.notes.find(n => !n.hit && !n.missed);
+    if (next) {
+      const beatsUntil = next.beat - curBeat;
+      if (beatsUntil <= 0.4 && beatsUntil >= -0.5) {
+        pr.waitingForNote = true;
+        pr.waitTarget     = next;
+        pr.pausedAt       = performance.now();
+        document.getElementById('practiceWaitInd').style.display = 'flex';
+        document.getElementById('practiceWaitInd').textContent   = `⏸ Play: ${NOTE_NAMES[next.midi % 12]}`;
+      }
+    }
+  }
+
+  // Normal mode miss detection
+  if (!pr.waitMode) {
+    pr.notes.forEach(n => {
+      if (n.hit || n.missed) return;
+      if (curBeat > n.beat + 2.5) {
+        n.missed = true;
+        pr.combo = 0;
+      }
+    });
+  }
+
+  // Song end
+  if (curBeat > pr.totalBeats) endPractice();
+}
+
+function practiceKeyPress(midi) {
+  if (!pr.active) return;
   noteAttack(midi);
-  activeKeys.add(midi);
-  drawPlayPiano();
-  updatePlayInfo(midi);
-  const { keys } = buildKeyLayout(canvas?.width || PPW);
-  const k = keys.find(k => k.midi === midi);
-  if (k) {
-    const rect  = (canvas || playPianoCanvas).getBoundingClientRect();
-    const scaleX = (canvas?.width || PPW) / rect.width;
-    const kCX   = (k.x + k.w / 2) / scaleX + rect.left;
-    const kCY   = rect.top + (k.isSharp ? BKH * 0.5 : PPH * 0.7) / (PPH / rect.height);
-    const note  = NOTE_NAMES[midi % 12].replace('#','');
-    spawnParticles(kCX, kCY, NOTE_COLORS[note] || '#e6317a', 8);
-  }
-}
+  drawPracticeKb({ midi, correct: false }); // temp highlight, updated below
 
-function releaseNote(midi) {
-  if (!activeKeys.has(midi)) return;
-  noteRelease(midi);
-  activeKeys.delete(midi);
-  drawPlayPiano();
-}
-
-// Track which midi key is currently held by mouse/touch
-let mouseHeldMidi = null;
-
-playPianoCanvas.addEventListener('mousedown', e => {
-  e.preventDefault();
-  startAudio();
-  const k = getPianoKeyAt(playPianoCanvas, e.clientX, e.clientY);
-  if (k) {
-    if (mouseHeldMidi !== null && mouseHeldMidi !== k.midi) releaseNote(mouseHeldMidi);
-    mouseHeldMidi = k.midi;
-    triggerNote(k.midi, playPianoCanvas);
-  }
-});
-
-// Single document-level mouseup — catches release anywhere on desktop,
-// regardless of whether mouse drifted off either canvas
-document.addEventListener('mouseup', () => {
-  // Free play piano
-  if (mouseHeldMidi !== null) { releaseNote(mouseHeldMidi); mouseHeldMidi = null; }
-  // Game keyboard
-  if (gameKbHeldMidi !== null) { gameKeyRelease(gameKbHeldMidi); gameKbHeldMidi = null; }
-});
-
-playPianoCanvas.addEventListener('mouseleave', () => {
-  hoveredKey = null;
-  drawPlayPiano();
-  // Note intentionally NOT released on mouseleave — document mouseup handles it.
-  // This lets the user keep holding a note while moving the mouse off-canvas.
-});
-
-playPianoCanvas.addEventListener('mousemove', e => {
-  const k = getPianoKeyAt(playPianoCanvas, e.clientX, e.clientY);
-  const newHov = k ? k.midi : null;
-  if (newHov !== hoveredKey) { hoveredKey = newHov; drawPlayPiano(); }
-  // Slide between keys while holding mouse button
-  if (mouseHeldMidi !== null && k && k.midi !== mouseHeldMidi) {
-    releaseNote(mouseHeldMidi);
-    mouseHeldMidi = k.midi;
-    triggerNote(k.midi, playPianoCanvas);
-  }
-});
-
-// Touch support
-playPianoCanvas.addEventListener('touchstart', e => {
-  e.preventDefault();
-  startAudio();
-  const t = e.changedTouches[0];
-  const k = getPianoKeyAt(playPianoCanvas, t.clientX, t.clientY);
-  if (k) { mouseHeldMidi = k.midi; triggerNote(k.midi, playPianoCanvas); }
-}, { passive: false });
-
-playPianoCanvas.addEventListener('touchend', e => {
-  e.preventDefault();
-  if (mouseHeldMidi !== null) { releaseNote(mouseHeldMidi); mouseHeldMidi = null; }
-}, { passive: false });
-
-/* ═══════════════════════════════════════════════════════════
-   PLAY INFO & WAVEFORM
-═══════════════════════════════════════════════════════════ */
-function updatePlayInfo(midi) {
-  const { note, oct, isSharp } = midiToNoteName(midi);
-  const hz = noteHz(midi);
-  const staffNote = isSharp ? note + oct : note + oct;
-  document.getElementById('playNoteName').textContent  = note + oct;
-  document.getElementById('playNoteDetail').textContent = isSharp ? `${note} (♯) Octave ${oct}` : `${note} · Octave ${oct}`;
-  document.getElementById('playNoteHz').textContent     = `${Math.round(hz)} Hz`;
-
-  // Waveform pulse
-  clearInterval(waveInterval);
-  const bars = document.querySelectorAll('#playWaveform .wbar');
-  waveInterval = setInterval(() => {
-    bars.forEach(b => { b.style.height = (4 + Math.random() * 22) + 'px'; });
-  }, 70);
-  setTimeout(() => { clearInterval(waveInterval); bars.forEach(b => b.style.height = '4px'); }, 1200);
-
-  // Staff update
-  addNoteToStaff(midi);
-}
-
-/* ═══════════════════════════════════════════════════════════
-   LIVE STAFF NOTATION
-═══════════════════════════════════════════════════════════ */
-const staffCanvas = document.getElementById('staffCanvas');
-const sCtx        = staffCanvas.getContext('2d');
-const SW = 900, SH = 180;
-let staffNotes    = []; // { midi, x, timestamp }
-const MAX_STAFF_NOTES = 16;
-
-function clearStaff() {
-  staffNotes = [];
-  drawLiveStaff();
-}
-
-function addNoteToStaff(midi) {
-  staffNotes.push({ midi, timestamp: Date.now() });
-  if (staffNotes.length > MAX_STAFF_NOTES) staffNotes.shift();
-  drawLiveStaff();
-}
-
-function drawLiveStaff() {
-  sCtx.clearRect(0, 0, SW, SH);
-  sCtx.fillStyle = 'rgba(10,8,18,0.95)';
-  sCtx.fillRect(0, 0, SW, SH);
-
-  const lineGap = 14;
-  const tTop    = 28;  // treble top line
-  const bTop    = 108; // bass top line
-  const sLeft   = 70;
-  const sRight  = SW - 20;
-
-  // Staff lines — treble
-  sCtx.strokeStyle = '#2a3a50';
-  sCtx.lineWidth   = 1.2;
-  for (let i = 0; i < 5; i++) {
-    sCtx.beginPath();
-    sCtx.moveTo(sLeft, tTop + i * lineGap);
-    sCtx.lineTo(sRight, tTop + i * lineGap);
-    sCtx.stroke();
-  }
-  // Bass
-  for (let i = 0; i < 5; i++) {
-    sCtx.beginPath();
-    sCtx.moveTo(sLeft, bTop + i * lineGap);
-    sCtx.lineTo(sRight, bTop + i * lineGap);
-    sCtx.stroke();
-  }
-  // Brace / barline
-  sCtx.strokeStyle = '#3a4a60';
-  sCtx.lineWidth   = 2;
-  sCtx.beginPath();
-  sCtx.moveTo(sLeft, tTop);
-  sCtx.lineTo(sLeft, bTop + 4 * lineGap);
-  sCtx.stroke();
-
-  // Clefs
-  sCtx.font = '56px serif'; sCtx.textAlign = 'left';
-  sCtx.fillStyle = '#00D4FF';
-  sCtx.fillText('𝄞', sLeft - 50, tTop + 4 * lineGap + 4);
-  sCtx.fillStyle = '#e6317a';
-  sCtx.fillText('𝄢', sLeft - 46, bTop + 2 * lineGap + 4);
-
-  // Middle C ledger position
-  // treble: E4=line4(bottom), each step = lineGap/2 diatonic
-  // C4 = one ledger below treble = tTop + 5*lineGap
-  // C4 = one ledger above bass  = bTop - lineGap
-  const middleCY_treble = tTop + 5 * lineGap;
-  const middleCY_bass   = bTop - lineGap;
-
-  // Draw notes
-  if (staffNotes.length === 0) {
-    sCtx.font = '12px "DM Mono",monospace';
-    sCtx.fillStyle = '#4a5568';
-    sCtx.textAlign = 'center';
-    sCtx.fillText('Play any key to see sheet notation', SW / 2, SH / 2 + 4);
+  if (pr.waitMode && pr.waitingForNote) {
+    if (pr.waitTarget && pr.waitTarget.midi === midi) {
+      // Correct note — resume
+      const pausedDur = performance.now() - pr.pausedAt;
+      pr.totalPausedMs  += pausedDur;
+      pr.waitingForNote  = false;
+      pr.waitTarget.hit  = true;
+      pr.waitTarget      = null;
+      document.getElementById('practiceWaitInd').style.display = 'none';
+      scorePracticeHit(midi, true);
+    } else {
+      showPracticeHitFB('WRONG', '#EF4444');
+    }
     return;
   }
 
-  const noteSpacing = Math.min(60, (sRight - sLeft - 20) / Math.max(staffNotes.length, 1));
+  // Normal mode
+  const curBeat = pr.curBeat || 0;
+  let best = null, bestDist = Infinity;
+  pr.notes.forEach(n => {
+    if (n.hit || n.missed || n.midi !== midi) return;
+    const d = Math.abs(n.beat - curBeat);
+    if (d < bestDist) { bestDist = d; best = n; }
+  });
 
-  staffNotes.forEach((entry, i) => {
-    const steps   = staffStepsFromC4(entry.midi);
-    const isSharp = NOTE_NAMES[entry.midi % 12].includes('#');
-    const noteName= NOTE_NAMES[entry.midi % 12].replace('#','');
-    const age     = (Date.now() - entry.timestamp) / 1000;
-    const alpha   = Math.max(0.3, 1 - age * 0.25);
+  if (best && bestDist < 2.0) {
+    best.hit = true;
+    scorePracticeHit(midi, bestDist < 1.0);
+  }
+}
 
-    // Determine clef
-    const useTreeble = steps >= 0;
-    const refY  = useTreeble ? middleCY_treble : middleCY_bass;
-    const noteY = refY - steps * (lineGap / 2);
-    const noteX = sLeft + 20 + i * noteSpacing;
+function practiceKeyRelease(midi) {
+  noteRelease(midi);
+}
 
-    const color = NOTE_COLORS[noteName] || '#e6317a';
+function scorePracticeHit(midi, perfect) {
+  pr.hitNotes++;
+  pr.combo++;
+  pr.maxCombo = Math.max(pr.maxCombo, pr.combo);
+  const pts = perfect ? 300 + pr.combo * 10 : 100 + pr.combo * 5;
+  pr.score += pts;
+  const color = perfect ? '#39D98A' : '#F59E0B';
+  showPracticeHitFB(perfect ? 'PERFECT!' : 'GOOD', color);
+  drawPracticeKb({ midi, correct: true });
+  startAudio().then(() => hitSound.triggerAttackRelease('C2','16n',Tone.now()));
+  mpBroadcast({ type:'score', score: pr.score, hits: pr.hitNotes, total: pr.totalNotes });
 
-    sCtx.globalAlpha = alpha;
+  // Firework burst on the staff at the hit note's position
+  const geo     = staffGeometry(PR_H);
+  const LG      = geo.LINE_GAP;
+  const cursorX = PR_W * CURSOR_X_FRAC;
+  const step    = diatonicStep(midi);
+  const noteY   = noteYFromStep(step, geo);
+  const burstCount = perfect ? 24 : 16;
+  spawnStaffBurst(cursorX, noteY, color, burstCount);
+  // Extra sparkle ring for PERFECT
+  if (perfect) {
+    spawnStaffBurst(cursorX, noteY, '#FFFFFF', 8);
+  }
+}
 
-    // Ledger lines
-    sCtx.strokeStyle = '#2a3a50';
-    sCtx.lineWidth   = 1.2;
-    const staffTopRef  = useTreeble ? tTop : bTop;
-    const staffBotRef  = useTreeble ? tTop + 4 * lineGap : bTop + 4 * lineGap;
-    if (noteY > staffBotRef + lineGap / 2) {
-      for (let ly = staffBotRef + lineGap; ly <= noteY + lineGap / 2; ly += lineGap) {
-        sCtx.beginPath(); sCtx.moveTo(noteX - 12, ly); sCtx.lineTo(noteX + 12, ly); sCtx.stroke();
+function showPracticeHitFB(text, color) {
+  const el = document.getElementById('practiceHitFB');
+  el.textContent  = text;
+  el.style.color  = color;
+  el.style.textShadow = `0 0 20px ${color}`;
+  el.style.opacity = '1';
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.style.opacity = '0'; }, 400);
+}
+
+function updatePracticeHUD() {
+  const acc = pr.totalNotes > 0 ? Math.round(pr.hitNotes / pr.totalNotes * 100) : 0;
+  document.getElementById('practiceScore').textContent = pr.score.toLocaleString();
+  document.getElementById('practiceAcc').textContent   = pr.hitNotes > 0 ? acc + '%' : '—';
+  document.getElementById('practiceCombo').textContent = 'x' + pr.combo;
+}
+
+function endPractice() {
+  pr.active = false;
+  cancelAnimationFrame(pr.raf);
+
+  const acc   = pr.totalNotes > 0 ? Math.round(pr.hitNotes / pr.totalNotes * 100) : 0;
+  const grade = acc >= 95 ? 'S' : acc >= 85 ? 'A' : acc >= 70 ? 'B' : acc >= 55 ? 'C' : acc >= 40 ? 'D' : 'F';
+  const gColors = {S:'#39D98A',A:'#00D4FF',B:'#A78BFA',C:'#F59E0B',D:'#FF6B35',F:'#EF4444'};
+
+  document.getElementById('practiceGrade').textContent  = grade;
+  document.getElementById('practiceGrade').style.color   = gColors[grade];
+  document.getElementById('prScore').textContent  = pr.score.toLocaleString();
+  document.getElementById('prCombo').textContent  = 'x' + pr.maxCombo;
+  document.getElementById('prAcc').textContent    = acc + '%';
+
+  // Multiplayer result
+  const mpPanel = document.getElementById('prMpPanel');
+  if (pr.mpRoom && pr.mpChannel) {
+    mpBroadcast({ type: 'done', score: pr.score, acc });
+    mpPanel.style.display = 'block';
+    document.getElementById('prMpResult').textContent = 'Waiting for opponent…';
+    // Check if opponent already done
+    if (pr.mpOpDone) showMpResult(acc);
+  } else {
+    mpPanel.style.display = 'none';
+  }
+
+  document.getElementById('practice-view').style.display = 'none';
+  document.getElementById('practiceResults').style.display = 'flex';
+
+  if (grade === 'S' || grade === 'A') {
+    for (let i = 0; i < 6; i++) setTimeout(() => {
+      spawnParticles(
+        Math.random() * window.innerWidth, Math.random() * window.innerHeight * 0.6,
+        ['#FF2D78','#39D98A','#00D4FF','#F59E0B'][Math.floor(Math.random()*4)], 18
+      );
+    }, i * 250);
+  }
+}
+
+// ── Staff-space firework particles ───────────────────────
+// These live in canvas coordinates on the practiceStaff canvas.
+const prStaffParticles = [];
+
+function spawnStaffBurst(noteX, noteY, color, count = 18) {
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.4;
+    const speed = 2.5 + Math.random() * 5;
+    prStaffParticles.push({
+      x: noteX, y: noteY,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 1.0,
+      decay: 0.028 + Math.random() * 0.025,
+      size: 3 + Math.random() * 4,
+      color,
+    });
+  }
+}
+
+function updateStaffParticles(ctx) {
+  for (let i = prStaffParticles.length - 1; i >= 0; i--) {
+    const p = prStaffParticles[i];
+    p.x    += p.vx;
+    p.y    += p.vy;
+    p.vy   += 0.15;        // gravity
+    p.vx   *= 0.96;        // drag
+    p.life -= p.decay;
+    if (p.life <= 0) { prStaffParticles.splice(i, 1); continue; }
+
+    ctx.save();
+    ctx.globalAlpha = p.life;
+    ctx.shadowColor = p.color;
+    ctx.shadowBlur  = 6;
+    ctx.fillStyle   = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+// ── Staff renderer ────────────────────────────────────────
+function drawPracticeStaff() {
+  prCtx.clearRect(0, 0, PR_W, PR_H);
+  prCtx.fillStyle = '#0a0812';
+  prCtx.fillRect(0, 0, PR_W, PR_H);
+
+  const geo       = staffGeometry(PR_H);
+  const LG        = geo.LINE_GAP;
+  const curBeat   = pr.curBeat || 0;
+  const cursorX   = PR_W * CURSOR_X_FRAC;
+  const pxPerBeat = (PR_W * (1 - CURSOR_X_FRAC)) / SCROLL_BEATS_VISIBLE;
+
+  // Note head radii — BIG gamified feel
+  const RX = Math.round(LG * 0.82);
+  const RY = Math.round(LG * 0.54);
+
+  // Left margin: clef region
+  const LEFT_MARGIN = Math.round(LG * 4.2);
+
+  // ── 5 staff lines (treble) ────────────────────────────────
+  // Lines numbered 1–5 bottom to top:
+  //   Line 1 (bottom) = E4 = tTop + 4*LG
+  //   Line 2          = G4 = tTop + 3*LG  ← treble clef wraps here
+  //   Line 3 (middle) = B4 = tTop + 2*LG
+  //   Line 4          = D5 = tTop +   LG
+  //   Line 5 (top)    = F5 = tTop
+  prCtx.strokeStyle = '#3a5570';
+  prCtx.lineWidth   = 1.6;
+  for (let i = 0; i < 5; i++) {
+    const y = geo.tTop + i * LG;
+    prCtx.beginPath();
+    prCtx.moveTo(LEFT_MARGIN - 4, y);
+    prCtx.lineTo(PR_W, y);
+    prCtx.stroke();
+  }
+
+  // ── 5 staff lines (bass) ──────────────────────────────────
+  // Lines numbered 1–5 bottom to top:
+  //   Line 1 (bottom) = G2 = bTop + 4*LG
+  //   Line 2          = B2 = bTop + 3*LG
+  //   Line 3 (middle) = D3 = bTop + 2*LG
+  //   Line 4          = F3 = bTop +   LG  ← bass clef dots here
+  //   Line 5 (top)    = A3 = bTop
+  for (let i = 0; i < 5; i++) {
+    const y = geo.bTop + i * LG;
+    prCtx.beginPath();
+    prCtx.moveTo(LEFT_MARGIN - 4, y);
+    prCtx.lineTo(PR_W, y);
+    prCtx.stroke();
+  }
+
+  // ── System barline (left edge, spans both staves) ─────────
+  prCtx.strokeStyle = '#4a6070';
+  prCtx.lineWidth   = 2.5;
+  prCtx.beginPath();
+  prCtx.moveTo(LEFT_MARGIN - 4, geo.tTop);
+  prCtx.lineTo(LEFT_MARGIN - 4, geo.bTop + 4 * LG);
+  prCtx.stroke();
+
+  // ══════════════════════════════════════════════════════════
+  // TREBLE CLEF — rendered from the uploaded SVG, tinted sky blue
+  // SVG viewBox: 0 0 744.09 1052.4
+  // We scale it so it spans from ~1.8 LG above tTop to bottom line+0.5LG
+  // and position it so the G4 line (tTop + 3*LG) matches the spiral curl.
+  // ══════════════════════════════════════════════════════════
+  drawTrebleClef(prCtx, LEFT_MARGIN - 2, geo.tTop, LG, '#00D4FF');
+
+  // ══════════════════════════════════════════════════════════
+  // BASS CLEF — drawn as canvas paths
+  // Anchor: F3 line = bTop + LG  (line 4 from bottom = 2nd from top)
+  // Dots flank this line above and below.
+  // ══════════════════════════════════════════════════════════
+  drawBassClef(prCtx, LEFT_MARGIN - 2, geo.bTop, LG, '#FF2D78');
+
+  // ── Cursor / playhead — 40px wide ────────────────────────
+  const cTop = geo.tTop - LG * 1.0;
+  const cBot = geo.bTop + LG * 5.0;
+  prCtx.save();
+  // Wide soft glow layer (40px, semi-transparent)
+  prCtx.strokeStyle = 'rgba(255,45,120,0.18)';
+  prCtx.lineWidth   = 40;
+  prCtx.lineCap     = 'butt';
+  prCtx.shadowColor = 'rgba(255,45,120,0.5)';
+  prCtx.shadowBlur  = 24;
+  prCtx.beginPath();
+  prCtx.moveTo(cursorX, cTop);
+  prCtx.lineTo(cursorX, cBot);
+  prCtx.stroke();
+  // Bright sharp centre stroke
+  prCtx.strokeStyle = '#FF2D78';
+  prCtx.lineWidth   = 3;
+  prCtx.shadowBlur  = 14;
+  prCtx.beginPath();
+  prCtx.moveTo(cursorX, cTop);
+  prCtx.lineTo(cursorX, cBot);
+  prCtx.stroke();
+  prCtx.restore();
+
+  // ── Wait-mode border pulse ────────────────────────────────
+  if (pr.waitingForNote && pr.waitTarget) {
+    const pulse = 0.45 + 0.3 * Math.sin(Date.now() / 180);
+    prCtx.save();
+    prCtx.strokeStyle = `rgba(0,212,255,${pulse})`;
+    prCtx.lineWidth   = 3;
+    prCtx.strokeRect(2, 2, PR_W - 4, PR_H - 4);
+    prCtx.restore();
+  }
+
+  // ── Notes ─────────────────────────────────────────────────
+  pr.notes.forEach(n => {
+    if (n.missed || n.hit) return;   // hit notes disappear — burst handled by particles
+    const beatFromCursor = n.beat - curBeat;
+    const noteX = cursorX + beatFromCursor * pxPerBeat;
+    if (noteX < LEFT_MARGIN || noteX > PR_W + 60) return;
+
+    const step      = diatonicStep(n.midi);
+    const noteY     = noteYFromStep(step, geo);
+    const isSharp   = NOTE_NAMES[n.midi % 12].includes('#');
+    const isWait    = pr.waitingForNote && pr.waitTarget === n;
+    const useTreble = step >= -1;
+
+    const color = n.hit ? '#39D98A' : isWait ? '#00D4FF' : n.color;
+    prCtx.globalAlpha = 1.0;
+
+    // Note value
+    const isWhole  = n.dur >= 8;
+    const isHalf   = n.dur >= 4 && n.dur < 8;
+    const isEighth = n.dur < 2;
+    const isDotted = n.dur === 3 || n.dur === 6;
+
+    // Stem direction: below staff midline → stem up
+    const staffMidY = (useTreble ? geo.tTop : geo.bTop) + 2 * LG;
+    const stemUp    = !isWhole && noteY >= staffMidY;
+
+    // ── Ledger lines ─────────────────────────────────────────
+    const lTop = useTreble ? geo.tTop : geo.bTop;
+    const lBot = lTop + 4 * LG;
+    prCtx.save();
+    prCtx.strokeStyle = '#4a6070';
+    prCtx.lineWidth   = 1.6;
+    if (noteY > lBot + LG * 0.4) {
+      for (let ly = lBot + LG; ly <= noteY + LG * 0.4; ly += LG) {
+        prCtx.beginPath();
+        prCtx.moveTo(noteX - RX - 5, ly);
+        prCtx.lineTo(noteX + RX + 5, ly);
+        prCtx.stroke();
       }
     }
-    if (noteY < staffTopRef - lineGap / 2) {
-      for (let ly = staffTopRef - lineGap; ly >= noteY - lineGap / 2; ly -= lineGap) {
-        sCtx.beginPath(); sCtx.moveTo(noteX - 12, ly); sCtx.lineTo(noteX + 12, ly); sCtx.stroke();
+    if (noteY < lTop - LG * 0.4) {
+      for (let ly = lTop - LG; ly >= noteY - LG * 0.4; ly -= LG) {
+        prCtx.beginPath();
+        prCtx.moveTo(noteX - RX - 5, ly);
+        prCtx.lineTo(noteX + RX + 5, ly);
+        prCtx.stroke();
+      }
+    }
+    prCtx.restore();
+
+    // ── Glow on note head — multi-layer for game feel ─────────
+    const glowSize = isWait ? 40 : 22;
+    prCtx.shadowColor = color;
+    prCtx.shadowBlur  = glowSize;
+
+    // ── Note head ────────────────────────────────────────────
+    // Draw as a rounded-rectangle pill for gamified look
+    // Pill corner radius = RY (fully rounded ends)
+    const drawPill = (cx, cy, rx, ry, fill) => {
+      const r = ry;
+      prCtx.beginPath();
+      if (prCtx.roundRect) {
+        prCtx.roundRect(cx - rx, cy - ry, rx * 2, ry * 2, r);
+      } else {
+        // Fallback: ellipse
+        prCtx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+      }
+      if (fill) {
+        prCtx.fillStyle = fill;
+        prCtx.fill();
+      } else {
+        prCtx.stroke();
+      }
+    };
+
+    if (isWhole) {
+      // Whole note: glowing ring outline
+      prCtx.strokeStyle = color;
+      prCtx.lineWidth   = Math.max(3, LG * 0.18);
+      drawPill(noteX, noteY, RX, RY, null);
+      prCtx.shadowBlur  = 0;
+      // Dark hollow centre
+      drawPill(noteX, noteY, RX - Math.max(3, LG * 0.2), RY - Math.max(2, LG * 0.14), '#0a0812');
+    } else if (isHalf) {
+      // Half note: filled colour outer, dark inner hole
+      drawPill(noteX, noteY, RX, RY, color);
+      prCtx.shadowBlur = 0;
+      drawPill(noteX, noteY, RX - Math.max(3.5, LG * 0.22), RY - Math.max(2.5, LG * 0.16), '#0a0812');
+    } else {
+      // Quarter/eighth: fully solid pill
+      drawPill(noteX, noteY, RX, RY, color);
+      prCtx.shadowBlur = 0;
+
+      // Bright inner highlight strip (top third of pill)
+      prCtx.save();
+      prCtx.globalAlpha = 0.35;
+      const hiGrad = prCtx.createLinearGradient(noteX, noteY - RY, noteX, noteY);
+      hiGrad.addColorStop(0, '#ffffff');
+      hiGrad.addColorStop(1, 'transparent');
+      prCtx.fillStyle = hiGrad;
+      if (prCtx.roundRect) {
+        prCtx.beginPath();
+        prCtx.roundRect(noteX - RX, noteY - RY, RX * 2, RY, RY * 0.5);
+        prCtx.fill();
+      }
+      prCtx.restore();
+    }
+
+    // Outer coloured ring (always, gives the "badge" border effect)
+    prCtx.save();
+    prCtx.strokeStyle = color;
+    prCtx.lineWidth   = Math.max(2, LG * 0.12);
+    prCtx.shadowColor = color;
+    prCtx.shadowBlur  = 8;
+    prCtx.globalAlpha = 0.7;
+    drawPill(noteX, noteY, RX + Math.max(2, LG * 0.12), RY + Math.max(1.5, LG * 0.08), null);
+    prCtx.restore();
+
+    // ── Stem ──────────────────────────────────────────────────
+    if (!isWhole) {
+      const stemW   = Math.max(2.5, LG * 0.16);
+      const stemLen = LG * 3.8;
+      const stemX   = stemUp ? noteX + RX : noteX - RX;
+      const stemY1  = noteY;
+      const stemY2  = stemUp ? noteY - stemLen : noteY + stemLen;
+
+      prCtx.save();
+      prCtx.strokeStyle = color;
+      prCtx.lineWidth   = stemW;
+      prCtx.lineCap     = 'round';
+      prCtx.shadowColor = color;
+      prCtx.shadowBlur  = 6;
+      prCtx.beginPath();
+      prCtx.moveTo(stemX, stemY1);
+      prCtx.lineTo(stemX, stemY2);
+      prCtx.stroke();
+      prCtx.restore();
+
+      // Eighth note flag — thick and bold
+      if (isEighth) {
+        const d = stemUp ? 1 : -1;
+        prCtx.save();
+        prCtx.strokeStyle = color;
+        prCtx.lineWidth   = Math.max(2.5, LG * 0.16);
+        prCtx.lineCap     = 'round';
+        prCtx.shadowColor = color;
+        prCtx.shadowBlur  = 6;
+        prCtx.beginPath();
+        prCtx.moveTo(stemX, stemY2);
+        prCtx.bezierCurveTo(
+          stemX + LG * 1.1 * d, stemY2 + LG * 0.6 * d,
+          stemX + LG * 0.9 * d, stemY2 + LG * 1.9 * d,
+          stemX + LG * 0.1 * d, stemY2 + LG * 2.6 * d
+        );
+        prCtx.stroke();
+        prCtx.restore();
       }
     }
 
-    // Note head glow
-    sCtx.shadowColor = color;
-    sCtx.shadowBlur  = i === staffNotes.length - 1 ? 16 : 6;
+    // ── Augmentation dot ──────────────────────────────────────
+    if (isDotted) {
+      const dotR = Math.max(4, Math.round(LG * 0.28));
+      const dotX = noteX + RX + dotR * 1.8;
+      const onLine = Math.abs((noteY - geo.tTop) % LG) < 2 ||
+                     Math.abs((noteY - geo.bTop) % LG) < 2;
+      const dotY  = onLine ? noteY - LG * 0.38 : noteY;
+      prCtx.save();
+      prCtx.fillStyle   = color;
+      prCtx.shadowColor = color;
+      prCtx.shadowBlur  = 8;
+      prCtx.beginPath();
+      prCtx.arc(dotX, dotY, dotR, 0, Math.PI * 2);
+      prCtx.fill();
+      prCtx.restore();
+    }
 
-    // Note head (filled ellipse)
-    sCtx.fillStyle = color;
-    sCtx.beginPath();
-    sCtx.ellipse(noteX, noteY, 7, 5, -0.18, 0, Math.PI * 2);
-    sCtx.fill();
-    sCtx.shadowBlur = 0;
-
-    // Sharp accidental
+    // ── Sharp sign ────────────────────────────────────────────
     if (isSharp) {
-      sCtx.fillStyle = color;
-      sCtx.font = 'bold 13px serif';
-      sCtx.textAlign = 'right';
-      sCtx.fillText('♯', noteX - 9, noteY + 5);
+      prCtx.save();
+      prCtx.fillStyle    = color;
+      prCtx.font         = `bold ${Math.round(LG * 1.4)}px sans-serif`;
+      prCtx.textAlign    = 'right';
+      prCtx.textBaseline = 'middle';
+      prCtx.shadowColor  = color;
+      prCtx.shadowBlur   = 8;
+      prCtx.fillText('♯', noteX - RX - 5, noteY);
+      prCtx.restore();
     }
 
-    sCtx.globalAlpha = 1;
+    // ── Note letter inside filled notehead ────────────────────
+    if (!isWhole && !isHalf) {
+      prCtx.save();
+      prCtx.fillStyle    = '#fff';
+      prCtx.font         = `bold ${Math.max(11, Math.round(LG * 0.78))}px "DM Mono",monospace`;
+      prCtx.textAlign    = 'center';
+      prCtx.textBaseline = 'middle';
+      prCtx.shadowColor  = 'rgba(0,0,0,0.6)';
+      prCtx.shadowBlur   = 3;
+      prCtx.fillText(NOTE_NAMES[n.midi % 12].replace('#', ''), noteX, noteY + 0.5);
+      prCtx.restore();
+    }
+
+    prCtx.globalAlpha = 1;
+  });
+
+  // ── Staff firework particles ──────────────────────────────
+  updateStaffParticles(prCtx);
+}
+
+// ══════════════════════════════════════════════════════════
+//  TREBLE CLEF — rendered from SVG path (Openclipart, public domain)
+//  The original path is in viewBox 0 0 744.09 1052.4.
+//  We scale + position it so the G4 spiral aligns with tTop+3*L.
+//  The SVG is re-coloured by drawing white then tinting with color.
+// ══════════════════════════════════════════════════════════
+const _trebleClefImgCache = new Map(); // color → HTMLImageElement
+
+function getTrebleClefImage(color, onReady) {
+  if (_trebleClefImgCache.has(color)) {
+    const img = _trebleClefImgCache.get(color);
+    if (img.complete) onReady(img);
+    else img.addEventListener('load', () => onReady(img), { once: true });
+    return;
+  }
+  // Build inline SVG with the desired fill color, no stroke
+  const pathD = "m278.89 840.5c0 23.811 27.144 51.133 48.193 55.108 0 0 22.508 5.6134 41.03 1.1224 3.3461 0.75146 59.498-9.5416 60.62-84.755l-11.843-91.536c7.8919-1.3481 33.643-13.763 41.592-18.478 21.812-12.943 31.355-31.636 39.852-45.465 9.5416-20.768 15.155-34.946 15.155-57.556 0-57.185-46.341-103.54-103.5-103.54-8.2386 0-16.243 0.97722-23.934 2.7962l-10.216-73.464c38.684-43.006 77.897-95.869 91.065-144.31 12.91-63.989 6.7357-107.21-27.504-125.73-31.432-7.2969-69.589 35.643-92.052 97.666-14.594 33.116 3.9976 96.385 12.349 122.36-61.528 58.983-122.74 101.28-129.1 203.51 0 80.053 64.874 144.94 144.89 144.94 7.6452 0 20.275 0.179 34.643-1.6835l6.7583 91.412s2.593 66.862-48.293 75.922c-20.196 3.5928-39.674 7.7565-34.07-5.6118 15.739-8.1967 34.07-21.263 34.07-42.704 0-26.683-20.085-48.316-44.849-48.316-24.774 0-44.859 21.633-44.859 48.316zm90.975-409.14 9.5303 68.634c-42.22 13.057-72.901 52.426-72.901 98.946 0 52.649 62.945 77.202 61.239 64.706-24.54-10.587-33.633-22.486-33.633-50.911 0-32.129 21.958-59.115 51.673-66.806l22.665 163.41c-5.0974 1.3804-10.598 2.5479-16.558 3.4799-86.249-1.7287-126.79-47.632-126.79-127.68 0.002-44.846 52.809-96.576 104.77-153.77zm45.197 275.97-22.599-162.78c3.4574-0.5386 7.0163-0.83047 10.632-0.83047 38.1 0 68.994 30.905 68.994 69.017-0.76275 30.67-2.2237 76.336-57.027 94.59zm-48.06-342.71c-15.548-52.459-1.4932-78.603 7.6323-98.699 21.565-47.452 40.537-64.706 59.857-80.108 25.124 9.8561 13.784 80.108 10.012 80.108-11.831 41.446-54.276 74.395-77.502 98.699z";
+  const svgSrc = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 744.09 1052.4">
+    <path d="${pathD}" fill="${color}" stroke="none"/>
+  </svg>`;
+  const blob = new Blob([svgSrc], { type: 'image/svg+xml' });
+  const url  = URL.createObjectURL(blob);
+  const img  = new Image();
+  img.onload = () => { URL.revokeObjectURL(url); onReady(img); };
+  img.src = url;
+  _trebleClefImgCache.set(color, img);
+}
+
+function drawTrebleClef(ctx, x, tTop, L, color) {
+  // SVG natural dimensions: 744.09 wide × 1052.4 tall
+  // The G4 spiral sits at ~80% down the SVG height (≈ y=840 out of 1052)
+  // We want that point to map to tTop + 3*L (the G4 staff line).
+  //
+  // Target height: spans from (tTop - 1.8*L) to (tTop + 4.6*L)  = 6.4*L total
+  const targetH  = L * 6.4;
+  const targetW  = targetH * (744.09 / 1052.4);   // preserve aspect ratio
+  //
+  // The G4 anchor in the SVG is at y≈840/1052.4 = 0.799 of the height.
+  // So the top of the image should be: (tTop + 3*L) - 0.799 * targetH
+  const svgG4frac = 0.799;
+  const imgTop   = (tTop + 3 * L) - svgG4frac * targetH;
+  const imgLeft  = x - targetW * 0.05;   // slight left nudge so it doesn't crowd the barline
+
+  getTrebleClefImage(color, img => {
+    ctx.save();
+    ctx.drawImage(img, imgLeft, imgTop, targetW, targetH);
+    ctx.restore();
   });
 }
-drawLiveStaff();
+// ══════════════════════════════════════════════════════════
+//  BASS CLEF  — matches reference image exactly
+//
+//  The bass clef has two distinct parts:
+//    1. A large bold comma/teardrop shape:
+//       - Large filled circle at the top (the "head")
+//       - A thick C-curve tail sweeping down and to the right
+//    2. Two filled dots to the right, flanking the F3 line
+//
+//  F3 = bTop + L  (line 4 from bottom = 2nd from top)
+//  The head of the comma sits ON or just above the F3 line.
+//  The tail sweeps down to about line3 (D3 = bTop + 2L).
+// ══════════════════════════════════════════════════════════
+function drawBassClef(ctx, x, bTop, L, color) {
+  // Staff line Y positions
+  const y5 = bTop;           // A3 — top line
+  const y4 = bTop + L;       // F3 — 2nd from top ← anchor
+  const y3 = bTop + 2 * L;   // D3 — middle line
+  const y2 = bTop + 3 * L;   // B2
+  const y1 = bTop + 4 * L;   // G2 — bottom line
 
-/* ═══════════════════════════════════════════════════════════
-   KEYBOARD SHORTCUTS — attack on keydown, release on keyup
-═══════════════════════════════════════════════════════════ */
+  const F3y = y4;  // anchor line
+
+  // Left edge of glyph
+  const lx = x + L * 0.15;
+
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle   = color;
+  ctx.lineCap     = 'round';
+  ctx.lineJoin    = 'round';
+
+  // ── 1. LARGE HEAD CIRCLE (the comma top) ─────────────────
+  // Sits centred just above/on the F3 line.
+  // Radius ≈ 0.55L so the circle spans from ~y5 top down to F3+a bit
+  const headR  = L * 0.52;
+  const headCx = lx + headR;
+  const headCy = F3y - headR * 0.15;  // centre just above F3
+
+  ctx.beginPath();
+  ctx.arc(headCx, headCy, headR, 0, Math.PI * 2);
+  ctx.fill();
+
+  // ── 2. COMMA TAIL — thick stroke sweeping down-right ─────
+  // Starts at the bottom-right of the head circle,
+  // curves down and right, then back left, tapering to a point
+  // near the middle of the staff (D3 area).
+  const tailSw = Math.max(3, L * 0.28);  // thick tail
+  ctx.lineWidth = tailSw;
+  ctx.strokeStyle = color;
+
+  // Start: bottom of head circle, right side
+  const tailStartX = headCx + headR * 0.6;
+  const tailStartY = headCy + headR * 0.85;
+
+  ctx.beginPath();
+  ctx.moveTo(tailStartX, tailStartY);
+  ctx.bezierCurveTo(
+    lx + L * 1.5,  y3 - L * 0.2,   // sweep right and down
+    lx + L * 1.2,  y3 + L * 0.35,  // bottom of sweep
+    lx + L * 0.3,  y3 + L * 0.55   // tail end — points left/down
+  );
+  ctx.stroke();
+
+  // ── 3. TWO DOTS flanking F3 ───────────────────────────────
+  // Dot 1 in the space ABOVE F3 (between y5 and y4 = F3 - L*0.5)
+  // Dot 2 in the space BELOW F3 (between y4 and y3 = F3 + L*0.5)
+  const dotR  = Math.max(3.5, L * 0.23);
+  const dotX  = lx + L * 2.05;    // to the right of the comma
+  const dot1Y = F3y - L * 0.48;   // space above F3
+  const dot2Y = F3y + L * 0.48;   // space below F3
+
+  ctx.beginPath();
+  ctx.arc(dotX, dot1Y, dotR, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(dotX, dot2Y, dotR, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// ── Practice keyboard canvas ──────────────────────────────
+let prKbHeld = null;
+
+function drawPracticeKb(highlight) {
+  const W = prKbEl.width || 900, H = 80;
+  prKbCtx.clearRect(0, 0, W, H);
+  prKbCtx.fillStyle = '#0a0812';
+  prKbCtx.fillRect(0, 0, W, H);
+
+  const wkw = W / N_WHITE;
+  const { keys } = buildKeyLayout(W);
+
+  // Which midi should be lit (next note)
+  const curBeat  = pr.curBeat || 0;
+  const litMidis = new Set();
+  if (pr.waitingForNote && pr.waitTarget) {
+    litMidis.add(pr.waitTarget.midi);
+  } else {
+    pr.notes.forEach(n => {
+      if (n.hit || n.missed) return;
+      const d = Math.abs(n.beat - curBeat);
+      if (d < 1.5) litMidis.add(n.midi);
+    });
+  }
+
+  // White keys
+  keys.filter(k => !k.isSharp).forEach(k => {
+    const note   = NOTE_NAMES[k.midi % 12];
+    const isLit  = litMidis.has(k.midi);
+    const isHL   = highlight && highlight.midi === k.midi;
+    const color  = isHL ? (highlight.correct ? '#39D98A' : '#EF4444') :
+                   isLit ? (NOTE_COLORS[note] || '#FF2D78') : '#f5f2ec';
+    const r = 4;
+    prKbCtx.fillStyle = color;
+    if (isLit || isHL) { prKbCtx.shadowColor = color; prKbCtx.shadowBlur = 14; }
+    prKbCtx.beginPath();
+    prKbCtx.moveTo(k.x+1,0); prKbCtx.lineTo(k.x+wkw-1,0);
+    prKbCtx.lineTo(k.x+wkw-1,H-r);
+    prKbCtx.arcTo(k.x+wkw-1,H,k.x+wkw-1-r,H,r);
+    prKbCtx.lineTo(k.x+1+r,H);
+    prKbCtx.arcTo(k.x+1,H,k.x+1,H-r,r);
+    prKbCtx.lineTo(k.x+1,0); prKbCtx.closePath();
+    prKbCtx.fill();
+    prKbCtx.shadowBlur = 0;
+    prKbCtx.strokeStyle='#222';prKbCtx.lineWidth=0.8;prKbCtx.stroke();
+    if (note==='C') {
+      prKbCtx.fillStyle = isLit ? '#fff' : '#8a6030';
+      prKbCtx.font = `bold ${Math.max(7,wkw*.38)}px "DM Mono",monospace`;
+      prKbCtx.textAlign = 'center';
+      prKbCtx.fillText('C'+(Math.floor(k.midi/12)-1), k.x+wkw/2, H-6);
+    }
+  });
+  // Black keys
+  keys.filter(k => k.isSharp).forEach(k => {
+    const bkw = wkw * 0.62, bkh = H * 0.62, r = 3;
+    const note = NOTE_NAMES[k.midi % 12];
+    const base = note.replace('#','');
+    const isLit = litMidis.has(k.midi);
+    const color = isLit ? (SHARP_COLORS[base] || '#FF2D78') : '#1a1428';
+    if (isLit) { prKbCtx.shadowColor = color; prKbCtx.shadowBlur = 12; }
+    prKbCtx.fillStyle = color;
+    prKbCtx.beginPath();
+    prKbCtx.moveTo(k.x,0);prKbCtx.lineTo(k.x+bkw,0);
+    prKbCtx.lineTo(k.x+bkw,bkh-r);
+    prKbCtx.arcTo(k.x+bkw,bkh,k.x+bkw-r,bkh,r);
+    prKbCtx.lineTo(k.x+r,bkh);
+    prKbCtx.arcTo(k.x,bkh,k.x,bkh-r,r);
+    prKbCtx.lineTo(k.x,0);prKbCtx.closePath();
+    prKbCtx.fill();prKbCtx.shadowBlur=0;
+    prKbCtx.strokeStyle='rgba(0,0,0,.5)';prKbCtx.lineWidth=0.5;prKbCtx.stroke();
+  });
+}
+
+// Practice keyboard mouse/touch
+let prKbMouseHeld = null;
+
+function getPrKbKey(cx, cy) {
+  const { keys } = buildKeyLayout(prKbEl.width);
+  const bkw = prKbEl.width / N_WHITE * 0.62;
+  const bkh = 80 * 0.62;
+  if (cy < bkh) {
+    for (const k of keys.filter(k => k.isSharp)) {
+      if (cx >= k.x && cx <= k.x + bkw) return k;
+    }
+  }
+  const wi = Math.floor(cx / (prKbEl.width / N_WHITE));
+  return keys.filter(k => !k.isSharp)[wi] || null;
+}
+
+prKbEl.addEventListener('mousedown', e => {
+  e.preventDefault();
+  startAudio();
+  const rect = prKbEl.getBoundingClientRect();
+  const k = getPrKbKey(
+    (e.clientX - rect.left) * (prKbEl.width / rect.width),
+    (e.clientY - rect.top)  * (80 / rect.height)
+  );
+  if (k) { prKbMouseHeld = k.midi; practiceKeyPress(k.midi); }
+});
+prKbEl.addEventListener('touchstart', e => {
+  e.preventDefault(); startAudio();
+  const t = e.changedTouches[0];
+  const rect = prKbEl.getBoundingClientRect();
+  const k = getPrKbKey(
+    (t.clientX - rect.left) * (prKbEl.width / rect.width),
+    (t.clientY - rect.top)  * (80 / rect.height)
+  );
+  if (k) { prKbMouseHeld = k.midi; practiceKeyPress(k.midi); }
+}, {passive:false});
+prKbEl.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (prKbMouseHeld !== null) { practiceKeyRelease(prKbMouseHeld); prKbMouseHeld = null; }
+}, {passive:false});
+
+// ── Keyboard shortcuts (shared handler updated below) ─────
 const KB_MAP = { a:60, s:62, d:64, f:65, g:67, h:69, j:71, k:72, l:74 };
-const heldKbKeys = new Set(); // track which kb keys are physically held
+const heldKbKeys = new Set();
 
 document.addEventListener('keydown', e => {
   if (e.repeat) return;
-
-  // Escape closes modal or pauses game
   if (e.code === 'Escape') {
-    if (document.getElementById('inputModal').classList.contains('active')) {
-      closeInputModal(); return;
-    }
+    if (document.getElementById('inputModal').classList.contains('active')) { closeInputModal(); return; }
     if (currentScreen() === 'game') pauseGame();
     return;
   }
-
   const midi = KB_MAP[e.key.toLowerCase()];
   if (!midi) return;
-
-  if (currentScreen() === 'play') {
-    if (!heldKbKeys.has(midi)) {
-      heldKbKeys.add(midi);
-      triggerNote(midi, playPianoCanvas);
-    }
-    return;
-  }
-
-  if (currentScreen() === 'game') {
+  if (heldKbKeys.has(midi)) return;
+  heldKbKeys.add(midi);
+  if (currentScreen() === 'play') practiceKeyPress(midi);
+  else if (currentScreen() === 'game') {
     if (game.inputMode === 'midi' || game.inputMode === 'mic') return;
-    if (!heldKbKeys.has(midi)) {
-      heldKbKeys.add(midi);
-      gameKeyPress(midi);
-    }
+    gameKeyPress(midi);
   }
 });
 
@@ -1406,17 +2122,142 @@ document.addEventListener('keyup', e => {
   const midi = KB_MAP[e.key.toLowerCase()];
   if (!midi) return;
   heldKbKeys.delete(midi);
-  if (currentScreen() === 'play') {
-    releaseNote(midi);
-  } else if (currentScreen() === 'game') {
-    gameKeyRelease(midi);
-  }
+  if (currentScreen() === 'play') practiceKeyRelease(midi);
+  else if (currentScreen() === 'game') gameKeyRelease(midi);
 });
 
 function currentScreen() {
   const s = document.querySelector('.screen.active');
   return s ? s.id.replace('screen-', '') : 'play';
 }
+
+// ── MULTIPLAYER via BroadcastChannel ──────────────────────
+function openMultiplayerLobby() {
+  // Populate song select
+  const sel = document.getElementById('mpSongSelect');
+  sel.innerHTML = SONGS.map(s => `<option value="${s.id}">${s.name} — ${s.composer}</option>`).join('');
+  generateRoomCode();
+  document.getElementById('mpStatus').textContent = '';
+  document.getElementById('mpLobby').style.display = 'flex';
+}
+
+function closeMpLobby() {
+  document.getElementById('mpLobby').style.display = 'none';
+}
+
+function generateRoomCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  document.getElementById('mpRoomInput').value = code;
+}
+
+function joinMpRoom() {
+  const code   = document.getElementById('mpRoomInput').value.trim().toUpperCase();
+  const songId = document.getElementById('mpSongSelect').value;
+  if (!code || code.length < 4) {
+    document.getElementById('mpStatus').textContent = '⚠ Enter a room code (min 4 chars)';
+    return;
+  }
+  const song = SONGS.find(s => s.id === songId);
+  if (!song) return;
+
+  const channelName = 'pianohero-' + code;
+  const ch = new BroadcastChannel(channelName);
+
+  pr.mpRoom    = code;
+  pr.mpChannel = ch;
+  pr.mpOpScore = 0;
+  pr.mpOpAcc   = 0;
+  pr.mpOpDone  = false;
+
+  ch.onmessage = ev => {
+    const msg = ev.data;
+    if (msg.type === 'hello') {
+      document.getElementById('mpStatus').textContent = '✓ Opponent connected! Starting in 3…';
+      ch.postMessage({ type: 'hello' });
+      setTimeout(() => {
+        closeMpLobby();
+        launchPractice(song, practiceMode === 'wait', 'keyboard');
+      }, 2000);
+    } else if (msg.type === 'score') {
+      pr.mpOpScore = msg.score;
+      pr.mpOpAcc   = msg.total > 0 ? Math.round(msg.hits / msg.total * 100) : 0;
+    } else if (msg.type === 'done') {
+      pr.mpOpScore = msg.score;
+      pr.mpOpAcc   = msg.acc;
+      pr.mpOpDone  = true;
+      if (!pr.active) {
+        const myAcc = pr.totalNotes > 0 ? Math.round(pr.hitNotes/pr.totalNotes*100) : 0;
+        showMpResult(myAcc);
+      }
+    }
+  };
+
+  // Broadcast hello to see if anyone is in the room
+  ch.postMessage({ type: 'hello' });
+  document.getElementById('mpStatus').textContent = '⏳ Waiting for opponent in room ' + code + '…';
+
+  // If no reply in 30s, offer to play solo
+  setTimeout(() => {
+    if (document.getElementById('mpLobby').style.display !== 'none' &&
+        document.getElementById('mpStatus').textContent.includes('Waiting')) {
+      document.getElementById('mpStatus').textContent =
+        '⏳ Still waiting… or play solo:';
+    }
+  }, 8000);
+}
+
+function mpBroadcast(msg) {
+  if (pr.mpChannel) pr.mpChannel.postMessage(msg);
+}
+
+function showMpResult(myAcc) {
+  const panel = document.getElementById('prMpPanel');
+  panel.style.display = 'block';
+  const opAcc  = pr.mpOpAcc;
+  const opScore = pr.mpOpScore;
+  const myScore = pr.score;
+  let result, detail;
+  if (myScore > opScore) {
+    result = '🏆 YOU WIN!';
+    detail = `Your score: ${myScore.toLocaleString()} (${myAcc}%) vs Opponent: ${opScore.toLocaleString()} (${opAcc}%)`;
+  } else if (opScore > myScore) {
+    result = '😅 Opponent wins';
+    detail = `Your score: ${myScore.toLocaleString()} (${myAcc}%) vs Opponent: ${opScore.toLocaleString()} (${opAcc}%)`;
+  } else {
+    result = '🤝 It\'s a tie!';
+    detail = `Both scored ${myScore.toLocaleString()}`;
+  }
+  document.getElementById('prMpResult').textContent   = result;
+  document.getElementById('prMpOpponent').textContent = detail;
+}
+
+// Patch confirmAndPlay to route to practice when appropriate
+const _origConfirmAndPlay = confirmAndPlay;
+window.confirmAndPlay = function() {
+  if (modal._target === 'practice') {
+    modal._target = null;
+    const song      = modal.song;
+    const waitMode  = modal.selectedMode === 'wait';
+    const inputMode = modal.selectedInput;
+    closeInputModal();
+    game.inputMode = inputMode;
+    if (inputMode === 'mic') {
+      startMic().then(() => launchPractice(song, waitMode, inputMode));
+    } else {
+      launchPractice(song, waitMode, inputMode);
+    }
+  } else {
+    _origConfirmAndPlay();
+  }
+};
+
+// document mouseup — covers both game kb and practice kb on desktop
+document.addEventListener('mouseup', () => {
+  if (gameKbHeldMidi !== null)  { gameKeyRelease(gameKbHeldMidi);    gameKbHeldMidi = null; }
+  if (prKbMouseHeld  !== null)  { practiceKeyRelease(prKbMouseHeld); prKbMouseHeld  = null; }
+});
 
 /* ═══════════════════════════════════════════════════════════
    MIDI INPUT
@@ -1484,24 +2325,23 @@ function refreshMidiDevices() {
 
 function onMidiMessage(msg) {
   const [status, note, velocity] = msg.data;
-  const cmd    = status & 0xF0;
-  const isOn   = cmd === 0x90 && velocity > 0;
-  const isOff  = cmd === 0x80 || (cmd === 0x90 && velocity === 0);
+  const cmd   = status & 0xF0;
+  const isOn  = cmd === 0x90 && velocity > 0;
+  const isOff = cmd === 0x80 || (cmd === 0x90 && velocity === 0);
 
-  // Block during modal
   if (document.getElementById('inputModal').classList.contains('active')) return;
   if (modal.selectedInput !== 'midi' && modal.selectedInput !== null) return;
 
   if (isOn) {
     startAudio();
     if (currentScreen() === 'play') {
-      triggerNote(note, playPianoCanvas);
+      practiceKeyPress(note);
     } else if (currentScreen() === 'game') {
       gameKeyPress(note);
     }
   } else if (isOff) {
     if (currentScreen() === 'play') {
-      releaseNote(note);
+      practiceKeyRelease(note);
     } else if (currentScreen() === 'game') {
       gameKeyRelease(note);
     }
@@ -1613,7 +2453,7 @@ const SONGS = [
     id: 'someone',
     name: 'Someone You Loved',
     composer: 'Lewis Capaldi',
-    bpm: 72, difficulty: 'medium', color: '#e6317a',
+    bpm: 72, difficulty: 'medium', color: '#FF2D78',
     notes: [
       // Verse melody — "I was getting kinda used to being someone you loved"
       // Key of C, mostly stepwise, gentle and singable
@@ -2347,7 +3187,7 @@ function launchGame(song, waitMode = false) {
   game.notes = song.notes.map(([midi, beat, dur]) => {
     const note  = NOTE_NAMES[midi % 12];
     const base  = note.replace('#','');
-    const color = NOTE_COLORS[base] || '#e6317a';
+    const color = NOTE_COLORS[base] || '#FF2D78';
     return {
       midi, beat, dur,
       color,
@@ -2648,7 +3488,7 @@ function renderGameKeyboard() {
     const note    = NOTE_NAMES[k.midi % 12];
     const isWait  = waitTargetMidi === k.midi;
     const isLit   = litMidis.has(k.midi) || game.pressedKeys.has(k.midi);
-    const color   = isWait ? '#00D4FF' : (NOTE_COLORS[note] || '#e6317a');
+    const color   = isWait ? '#00D4FF' : (NOTE_COLORS[note] || '#FF2D78');
     const oct     = Math.floor(k.midi / 12) - 1;
 
     gkCtx.fillStyle = isLit ? color : (note === 'C' ? '#f0edd8' : '#f5f2ec');
@@ -2682,7 +3522,7 @@ function renderGameKeyboard() {
     const base   = note.replace('#','');
     const isWait = waitTargetMidi === k.midi;
     const isLit  = litMidis.has(k.midi) || game.pressedKeys.has(k.midi);
-    const color  = isWait ? '#00D4FF' : (SHARP_COLORS[base] || '#e6317a');
+    const color  = isWait ? '#00D4FF' : (SHARP_COLORS[base] || '#FF2D78');
 
     gkCtx.fillStyle = isLit ? color : '#1a1428';
     if (isLit) {
@@ -2879,7 +3719,7 @@ function endGame(completed) {
         spawnParticles(
           Math.random() * window.innerWidth,
           Math.random() * window.innerHeight * 0.6,
-          ['#e6317a','#39D98A','#00D4FF','#F59E0B','#A855F7'][Math.floor(Math.random()*5)],
+          ['#FF2D78','#39D98A','#00D4FF','#F59E0B','#A855F7'][Math.floor(Math.random()*5)],
           20
         );
       }, i * 200);
@@ -2990,7 +3830,7 @@ function micPitchLoop() {
 
   const screen = currentScreen();
   if (screen === 'play') {
-    triggerNote(midi, playPianoCanvas);
+    practiceKeyPress(midi);
   } else if (screen === 'game' && game.inputMode === 'mic') {
     gameKeyPress(midi);
   }
@@ -3051,8 +3891,7 @@ mainLoop();
 resizeGame();
 window.addEventListener('resize', () => {
   resizeGame();
-  drawPlayPiano();
-  drawLiveStaff();
+  resizePracticeCanvases();
 });
 
 // Copy terminal command to clipboard
@@ -3071,8 +3910,8 @@ function copyCmd(el) {
   });
 }
 
-// Kick off with a gentle note animation on staff
-setTimeout(() => drawLiveStaff(), 100);
+// Init: build practice song list on first load
+buildPracticeSongList();
 </script>
 </body>
 </html>
